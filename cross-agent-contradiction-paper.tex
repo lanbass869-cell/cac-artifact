@@ -206,7 +206,7 @@ We construct two memory contexts for the \emph{packy} entity. We select \emph{pa
 We query two LLM judges (deepseek-v4.1-flash, glm-5.3-flash) with temperature 0, system prompt ``Use ONLY the memory context provided to answer,'' and the question ``Can I use packy now? Which group should I use?'' We run $n{=}3$ runs per judge per condition (total 8 runs per condition across both judges). Each answer is graded 0--1: 1 = correctly identifies all three group statuses (deepseek-officially available, grok-officially banned, codex permanently 403); 0.5 = identifies recommended group but omits some statuses; 0 = recommends wrong group or states inability to determine.
 
 \subsection{Reproducibility}
-All scan scripts, classification rules, stopword lists, and downstream prompts are available in the reproducibility package (\texttt{scan\_contradictions.py}, \texttt{classify\_contradictions.py}, \texttt{downstream\_test.py}). The production database schema and entity counts can be verified with standard SQLite queries (provided in the package README).
+All scan scripts, classification rules, stopword lists, and downstream prompts are available at \url{https://github.com/lanbass869-cell/cac-artifact}. The package includes a synthetic database (102 facts, 16 entities, 13 known contradiction pairs) with a \texttt{Makefile} one-command reproduction: \texttt{make scan \&\& make classify}.
 
 
 
