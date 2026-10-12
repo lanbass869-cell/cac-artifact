@@ -1,0 +1,50 @@
+{
+  "conflictbank_sample.jsonl": {
+    "sha256": "a05201b63020a4e1",
+    "size_bytes": 9495785
+  },
+  "conflictbank_sample2.jsonl": {
+    "sha256": "7b4b2d9f120b6c37",
+    "size_bytes": 7021579
+  },
+  "synthetic_memory.db": {
+    "sha256": "24d7483274d13247",
+    "size_bytes": 57344
+  },
+  "benchmark_memory.db": {
+    "sha256": "93146a38e754055a",
+    "size_bytes": 188416
+  },
+  "benchmark_ground_truth.json": {
+    "sha256": "ea523d28e5733748",
+    "size_bytes": 20564
+  },
+  "scan_contradictions_results.json": {
+    "sha256": "21c4aae146c58ee3",
+    "size_bytes": 10723
+  },
+  "contradiction_classification.json": {
+    "sha256": "d9e2103c69d8faa4",
+    "size_bytes": 254827
+  },
+  "detector_evaluation.json": {
+    "sha256": "f708d6cdcc18e1fd",
+    "size_bytes": 837
+  },
+  "conflictbank_evaluation_large.json": {
+    "sha256": "fd67ad109cd8f81a",
+    "size_bytes": 438
+  },
+  "llm_vs_ours_v2.json": {
+    "sha256": "d8ce25f127189497",
+    "size_bytes": 370
+  },
+  "cross_entity_downstream.json": {
+    "sha256": "9409f5dd01b49155",
+    "size_bytes": 4362
+  },
+  "downstream_expanded_results.json": {
+    "sha256": "5b01d6155d709bf6",
+    "size_bytes": 433
+  }
+}

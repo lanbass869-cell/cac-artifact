@@ -1,0 +1,923 @@
+{
+  "entities": [
+    {
+      "entity": "entity_000",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-21b8901398bb"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_001",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-643c16554071",
+        "fact-e14ae531acfd"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_002",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-5aba1a8374eb",
+        "fact-35c0dc61e9b3"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_003",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-849e63f8101a",
+        "fact-c616f8fd0ba8"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_004",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-0bbfc81ad835",
+        "fact-8c8050eed40e"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_005",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-f289fecbb6a5",
+        "fact-e7310890b010"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_006",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-8be93761a56d",
+        "fact-af165d337643"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_007",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-fed273606f4c",
+        "fact-76ff8b24f98b"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_008",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-d11d6f9901a9",
+        "fact-54a542a7ee09"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_009",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-4eee52db9fa0"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_010",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-b2435ad84e0a",
+        "fact-d052f27b81fb"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_011",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-4ecde331ce69",
+        "fact-2edfce0b5ecd"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_012",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-d3d74c3035df",
+        "fact-4a6f8f1f2f41"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_013",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-4b0e8bba51a5",
+        "fact-5db4466426fa"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_014",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-69a7737ec218",
+        "fact-a5dca33037d1",
+        "fact-6a3b73a0cc16"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_015",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-7caf9fe9b8d8",
+        "fact-b743ac8a4144"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_016",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-6236570d6cf0"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_017",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-8bce7476acbd",
+        "fact-ef8e9a16d245",
+        "fact-75e4f6d7b0f3"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_018",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-22a93bc29b1d",
+        "fact-f104af6b1ba1"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_019",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-a1a06765e722",
+        "fact-8a9ec7d953e4",
+        "fact-7c9a57575449"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_020",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-837b70463a58",
+        "fact-5f85743b5bfb",
+        "fact-3b49c9fd454b"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_021",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-d7d97720f7d6",
+        "fact-1a0294f1c9c3"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_022",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-99bf33a22107",
+        "fact-943bb7aecaae"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_023",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-0c9de7746487",
+        "fact-9eb903ad90cd"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_024",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-29a7155ad5b4"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_025",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-f68fa8635cac",
+        "fact-38e7b1f93288",
+        "fact-1fe71d7b84df"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_026",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-b21cd5c40bd9",
+        "fact-728588753b93"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_027",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-7089dd787b6a",
+        "fact-27f5baddd65b"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_028",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-61ad7be0c452",
+        "fact-89c21d93e274",
+        "fact-40cea2759a64"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_029",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-399f4fa49ab0"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_030",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-34cca21a0c05",
+        "fact-2e563ce5842e"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_031",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-c3aa6d816415",
+        "fact-b46a5a79f59a"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_032",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-f471e27abf6b",
+        "fact-26176f057fd1"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_033",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-13af05fc3d89",
+        "fact-d3cc94ff8c1d",
+        "fact-25c904261175"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_034",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-87f076a7e119",
+        "fact-14a85f8791bd"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_035",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-6b554fa7116b",
+        "fact-520f8a6df6e0",
+        "fact-441827d58143"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_036",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-b450d962a0b3",
+        "fact-655bc91029a4"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_037",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-c164a7a06904",
+        "fact-32450b26b8dc"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_038",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-99b6105c9de1",
+        "fact-d39864552818"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_039",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-422c1fa799ae",
+        "fact-af5f577ac951"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_040",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-af1969fb0e93",
+        "fact-98f7cdf1a0bf"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_041",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-a0a55864df92",
+        "fact-1ae4aa2b18a5",
+        "fact-2bffe1a804f5"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_042",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-1d1cde05c262"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_043",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-374b784c7d5f",
+        "fact-f7468fdc24ad",
+        "fact-81dd4c4e26f3"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_044",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-561351b520e7",
+        "fact-dc79e032f96c"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_045",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-71e908326936",
+        "fact-a85f8c80d065"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_046",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-19c255adaf72",
+        "fact-2bf03ce546d7"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_047",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-515ebe6f77e8",
+        "fact-cb19d851a496"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_048",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-4ff1a5caf29c",
+        "fact-01c5699af5c9"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_049",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-b768447f4e71",
+        "fact-d7e71ad5518e"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_050",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-37597f2e16b7",
+        "fact-669251782d89",
+        "fact-c28dd842e3f8"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_051",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-24882f2ab9d9",
+        "fact-1fc43990e8a4"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_052",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-77395bbdf258",
+        "fact-574314693d25",
+        "fact-95c78740f8f3"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_053",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-78d6ebc56938",
+        "fact-18c4fa1f6c5f"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_054",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-00bc82e2e569"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_055",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-5164eda94af9",
+        "fact-3078bc6d39b3",
+        "fact-7663897dbb88"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_056",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-e55cbab93383",
+        "fact-f443b55ec41a"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_057",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-f1eab3d4841b",
+        "fact-30e33157a2ff"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_058",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-40ca3bd0e6de",
+        "fact-f67efee091f4"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_059",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-5bab054a39a6",
+        "fact-6561f7e06745"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_060",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-a72aeecbaf53",
+        "fact-f77f5beccdca",
+        "fact-9c885e1de382"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_061",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-702698a40403",
+        "fact-16b80ef7422a"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_062",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-6aa8a5288b30",
+        "fact-04a88d354eb1"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_063",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-109b0b633d08",
+        "fact-4db59a542a34"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_064",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-ffac5626c7d4",
+        "fact-bce8f8233aed"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_065",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-9d3cb87d5f0e",
+        "fact-f1f7393e8c68"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_066",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-7de569324e96",
+        "fact-256d7aa4dfa7"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_067",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-2eff8d1d002a",
+        "fact-b0859a977080"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_068",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-e83945c1f73b",
+        "fact-4d1fa0667ab1",
+        "fact-da5ffee3eb94"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_069",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-2dde499da86b",
+        "fact-cb1b5131999f",
+        "fact-5ac7386296c4"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_070",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-c2651f7c1168",
+        "fact-6051956461ee"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_071",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-442244c5fb79"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_072",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-6d76da949b72",
+        "fact-65bafc54c5e3"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_073",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-7b74bdc67a3a"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_074",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-8ed60fbc9e13",
+        "fact-a299aaf5c113"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_075",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-985016f1f247",
+        "fact-3777b54c1daa",
+        "fact-2f3228f362a6"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_076",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-034bc9c8531a",
+        "fact-7f5661572ace"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_077",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-52699678ee22",
+        "fact-42d9df7368a6",
+        "fact-7b729c3034c9"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_078",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-d5d0b8f1dc4f",
+        "fact-75d7fc3c95ba"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_079",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-5485b44dfa1f",
+        "fact-efd2d3bdca79"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_080",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-bbe779dd1fab",
+        "fact-dc6fd75482dc"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_081",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-c71d70f3b2a2"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_082",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-aa0abc611319",
+        "fact-87051db731c1"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_083",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-f280a7ba26ad",
+        "fact-11c96f524189"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_084",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-acc363a1e055",
+        "fact-6d6827f1903e",
+        "fact-f64bc66a8211"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_085",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-9caa46f33e19"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_086",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-0758d45bdb1e",
+        "fact-5684fa780d22"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_087",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-05e2f0cba33e",
+        "fact-5d91a03806ed",
+        "fact-c41754cb35ff"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_088",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-8ab05c6b43f6",
+        "fact-ff2403d6e7b9",
+        "fact-8a690a24de6d"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_089",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-c922768f3441",
+        "fact-c4b93d2bf604"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_090",
+      "type": "temporal_flip",
+      "fact_uids": [
+        "fact-c20df2d5aa94",
+        "fact-d01e72ed5072"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_091",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-5e47299a7e71",
+        "fact-66ac3f806b7c",
+        "fact-5954090c4c75"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_092",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-a4de0f3dc5dd"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_093",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-bf993fe74713",
+        "fact-0759c52cd02b"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_094",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-422fcfa2fbec",
+        "fact-3924b2bff6ff",
+        "fact-09ef39e2b3f2"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_095",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-4314106bfe76"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_096",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-7c00415e21ff"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_097",
+      "type": "entity_fp",
+      "fact_uids": [
+        "fact-9605f68e8a41",
+        "fact-9d2564a93024"
+      ],
+      "has_contradiction": false
+    },
+    {
+      "entity": "entity_098",
+      "type": "needs_review",
+      "fact_uids": [
+        "fact-4a6562074d92",
+        "fact-b1ac6c3068fa"
+      ],
+      "has_contradiction": true
+    },
+    {
+      "entity": "entity_099",
+      "type": "consistent",
+      "fact_uids": [
+        "fact-8eca91c2ffc2",
+        "fact-6f6fad4ee166",
+        "fact-547dc986629c"
+      ],
+      "has_contradiction": false
+    }
+  ],
+  "total_active": 710,
+  "total_entities": 100,
+  "contradiction_entities": 28,
+  "type_distribution": {
+    "consistent": 59,
+    "needs_review": 14,
+    "entity_fp": 13,
+    "temporal_flip": 14
+  }
+}

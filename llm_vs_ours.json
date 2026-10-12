@@ -1,0 +1,25 @@
+{
+  "n": 100,
+  "llm": {
+    "model": "cn:deepseek-v4.1-flash",
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "avg_latency_s": 1.098,
+    "tp": 0,
+    "fp": 0,
+    "tn": 50,
+    "fn": 50
+  },
+  "ours": {
+    "precision": 1.0,
+    "recall": 0.96,
+    "f1": 0.98,
+    "avg_latency_s": 0.000131,
+    "tp": 48,
+    "fp": 0,
+    "tn": 50,
+    "fn": 2
+  },
+  "speedup": 8355.0
+}

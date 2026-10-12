@@ -1,0 +1,79 @@
+[
+  {
+    "entity": "app.asar",
+    "stale_answer": "Based on the provided context, the current status of app.asar is:\n\nIt has been **examined (reverse-c",
+    "correct_answer": "app.asar 的当前状态为：**311.7MB**，位于已安装的 ZCode 3.14.0 中（安装路径：E:/RUANJIAN/ZCode，通过 NSIS 静默安装）。",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "astra",
+    "stale_answer": "Status of Astra as of 2026-09-11:\n\n1. **packy codex分组API直调403** — direct API calls are blocked (upst",
+    "correct_answer": "Based on the provided context, the current status of Packy Astra is: **暂不作为可用方案 (not available as a ",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "codebuddy",
+    "stale_answer": "Based on the provided context, the current status is:\n\n- **4000-character limit broken**: Previous b",
+    "correct_answer": "Based on the provided context, the status of \"codebuddy\" cannot be determined. The context only ment",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "device",
+    "stale_answer": "**Current status:** The device has **lost its GitHub web login state** (verified 2026-09-21 via Edge",
+    "correct_answer": "根据所提供的上下文，当前状态是：\n\n- 投影（MEMORY.md）已陈旧约 3 小时——`~/.workbuddy/MEMORY.md` 的 mtime 停在 09:55，与 memory.d 不一致",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "exec",
+    "stale_answer": "当前状态：exec 测试卡住 3 分钟以上，无响应。疑似通道拥堵或不稳定。结合中转本身的所有限制（403 地区限制、仅支持 responses 协议、检测二次转发等），结论是：astra 中转（经 p",
+    "correct_answer": "Based on the provided context, there is no information about the status of \"exec.\" The context only ",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "gpt-6-astra",
+    "stale_answer": "Based on the context: **gpt-6-astra (via the packy relay) is currently unavailable / temporarily unu",
+    "correct_answer": "**Current status:** Not available / Not a usable option.\n\nAccording to the context, packy's gpt-6-as",
+    "stale_correct": false,
+    "new_context_correct": false
+  },
+  {
+    "entity": "grok",
+    "stale_answer": "According to the context, the **grok groups are currently working normally**:\n\n- The **grok-official",
+    "correct_answer": "无法确定。提供的上下文在关键处被截断：文中提到\"实测 8 家：o\"之后内容缺失，没有列出 grok 的实测结果。因此基于现有上下文，只能说明：Codex 0.155.0-alpha.9 起 `wire",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "grok-4.5",
+    "stale_answer": "Based on the provided context, grok-4.5 is currently in active use as **OpenClaw/fast** — it serves ",
+    "correct_answer": "**Status: 已解决** — 主会话模型已从 grok-4.5 切换到 grok-4.6。\n\n根据上下文：用户要求(workbuddy,2026-09-13 22:33)将 OpenClaw 主",
+    "stale_correct": true,
+    "new_context_correct": true
+  },
+  {
+    "entity": "session",
+    "stale_answer": "Based on the provided context, the current status is: **Troubleshooting / root-cause investigation i",
+    "correct_answer": "Based on the provided context, the current status is: **已修复 (Fixed)**.\n\nThe true root cause of the W",
+    "stale_correct": false,
+    "new_context_correct": false
+  },
+  {
+    "entity": "symlink",
+    "stale_answer": "Based on the provided context, there is no information about symlink. The context only discusses the",
+    "correct_answer": "Based on the context (as of the 2026-09-18 international-version live test):\n\n**Current status: Impl",
+    "stale_correct": false,
+    "new_context_correct": true
+  },
+  {
+    "entity": "tabbit2api",
+    "stale_answer": "**Current status:** The Tabbit reverse proxy has been successfully implemented/deployed (落地 as of 20",
+    "correct_answer": "Based on the provided context, I cannot determine a clear status for **tabbit2api**.\n\nThe context is",
+    "stale_correct": false,
+    "new_context_correct": true
+  }
+]

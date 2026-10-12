@@ -1,0 +1,25 @@
+{
+  "total": 2000,
+  "results": [
+    {
+      "method": "Temporal/numeric overlap",
+      "precision": 1.0,
+      "recall": 0.814,
+      "f1": 0.897,
+      "tp": 814,
+      "fp": 0,
+      "tn": 1000,
+      "fn": 186
+    },
+    {
+      "method": "Combined (all signals)",
+      "precision": 1.0,
+      "recall": 0.814,
+      "f1": 0.897,
+      "tp": 814,
+      "fp": 0,
+      "tn": 1000,
+      "fn": 186
+    }
+  ]
+}

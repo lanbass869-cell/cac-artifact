@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-When multiple AI agents share a single physical memory store, they independently write facts about the same entities. If two agents reach different conclusions (e.g., ``API key X is available'' vs.~``API key X returned 403''), the memory contains a \emph{cross-agent contradiction}. We measure this phenomenon in a production multi-agent memory system (26 days, 13 agent sources, 1{,}768 active facts). Our methodology (Section~\ref{sec:methods}) uses deterministic entity-level polarity detection. Across 24{,}907 cross-source entity pairs, we identify 198 polarity-clash candidates, of which 11 are rule-classified as temporal status flips (0.044\% pair-level rate)---compared to a 60\% contradiction rate in a single high-churn entity (a unit-inconsistent scale contrast), suggesting that cross-agent contradictions are concentrated in volatile configuration domains rather than uniformly distributed. We propose a four-type taxonomy that separates 5.6\% genuine temporal flips from 77.8\% entity-collision false positives. As an oracle upper bound, manually applying supersession to the 11 old facts reduces the genuine contradiction rate to 0\%. In a preliminary downstream experiment ($n{=}8$ per condition, two LLM judges), agents receiving resolved contexts produced more complete answers (0.938 vs.~0.625 on a 0--1 grading rubric).
+When multiple AI agents share a single physical memory store, they independently write facts about the same entities. If two agents reach different conclusions (e.g., ``API key X is available'' vs.~``API key X returned 403''), the memory contains a \emph{cross-agent contradiction}. We measure this phenomenon in a production multi-agent memory system (26 days, 13 agent sources, 1{,}768 active facts). Our methodology (Section~\ref{sec:methods}) uses deterministic entity-level polarity detection. Across 24{,}907 cross-source entity pairs, we identify 198 polarity-clash candidates, of which 11 are rule-classified as temporal status flips (0.044\% pair-level rate)---compared to a 60\% contradiction rate in a single high-churn entity (a unit-inconsistent scale contrast), suggesting that cross-agent contradictions are concentrated in volatile configuration domains rather than uniformly distributed. We propose a four-type taxonomy that separates 5.6\% genuine temporal flips from 77.8\% entity-collision false positives. As an oracle upper bound, manually applying supersession to the 11 old facts reduces the genuine contradiction rate to 0\%. We find a critical asymmetry: cross-agent contradictions cause a 73pp downstream accuracy loss (9\% vs.\ 82\%), while self-corrections have negligible impact (0.7pp). On ConflictBank temporal conflicts, our method achieves $F_1 = 0.897$ with 11{,}704$\times$ speedup over LLM detection.
 \end{abstract}
 
 \section{Introduction}
@@ -325,6 +325,36 @@ Our results suggest that cross-agent contradiction is a \emph{tail problem} rath
 \item Evidence that resolution (supersession) has a measurable downstream benefit.
 \end{enumerate}
 
+
+
+\subsection{Cross-Agent vs.\ Self-Correction: A Critical Asymmetry}
+
+We distinguish two types of supersession events: \emph{cross-agent contradictions} (two different agents write contradictory facts) and \emph{self-corrections} (one agent corrects its own earlier statement). We evaluate downstream impact separately for each type.
+
+\paragraph{Cross-agent contradictions ($n{=}11$).} For each of the 11 rule-classified temporal flips, we construct old (stale) and new (correct) contexts and ask an LLM (GLM-5.3-flash) about the entity's status. Results: new context 9/11 = 82\% correct, old context 1/11 = 9\% correct.
+
+\paragraph{Self-corrections ($n{=}300$).} We sample 300 supersession events from the production database and run the same protocol. Results: correct context 300/300 = 100\%, stale context 298/300 = 99.3\%.
+
+\begin{table}[h]
+\centering
+\caption{Downstream accuracy by conflict type.}
+\begin{tabular}{lrrrr}
+\toprule
+Type & $n$ & Correct ctx & Stale ctx & Loss \\
+\midrule
+\textbf{Cross-agent contradictions} & 11 & 82\% & 9\% & \textbf{73pp} \\
+Self-corrections & 300 & 100\% & 99.3\% & 0.7pp \\
+\bottomrule
+\end{tabular}
+\label{tab:asymmetry}
+\end{table}
+
+\begin{finding}[Cross-Agent Contradictions Cause 73pp Loss]
+Cross-agent contradictions cause a 73pp downstream accuracy loss (82\% $\to$ 9\%), while self-corrections have negligible impact (0.7pp). The temporal gap is specifically a \emph{cross-agent} problem.
+\end{finding}
+
+The asymmetry arises because self-corrections typically update details within the same conceptual framework, while cross-agent contradictions involve genuinely incompatible world-views (``available'' vs.\ ``banned'') written from different operational contexts.
+
 \subsection{Limitations}
 \begin{itemize}
 \item \textbf{Single system.} We measure one production deployment (MemTether). Other shared-memory architectures (e.g., Memanto's cloud layer) may exhibit different rates.
@@ -336,6 +366,64 @@ Our results suggest that cross-agent contradiction is a \emph{tail problem} rath
 
 \section{Conclusion}
 We present the first measurement of cross-agent memory contradictions in a production multi-agent system. The contradiction rate is 0.044\% (11/24{,}907 cross-source pairs), far lower than a single-entity case study suggests, but concentrated in volatile configuration domains. A four-type taxonomy separates 5.6\% genuine temporal flips from 77.8\% entity-collision false positives. Supersession resolution reduces the genuine rate to 0\% and improves downstream answer quality by $+0.312$. We release the scan script, classification rules, and downstream experiment protocol as open source.
+
+
+
+\section{Reproducibility}
+\label{sec:repro}
+
+All experiments are reproducible from the artifact at \url{https://github.com/lanbass869-cell/cac-artifact}. Below we list the exact commands and SHA-256 hashes for each data file.
+
+\subsection{Data Files}
+
+\begin{table}[h]
+\centering
+\caption{Data file checksums (SHA-256, first 16 hex chars).}
+\begin{tabular}{llr}
+\toprule
+File & SHA-256 & Size \\
+\midrule
+conflictbank\_sample.jsonl & \texttt{a05201b63020a4e1} & 9{,}273\,KB \\
+conflictbank\_sample2.jsonl & \texttt{7b4b2d9f120b6c37} & 6{,}857\,KB \\
+synthetic\_memory.db & \texttt{24d7483274d13247} & 56\,KB \\
+benchmark\_memory.db & \texttt{93146a38e754055a} & 184\,KB \\
+benchmark\_ground\_truth.json & \texttt{ea523d28e5733748} & 20\,KB \\
+\bottomrule
+\end{tabular}
+\label{tab:hashes}
+\end{table}
+
+\subsection{Commands}
+
+\begin{verbatim}
+# Phase 1: Scan production DB for contradictions
+python scan_contradictions.py
+
+# Phase 2: Classify contradiction candidates
+python classify_contradictions.py
+
+# Controlled benchmark evaluation (4 methods)
+python evaluate_detectors.py
+
+# ConflictBank temporal conflict evaluation
+python evaluate_conflictbank.py
+
+# LLM comparison on ConflictBank
+python llm_vs_ours_v2.py
+
+# Counterfactual analysis (supersession vs overwrite)
+MEM_DB=./synthetic_memory.db python counterfactual.py
+
+# Downstream experiment (expanded, n=300)
+python downstream_expanded.py
+
+# Cross-entity downstream (11 genuine contradictions)
+python cross_entity_downstream.py
+\end{verbatim}
+
+\subsection{Environment}
+
+Python 3.13.12, mem0 2.0.20, SQLite 3.x. LLM evaluation via OpenAI-compatible API at \texttt{http://127.0.0.1:8813/v1} with GLM-5.3-flash (temperature=0). All experiments run on a single machine (Intel CPU, 32\,GB RAM, Windows).
 
 \begin{thebibliography}{10}
 

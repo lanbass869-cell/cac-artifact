@@ -1,0 +1,12 @@
+{
+  "n": 300,
+  "correct_context": {
+    "correct": 300,
+    "wrong": 0
+  },
+  "stale_context": {
+    "correct": 298,
+    "wrong": 2
+  },
+  "note": "Most supersessions are self-corrections (codex\u2192codex), not cross-agent conflicts. The 39pp finding from the original n=100 experiment used carefully selected events with actual value flips. This expanded experiment uses all 313 events including trivial corrections."
+}
