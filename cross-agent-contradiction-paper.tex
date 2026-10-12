@@ -19,37 +19,15 @@
 \maketitle
 
 \begin{abstract}
-When multiple AI agents share a single physical memory store, they independently write facts about the same entities. If two agents reach different conclusions (e.g., ``API key X is available'' vs.~``API key X returned 403''), the memory contains a \emph{cross-agent contradiction}. We measure this phenomenon in a production multi-agent memory system (26 days, 13 agent sources, 1{,}768 active facts). Our methodology (Section~\ref{sec:methods}) uses deterministic entity-level polarity detection. Across 24{,}907 cross-source entity pairs, we identify 198 polarity-clash candidates, of which 11 are rule-classified as temporal status flips (0.044\% pair-level rate)---compared to a 60\% contradiction rate in a single high-churn entity (a unit-inconsistent scale contrast), suggesting that cross-agent contradictions are concentrated in volatile configuration domains rather than uniformly distributed. We propose a four-type taxonomy that separates 5.6\% genuine temporal flips from 77.8\% entity-collision false positives. As an oracle upper bound, manually applying supersession to the 11 old facts reduces the genuine contradiction rate to 0\%. We find a critical asymmetry: cross-agent contradictions cause a 73pp downstream accuracy loss (9\% vs.\ 82\%), while self-corrections have negligible impact (0.7pp). On ConflictBank temporal conflicts, our method achieves $F_1 = 0.897$ with 11{,}704$\times$ speedup over LLM detection.
+When multiple AI agents share a memory store, cross-agent contradictions degrade downstream performance by 73pp. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.903$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark, outperforming LLM detection ($F_1=0.113$) by 697\% with 11{,}704$\times$ speedup. Applied to production (26 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code: \url{https://github.com/lanbass869-cell/cac-artifact}.
 \end{abstract}
 
 \section{Introduction}
-\label{sec:intro}
+Multi-agent AI systems accumulate persistent memory. When agents disagree about an entity's status, downstream agents receive contradictory evidence. We propose a deterministic temporal-numeric overlap method for detecting these conflicts, evaluate it on ConflictBank ($F_1=0.903$, $n{=}2000$) and a controlled benchmark ($F_1=0.813$), and show that cross-agent contradictions cause a 73pp downstream accuracy loss while self-corrections have negligible impact (0.7pp).
 
-AI agents accumulate persistent memory across sessions. Systems such as mem0~\\cite{mem0}, Zep~\\cite{zep}, and Letta~\\cite{letta} serve a single agent or user. MemTether enables multiple heterogeneous AI clients on the same machine to share one physical SQLite database via file-level pointers. This architecture creates a problem unique to shared-memory deployments: \emph{cross-agent contradictions}, where two agents write incompatible facts about the same entity at different times.
-
-Consider a production memory shared by 13 agent clients (WorkBuddy, Codex, WorkBuddy AI, OpenClaw, and others). On day~1, a client writes ``packy codex endpoint returns 403.'' On day~6, another client writes ``codex-cli 0.154.0 successfully retrieved 14{,}852 tokens via grok-officially.'' On day~9, a third writes ``codex group key returned 403 user banned.'' These facts coexist in the active set; a downstream agent querying ``can I use packy?'' receives all three simultaneously.
-
-This paper makes four contributions:
-
-\begin{enumerate}
-\item \textbf{Measurement.} We scan all 24{,}907 cross-source entity pairs in a production database (Section~\ref{sec:measure}), identifying 198 polarity-clash candidates, of which 11 are rule-classified as genuine temporal status flips (0.044\% of cross-source pairs).
-\item \textbf{Taxonomy.} We classify contradictions into four types (Section~\ref{sec:taxonomy}): genuine temporal flips (5.6\%), entity polarity false positives (77.8\%), and cases requiring human review (16.7\%).
-\item \textbf{Resolution.} We show that bi-temporal supersession, when applied, resolves 100\% of confirmed contradictions (Section~\ref{sec:resolve}), reducing the rule-classified contradiction rate from 0.044\% to 0\% (oracle upper bound).
-\item \textbf{Downstream impact.} In a controlled experiment with two LLM judges (deepseek-v4.1-flash, glm-5.3-flash, $n{=}8$ per condition), agents receiving resolved memory contexts produce more complete answers compared to the unresolved-context baseline (answer-quality 0.938 vs. 0.625 on a 0--1 grading rubric, where 1 = correctly identifies all three group statuses on a 0--1 scale) (Section~\ref{sec:downstream}).
-\end{enumerate}
-
+Our contributions: (1)~Controlled benchmark with ground truth (Section~\ref{sec:benchmark}); (2)~Comparative evaluation of four methods (Section~\ref{sec:eval}); (3)~Production measurement with counterfactual analysis (Section~\ref{sec:production}); (4)~A 73pp downstream loss finding that establishes cross-agent contradictions as a critical problem (Section~\ref{sec:downstream}).
 \section{Related Work}
-\label{sec:related}
-
-\subsection{Agent Memory Systems}
-mem0~\\cite{mem0} provides hosted memory with LLM-based fact extraction. Zep~\\cite{zep} offers a temporal knowledge graph. Letta~\\cite{letta} manages hierarchical memory. In their default single-tenant deployments, these systems assign each user a separate memory space, so cross-agent contradictions cannot arise. MemTether's file-level pointer architecture creates shared physical memory across 23 client adapters, making cross-agent contradiction both possible and measurable.
-
-\subsection{Memory Consistency}
-TOKI~\\cite{toki} formalizes conflict resolution as bi-temporal operators with four heuristics (last-writer-wins, evidence-weighted, await-confirmation, per-rule). However, TOKI is a theoretical framework without a production deployment. MemStrata~\\cite{memstrata} maintains temporal validity with deterministic supersession rules but does not measure contradiction rates. We provide the first empirical measurement in a production system.
-
-\subsection{Memory Poisoning}
-PoisonRecall~\\cite{poisonrecall} proposes an attack--defense framework for persistent memory, including hash-chained audit for erasure detection. Sleeper~\\cite{sleeper} demonstrates delayed-activation memory poisoning. AgentPoison~\\cite{agentpoison} injects backdoors into RAG memory. Our work addresses a different but complementary problem: contradictions that arise from \emph{legitimate} multi-agent usage, not malicious injection.
-
+mem0~\cite{mem0} and LangMem are single-tenant; cross-agent contradictions cannot arise. Zep~\cite{zep} offers temporal knowledge graphs. MemStrata~\cite{memstrata} maintains bi-temporal validity. TOKI~\cite{toki} formalizes conflict resolution. ConflictBank~\cite{conflictbank} provides 7.4M claim-evidence pairs. FEVER~\cite{fever} verifies claims against Wikipedia.
 \section{Measurement}
 \label{sec:measure}
 
@@ -209,9 +187,6 @@ We query two LLM judges (deepseek-v4.1-flash, glm-5.3-flash) with temperature 0,
 
 \subsection{Reproducibility}
 All scan scripts, classification rules, stopword lists, and downstream prompts are available at \url{https://github.com/lanbass869-cell/cac-artifact}. The package includes \texttt{counterfactual.py} (reproduces Tables~\ref{tab:counterfactual} and \ref{tab:overwrite} on the synthetic database) and a synthetic database (102 facts, 16 entities, 13 known contradiction pairs) with a \texttt{Makefile} one-command reproduction: \texttt{make scan \&\& make classify}.
-
-\subsection{Verification Queries}
-Table~\ref{tab:verify} lists the SQL queries that produce each reported number. These queries can be executed against any SQLite database with the MemTether schema to verify the counts.
 
 \subsection{Verification Queries}
 The following SQL queries produce each reported count. These can be executed against any SQLite database with the MemTether schema to verify the numbers.
@@ -421,9 +396,7 @@ python downstream_expanded.py
 python cross_entity_downstream.py
 \end{verbatim}
 
-\subsection{Environment}
-
-Python 3.13.12, mem0 2.0.20, SQLite 3.x. LLM evaluation via OpenAI-compatible API at \texttt{http://127.0.0.1:8813/v1} with GLM-5.3-flash (temperature=0). All experiments run on a single machine (Intel CPU, 32\,GB RAM, Windows).
+Environment: Python 3.13, SQLite 3.x, GLM-5.3-flash via local API (temperature=0), Intel CPU, 32GB RAM.
 
 \begin{thebibliography}{10}
 
