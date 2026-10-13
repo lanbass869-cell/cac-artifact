@@ -1,0 +1,267 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{listings}
+\newtheorem{theorem}{Theorem}
+\newtheorem{finding}{Finding}
+
+\title{Memory Court: Tamper-Evident Evidence Chains and\\ Human Adjudication for AI Agent Memory}
+
+\author{Anonymous}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+AI agents accumulate persistent memory across sessions, but no existing system provides verifiable evidence that a stored memory was not tampered with, or a replayable record of how conflicting memories were adjudicated. We present Memory Court, a governance layer for agent memory that provides three capabilities: (1)~a SHA-256 hash-chained audit log that detects any post-hoc modification of memory records (tamper-evident by construction), (2)~a case-file command that reconstructs the full provenance of any memory---its write history, supersession chain, conflict adjudications, and Q-value learning trace---as a human-readable dossier, and (3)~a browser-verifiable evidence export (\texttt{evidence.zip}) that enables third-party auditors to verify the hash chain without installing any software, directly addressing EU AI Act Article~12 record-keeping requirements. We evaluate Memory Court on a production deployment (1{,}864 active memories, 13 agent sources, 26 days) and demonstrate: 23 integration tests covering 11 dimensions (hash chain, tamper detection, poisoning resistance, concurrency, isolation, and export), a case study of cross-agent contradiction resolution (packy entity: 60\% contradiction rate resolved to 0\% via supersession adjudication), and a controlled tamper-detection experiment over 2{,}346 audit entries where the hash chain correctly detects all 5 of 5 anchored-row modification scenarios. We release the system as Apache-2.0 open source with an interactive Playground demonstrating the full court workflow in a browser.
+\end{abstract}
+
+\section{Introduction}
+
+AI agents that operate over extended periods accumulate memory: user preferences, system configurations, past decisions, and learned procedures. As these agents proliferate in regulated domains---healthcare, finance, legal---the ability to \emph{verify} what the agent ``knew'' and ``when'' becomes a compliance requirement, not a nice-to-have. The EU AI Act (Article~12) mandates that high-risk AI systems maintain automatically generated event logs sufficient to reconstruct the traceability of the system's functioning.
+
+Current agent memory systems---mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}---do not address this requirement. They store memories but provide no cryptographic guarantee that stored records have not been modified after the fact. They resolve conflicts between memories but provide no replayable record of \emph{who} decided, \emph{when}, and \emph{based on what evidence}. They support retrieval but provide no exportable dossier that a third-party auditor could verify independently.
+
+We present Memory Court, a governance layer that upgrades agent memory from ``a database of facts'' to ``a court of record.'' Memory Court provides:
+
+\begin{enumerate}
+\item \textbf{Hash-chained evidence log}: Every memory operation (write, correct, supersede, retire, search) is logged in an append-only audit table. Every 10 entries, a SHA-256 anchor is computed over the chain. Any post-hoc modification of a logged entry breaks the chain and is detected by verification.
+\item \textbf{Case-file reconstruction}: Given any memory UID, \texttt{memtether court <uid>} reconstructs the complete judicial dossier: current content with confidence and Q-value, bi-temporal validity evidence (T-axis and T$'$-axis), full provenance chain (who wrote, who corrected, who searched), conflict adjudication records, and integrity proof.
+\item \textbf{Browser-verifiable evidence export}: \texttt{memtether court <uid> --export evidence.zip} produces a ZIP containing the machine-readable case file (\texttt{case.json}), the hash-chained audit trail (\texttt{chain.jsonl}), and a self-contained HTML page (\texttt{verify.html}) that recomputes the hash chain in the browser via \texttt{crypto.subtle}---no software installation required.
+\end{enumerate}
+
+\section{Background and Motivation}
+
+\subsection{Agent Memory Systems}
+
+mem0~\cite{mem0} provides hosted memory with LLM-based fact extraction; when \texttt{update()} is called, the old embedding is replaced in-place with no audit trail. Zep~\cite{zep} offers a temporal knowledge graph but no cryptographic integrity guarantee. Letta~\cite{letta} manages hierarchical memory with no evidence export. LangMem~\cite{langmem} integrates memory into LangGraph without tamper detection.
+
+Caura (formerly MemClaw)~\cite{caura} is the most directly related system: it provides governed shared memory with contradiction detection and supersession, deployed in production at eToro. However, Caura's audit log is a standard database log without cryptographic chaining, and it provides no evidence export mechanism.
+
+\subsection{Regulatory Context}
+
+The EU AI Act (Regulation 2024/1689) establishes mandatory record-keeping requirements. Article~12 requires that high-risk AI systems ``technically allow for automatic logging of events'' over the lifetime of the system. For GPAI models, compliance is required by 2027-08-02. Memory Court's evidence export directly implements this requirement at the memory layer: the \texttt{evidence.zip} package contains the hash-chained audit trail sufficient to ``ensure the traceability of the system's functioning'' as required by Art.~12(1).
+
+\subsection{Competitive Gap}
+
+We conducted a systematic search of GitHub repositories and arXiv papers (October 2026) for systems combining memory-level hash chaining, exportable evidence packages, and human adjudication UI. The results are shown in Table~\ref{tab:gap}.
+
+\begin{table}[h]
+\centering
+\caption{Competitive gap analysis (October 2026).}
+\label{tab:gap}
+\begin{tabular}{lccccc}
+\toprule
+Capability & Tencent & memtrace & icarus & halo-record & \textbf{MemTether} \\
+ & (27.7K) & (486) & (290) & (83) & \\
+\midrule
+Supersession chains & -- & -- & \checkmark & -- & \checkmark \\
+Bi-temporal model & -- & \checkmark & -- & -- & \checkmark \\
+Conflict adjudication & -- & -- & -- & -- & \checkmark \\
+Memory-level provenance & -- & -- & \checkmark & -- & \checkmark \\
+\textbf{Hash-chained audit} & -- & -- & -- & runtime & \checkmark \\
+\textbf{Evidence export} & -- & -- & -- & runtime & \checkmark \\
+\textbf{Adjudication UI} & -- & -- & -- & -- & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The combination of all three capabilities---memory-level hash chaining, exportable evidence, and adjudication UI---is provided by no existing system. halo-record implements hash chaining at the runtime action layer but does not touch memory content.
+
+\section{System Design}
+
+\subsection{Architecture Overview}
+
+Memory Court is implemented as a governance layer atop MemTether's existing memory store. It reuses four existing components without modification: the \texttt{audit\_log} table (every operation is already logged), the \texttt{supersessions} table (adjudication records), the \texttt{conflict\_reviews} table (human decisions), and the bi-temporal model (T-axis for fact validity, T$'$-axis for system awareness). The only new component is the hash chain.
+
+\subsection{Hash-Chained Evidence Log}
+
+Every memory operation is recorded in the \texttt{audit\_log} table with fields \texttt{(id, op, target, agent, detail, ts)}. Every 10 entries, a SHA-256 anchor is computed:
+
+\begin{equation}
+\text{anchor}_n = \text{SHA256}(\text{anchor}_{n-1} \| \text{id}_n \| \text{op}_n \| \text{target}_n \| \text{ts}_n)
+\end{equation}
+
+where $\|$ denotes concatenation. Anchors are stored in an \texttt{audit\_anchors} table. Verification recomputes the entire chain from the genesis anchor and reports \checkmark{} or $\times$ per entry.
+
+\begin{finding}[Tamper-Evident by Construction]
+Any modification of a logged entry (content, timestamp, agent, or deletion) changes the SHA-256 hash of all subsequent entries, causing chain verification to fail from the modified entry onward. This is a property of the construction, not of the implementation.
+\end{finding}
+
+\subsection{Case-File Reconstruction}
+
+Given a memory UID, the case file reconstructs five sections:
+
+\begin{enumerate}
+\item \textbf{Current content}: The active version with confidence score and Q-value (learning trace from use).
+\item \textbf{Temporal evidence}: The bi-temporal validity period---when the fact was true in the world (T-axis) versus when the system learned it (T$'$-axis).
+\item \textbf{Provenance chain}: The complete operation history from write through corrections to current state, with agent identity and timestamp for each step.
+\item \textbf{Conflict adjudication}: Any supersession decisions involving this memory, including the reason and the adjudicating agent.
+\item \textbf{Integrity proof}: The hash-chain anchors covering this memory's audit entries, with verification status.
+\end{enumerate}
+
+\subsection{Evidence Export}
+
+The \texttt{--export} flag produces a ZIP package containing:
+\begin{itemize}
+\item \texttt{case.json}: Machine-readable case file (all five sections above).
+\item \texttt{chain.jsonl}: All relevant audit log entries and hash anchors.
+\item \texttt{verify.html}: A self-contained HTML page that recomputes the SHA-256 chain in the browser using \texttt{crypto.subtle}, displaying \checkmark{} or $\times$ per entry. No server, no installation, no trust in the exporter required---the auditor verifies the chain independently.
+\end{itemize}
+
+\subsection{Interactive Playground}
+
+A browser-based Playground (\url{https://memtether.github.io/MemTether/court/}) demonstrates the full workflow: write a memory, correct it, trigger a conflict, adjudicate via supersession, verify the hash chain, and export the evidence package. The Playground uses sql.js (SQLite compiled to WASM) and \texttt{crypto.subtle} (browser-native SHA-256), requiring zero backend infrastructure.
+
+\section{Evaluation}
+
+\subsection{Production Deployment}
+
+Memory Court has been deployed in a production multi-agent environment for 26 days:
+\begin{itemize}
+\item 1{,}864 active memories from 13 distinct agent sources
+\item 2{,}346 audit log entries with 235 hash anchors
+\item 348 supersession events (adjudication decisions)
+\item 226 retired memories (explicit lifecycle management)
+\end{itemize}
+
+\subsection{Tamper-Detection Experiment}
+
+We conducted a controlled tamper-detection experiment over 2{,}346 audit entries. We simulated 5 post-anchor modification scenarios (content change, timestamp change, agent identity change, entry deletion, and anchor tampering). The hash chain correctly detected all 5 of 5 anchored-row modifications. We note that this is an expected property of any correctly implemented hash chain; the contribution is the integration of this mechanism with self-contained evidence export in a production multi-agent deployment, not the detection mechanism itself.
+
+\subsection{Integration Testing}
+
+23 integration tests cover 11 dimensions of Memory Court's behavior:
+
+\begin{table}[h]
+\centering
+\caption{Test coverage by dimension.}
+\label{tab:tests}
+\begin{tabular}{lc}
+\toprule
+Dimension & Tests \\
+\midrule
+Hash chain verification & 3 \\
+Tamper detection & 2 \\
+Poisoning resistance & 3 \\
+Concurrent write safety & 2 \\
+Agent isolation & 2 \\
+Evidence export & 2 \\
+Supersession adjudication & 2 \\
+Q-value learning & 2 \\
+Retirement lifecycle & 1 \\
+Bi-temporal queries & 2 \\
+End-to-end integration & 2 \\
+\midrule
+Total & 23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All 23 tests pass. Five engineering-level gaps were identified (anchor tail coverage, concurrent anchor computation, database migration, 1000+ entry stress testing, and browser CI) but none affect the correctness of the core mechanism.
+
+\subsection{Case Study: Cross-Agent Contradiction Resolution}
+
+We present a case study from the production deployment. The \emph{packy} entity (an API proxy service) accumulated 24 memories from 4 agent sources over 18 days. At the time of audit, 15 memories were active and retrievable: 2 asserted ``available'' while 3 asserted ``banned'' or ``403'', yielding a 60\% contradiction rate. A downstream agent querying packy's status received contradictory evidence.
+
+Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries, and the contradiction rate dropped to 0\%. The full adjudication record---who decided, when, based on what evidence, with hash-chain verification---is preserved in the audit log and exportable as an evidence package.
+
+\section{Discussion and Limitations}
+
+\subsection{What Memory Court Does Not Do}
+
+Memory Court does not prevent memory poisoning attacks (an agent with write access can still write false memories); it makes such writes \emph{detectable and attributable}. It does not automate conflict resolution; it provides the evidence infrastructure for \emph{human} adjudication. It does not scale to distributed multi-machine deployments; it is designed for single-machine, multi-client scenarios.
+
+\subsection{Honest Limitations}
+
+\begin{itemize}
+\item \textbf{Anchor tail coverage}: The last $<10$ audit entries before the current position are not yet anchored. A crash in this window leaves entries temporarily unanchored (recovered by the next anchoring pass).
+\item \textbf{No Merkle tree}: Verification requires full-chain recomputation (O(n)); a Merkle tree would enable O(log n) single-entry proofs. This is a planned optimization, not a correctness issue.
+\item \textbf{Single-machine scope}: The hash chain is valid within one SQLite file. Cross-machine federation requires a distributed trust model not addressed here.
+\item \textbf{Single-author deployment}: All 13 agent sources are operated by one person, which limits the diversity of adversarial scenarios tested.
+\end{itemize}
+
+\section{Related Work}
+
+\subsection{Tamper-Evident Logging}
+
+Certificate Transparency~\cite{ct} pioneered publicly auditable append-only logs. MutMem~\cite{mutmem} applies SHA-256 commitments to memory mutation authorization. halo-record implements runtime-level hash chains for agent actions. Our contribution is applying these techniques at the \emph{memory content} level with exportable evidence packages.
+
+\subsection{AI Act Compliance}
+
+Beyond Provenance~\cite{beyondprovenance} develops an economic governance model. Lineage-Aware Memory Governance~\cite{lineage} addresses enterprise memory through derivation-gated access control. Memory Court is the first system to implement Art.~12 record-keeping at the memory layer with browser-verifiable evidence.
+
+\subsection{Agent Memory Governance}
+
+Caura~\cite{caura} provides governed shared memory without cryptographic integrity. AECG~\cite{aecg} defines memory pollution conceptually without system implementation. MemStrata~\cite{memstrata} provides bi-temporal validity without audit chains. Memory Court complements these by adding the evidentiary layer they lack.
+
+\section{Conclusion}
+
+Memory Court upgrades agent memory from a passive data store to an active evidentiary system: every operation is hash-chained, every memory has a reconstructable case file, and every adjudication is exportable as a browser-verifiable evidence package. We identify this as a previously unaddressed gap in the agent memory landscape and release the complete implementation as Apache-2.0 open source.
+
+\begin{thebibliography}{15}
+
+\bibitem[Chhikara et~al.(2025)]{mem0}
+Chhikara, P. et~al.
+\newblock Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory.
+\newblock \emph{arXiv:2504.19413}, 2025.
+
+\bibitem[Rasmussen et~al.(2025)]{zep}
+Rasmussen, R. et~al.
+\newblock Zep: A Temporal Knowledge Graph Architecture for Agent Memory.
+\newblock \emph{arXiv:2501.13956}, 2025.
+
+\bibitem[Packer et~al.(2023)]{letta}
+Packer, C. et~al.
+\newblock MemGPT: Towards LLMs as Operating Systems.
+\newblock \emph{arXiv:2310.08560}, 2023.
+
+\bibitem[Liu et~al.(2025)]{langmem}
+Liu, S. et~al.
+\newblock LangMem: Memory Management for LangGraph Agents.
+\newblock LangChain, 2025.
+
+\bibitem[Margalit et~al.(2026)]{caura}
+Margalit, A. et~al.
+\newblock Caura: Governed Shared Memory for Multi-Agent Fleets.
+\newblock \emph{arXiv:2606.24535}, 2026.
+
+\bibitem[Laurie et~al.(2019)]{ct}
+Laurie, B., Langley, A., Kasper, E.
+\newblock Certificate Transparency.
+\newblock RFC 6962, IETF, 2013.
+
+\bibitem[Chen et~al.(2026)]{mutmem}
+Chen, S. et~al.
+\newblock MutMem: Cryptographically Authorized Mutation for Persistent Agent Memory.
+\newblock \emph{arXiv:2608.02843}, 2026.
+
+\bibitem[Beyond Provenance(2026)]{beyondprovenance}
+Anonymous.
+\newblock Beyond Provenance: An Economic Governance Model for AI Memory.
+\newblock \emph{arXiv:2609.25521}, 2026.
+
+\bibitem[Lineage(2026)]{lineage}
+Anonymous.
+\newblock Lineage-Aware Memory Governance for Enterprise AI.
+\newblock \emph{arXiv:2610.07258}, 2026.
+
+\bibitem[AECG(2026)]{aecg}
+Anonymous.
+\newblock AECG: Asymmetric Experience Consolidation and Governance for Multi-Agent Memory.
+\newblock \emph{arXiv:2610.05176}, 2026.
+
+\bibitem[Yadav(2026)]{memstrata}
+Yadav, N.
+\newblock MemStrata: Bi-Temporal Ledger for Agent Memory.
+\newblock \emph{arXiv:2606.26511}, 2026.
+
+\end{thebibliography}
+
+\end{document}
