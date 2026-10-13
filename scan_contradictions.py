@@ -9,6 +9,7 @@ sys.path.insert(0, r'E:/RUANJIAN/memory_hub')
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 import os
+NF_MAX = int(os.environ.get('NF_MAX', '30'))
 DB = os.environ.get('MEM_DB', r'E:/RUANJIAN/memory_hub/memory.db')
 conn = sqlite3.connect(DB)
 conn.row_factory = sqlite3.Row
@@ -38,7 +39,7 @@ from governance import _polarity_by_entity, _sentences, _POS, _NEG
 contradictions = []
 entity_stats = []
 for ent, uids in sorted(multi_source.items()):
-    if len(uids) > 30:
+    if len(uids) > NF_MAX:
         continue  # skip mega-entities (stopword-like, too noisy)
     # Extract per-fact entity polarity
     fact_pol = {}  # uid -> {entity: pol}
@@ -106,7 +107,7 @@ contradiction_pairs = len(deduped)
 # Contradiction rate = pairs involving contradictions / total cross-source pairs
 all_cross_pairs = 0
 for ent, uids in multi_source.items():
-    if len(uids) > 30:
+    if len(uids) > NF_MAX:
         continue
     src_list = [facts[u]['source'] for u in uids]
     for i in range(len(uids)):
