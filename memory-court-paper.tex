@@ -74,6 +74,8 @@ Memory-level provenance & -- & -- & \checkmark & -- & \checkmark \\
 
 The combination of all three capabilities---memory-level hash chaining, exportable evidence, and adjudication UI---is provided by no existing system. halo-record implements hash chaining at the runtime action layer but does not touch memory content.
 
+Recent tools have partially addressed adjacent problems: TradeMemory Protocol~\cite{trademem} implements SHA-256 chains for trading agents but is domain-specific. ZizkaDB~\cite{zizkadb} provides tamper-evident audit trails but focuses on decision logs rather than memory content. PACMI~\cite{pacmi} performs provenance-aware memory invalidation without cryptographic chaining. TRACE~\cite{trace2026} governs memory validity in multi-agent systems without hash chains. Memora~\cite{memora} provides supersession lineage without evidence export or adjudication UI. The combination of all three capabilities---memory-level hash chaining, browser-verifiable evidence export, and human adjudication UI---is provided by no existing system.
+
 \section{System Design}
 
 \subsection{Architecture Overview}

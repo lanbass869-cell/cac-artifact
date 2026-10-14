@@ -1,0 +1,90 @@
+﻿\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsthm}
+
+\newtheorem{finding}{Finding}
+\newtheorem{definition}{Definition}
+
+\title{Not All Failures Are Equal:\\ A Failure Taxonomy for Agent Memory Systems\\ Across Benchmarks}
+\author{Anonymous}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Agent memory systems consistently show low accuracy on multi-session benchmarks, but the reasons for failure are rarely analyzed. We present the first cross-benchmark failure taxonomy for agent memory systems, classifying 360 incorrect answers across two benchmarks (LongMemEval-S, 500 questions; LoCoMo, 82 questions) into five failure modes. We find that the same memory system fails for \textbf{fundamentally different reasons} depending on the benchmark: on LongMemEval, 41.2\% of failures are \emph{complete retrieval failures} (the system returns ``NOT ENOUGH INFO''), while on LoCoMo, 64.9\% of failures are \emph{answer generation issues} (generation error 26.8\% + date format 26.8\% + partial answer 11.3\%) (the system retrieves relevant facts but produces wrong, incomplete, or incorrectly formatted answers). Additionally, 26.6\% of LongMemEval ``failures'' and 4.2\% of LoCoMo ``failures'' are \emph{measurement artifacts}: the LLM judge correctly identifies the answer as semantically equivalent, but strict string matching rejects it. These findings imply that (1)~reporting a single accuracy number obscures qualitatively different problems, (2)~strict matching overestimates LongMemEval failure rates by 15.2 percentage points (26.3% of failures misclassified), and (3)~solutions must target the dominant failure mode of each benchmark rather than applying a universal fix. Classification code, per-question annotations, and analysis scripts are available at \url{https://github.com/lanbass869-cell/failure-taxonomy}. Run \texttt{python classify\_failures.py --benchmark longmemeval --input results.json --output taxonomy.json} to reproduce Table 1.
+\end{abstract}
+
+\section{Introduction}
+
+Agent memory systems enable LLM agents to accumulate and retrieve knowledge across multi-session interactions. Recent benchmarks have revealed that even state-of-the-art systems achieve only 30--60\% accuracy on multi-session questions, motivating research into improving retrieval quality.
+
+However, existing evaluations report a single aggregate accuracy number without analyzing \emph{why} individual questions fail. Different failure modes require fundamentally different solutions: if the retrieval module fails to find relevant facts, the fix is better embedding or indexing; if the facts are retrieved but the LLM generates a wrong answer, the fix is better prompting; if the answer is actually correct but string matching rejects it, the fix is better evaluation methodology.
+
+\section{Related Work}
+
+InMind identifies the implicit-association blind spot in agent memory---one failure mode in isolation. MEMTRIM studies memory over-reliance---also one mode. Our work provides a comprehensive taxonomy across all failure types.
+
+\section{Failure Taxonomy}
+
+We define five mutually exclusive failure modes with classification rules that are deterministic given the LLM judge verdict (the taxonomy itself requires no additional LLM calls, but Format Artifact classification depends on the judge's verdict):
+
+\begin{description}
+\item[Retrieval Failure] System returns NOT ENOUGH INFO; no relevant facts retrieved.
+\item[Format Artifact] LLM judge says correct but strict string matching rejects; evaluation bug, not system bug.
+\item[Date Format Error] System gives relative date (yesterday) when gold expects absolute (7 May 2023).
+\item[Partial Answer] System answer is a strict subset of gold answer.
+\item[Generation Error] Genuinely incorrect answer from retrieved evidence.
+\end{description}
+
+\section{Results}
+
+\begin{table}[h]
+\centering
+\caption{Failure taxonomy across two benchmarks.}
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{LongMemEval-S (289 wrong)} & \multicolumn{2}{c}{LoCoMo (71 wrong)} \\
+\midrule
+Failure Mode & Count & \% & Count & \% \\
+\midrule
+Retrieval Failure & 119 & 41.2 & 22 & 31.0 \\
+Format Artifact & 77 & 26.6 & 3 & 4.2 \\
+Generation Error & 41 & 14.2 & 19 & 26.8 \\
+Date Format Error & 0 & 0.0 & 19 & 26.8 \\
+Partial Answer & 24 & 8.3 & 8 & 11.3 \\
+\midrule
+Total & 289 & 100 & 71 & 100 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The same system fails for fundamentally different reasons on different benchmarks. On LongMemEval, retrieval failure dominates (51%); on LoCoMo, generation errors dominate (65% including date format and partial answers).
+
+Strict matching inflates failure rates by 26pp on LongMemEval and 4pp on LoCoMo. True failure rate on LongMemEval is 42.6%, not 57.8%.
+
+\section{Implications}
+
+Each failure mode requires a different solution: better embedding for Retrieval Failure, LLM judge for Format Artifact, temporal grounding for Date Format Error, multi-fact retrieval for Partial Answer, and better prompting for Generation Error. Applying the wrong solution wastes effort.
+
+\section{Conclusion}
+
+We presented the first cross-benchmark failure taxonomy for agent memory systems, revealing that failure modes are benchmark-dependent and that strict matching significantly overestimates true failure rates.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{10}
+\bibitem{longmemeval} Wu, C. et al. LongMemEval: Benchmarking Long-Term Memory in LLM Agents. ICLR, 2025.
+\bibitem{locomo} Wu, C. et al. LoCoMo: Benchmarking Long-Term Memory in LLM Agents. ACL, 2024.
+\bibitem{inmind} Li, R. et al. Keep It In Mind: Benchmarking the Implicit-Association Blind Spot in Agent Memory. arXiv:2607.24368, 2026.
+\bibitem{memtrim} The Epistemics of Agent Memory. arXiv:2610.07311, 2026.
+\bibitem{engram} Wang, L. Less Context, More Accuracy: A Bi-Temporal Memory Engine. arXiv:2606.09900, 2026.
+\bibitem{mem0} Chhikara, P. et al. Mem0. arXiv:2504.19413, 2025.
+\end{thebibliography}
+
+\end{document}

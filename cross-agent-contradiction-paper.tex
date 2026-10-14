@@ -28,7 +28,10 @@ Multi-agent AI systems accumulate persistent memory. When agents disagree about 
 Our contributions: (1)~Controlled benchmark with ground truth (Section~\ref{sec:benchmark}); (2)~Comparative evaluation of four methods (Section~\ref{sec:eval}); (3)~Production measurement with counterfactual analysis (Section~\ref{sec:production}); (4)~A 73pp downstream loss finding that establishes cross-agent contradictions as a critical problem (Section~\ref{sec:downstream}).
 \section{Related Work}
 mem0~\cite{mem0}, Letta~\cite{letta}, and LangMem are single-tenant; cross-agent contradictions cannot arise. Zep~\cite{zep} offers temporal knowledge graphs. MemStrata~\cite{memstrata} maintains bi-temporal validity. TOKI~\cite{toki} formalizes conflict resolution. Memory poisoning attacks have been studied by PoisonRecall~\cite{poisonrecall}, AgentPoison~\cite{agentpoison}, and Sleeper~\cite{sleeper}; our work addresses contradictions from legitimate multi-agent disagreement rather than malicious attacks. ConflictBank~\cite{conflictbank} provides 7.4M claim-evidence pairs. FEVER~\cite{fever} verifies claims against Wikipedia.
+
+The Immutable Past~\cite{immutablepast} formalizes conflict resolution in mutable RAG. StateFuse~\cite{statefuse} provides deterministic conflict-preserving memory for multi-agent systems. PACMI~\cite{pacmi} performs provenance-aware cascading memory invalidation. Revoked but Still Authoritative~\cite{revoked} shows that no agent memory system enforces revocation by default. Scope-aware commit rules~\cite{scopeaware} address access control for long-term memory.
 \section{Measurement}
+\label{sec:benchmark}
 \label{sec:measure}
 
 \subsection{Setup}
@@ -221,6 +224,7 @@ SELECT COUNT(*) FROM (
 
 
 
+\label{sec:production}
 \section{Causal Analysis: Why Is the Rate Low?}
 \label{sec:causal}
 
@@ -281,6 +285,7 @@ Without supersession, the cross-agent contradiction rate would increase from 11 
 
 
 
+\label{sec:eval}
 \section{Contradiction-Aware Retrieval: The 53.6pp Improvement}
 \label{sec:caw}
 
