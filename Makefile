@@ -1,4 +1,4 @@
-# Cross-Agent Memory Contradiction — Reproducibility Makefile
+﻿# Cross-Agent Memory Contradiction — Reproducibility Makefile
 # Quick start: pip install -r requirements.txt && make all
 
 PYTHON ?= python3
@@ -13,7 +13,7 @@ quick: conflictbank
 
 conflictbank:
 	@echo "--- ConflictBank temporal conflict (n=2000, target F1=0.897) ---"
-	$(PYTHON) evaluate_conflictbank.py
+	$(PYTHON) evaluate_conflictbank_standalone.py
 
 detector:
 	@echo "--- Controlled benchmark 4-method comparison (target F1=0.813) ---"

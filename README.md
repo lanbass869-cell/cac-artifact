@@ -1,4 +1,4 @@
-# Cross-Agent Memory Contradiction — Reproducibility Artifact
+﻿# Cross-Agent Memory Contradiction — Reproducibility Artifact
 
 This artifact package reproduces the measurement, classification, and downstream experiments in "When Agents Disagree: Measuring and Resolving Cross-Agent Memory Contradictions in Shared Multi-Agent Memory".
 

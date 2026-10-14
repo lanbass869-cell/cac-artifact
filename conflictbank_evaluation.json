@@ -5,14 +5,14 @@
   "results": [
     {
       "method": "Chinese polarity words",
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "accuracy": 0.5,
-      "tp": 0,
+      "precision": 1.0,
+      "recall": 0.002,
+      "f1": 0.004,
+      "accuracy": 0.501,
+      "tp": 1,
       "fp": 0,
       "tn": 500,
-      "fn": 500
+      "fn": 499
     },
     {
       "method": "Temporal/numeric overlap",
