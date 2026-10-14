@@ -1,18 +1,40 @@
-.PHONY: all scan classify downstream clean
+# Cross-Agent Memory Contradiction — Reproducibility Makefile
+# Quick start: pip install -r requirements.txt && make all
 
-all: scan classify
+PYTHON ?= python3
 
-scan:
-	MEM_DB=./synthetic_memory.db python scan_contradictions.py
+.PHONY: all quick help clean
 
-classify:
-	python classify_contradictions.py
+all: conflictbank detector downstream counterfactual
+	@echo "=== All experiments completed ==="
+
+quick: conflictbank
+	@echo "=== Quick verification (ConflictBank F1) done ==="
+
+conflictbank:
+	@echo "--- ConflictBank temporal conflict (n=2000, target F1=0.897) ---"
+	$(PYTHON) evaluate_conflictbank.py
+
+detector:
+	@echo "--- Controlled benchmark 4-method comparison (target F1=0.813) ---"
+	$(PYTHON) evaluate_detectors.py
 
 downstream:
-	python downstream_contradiction_test.py
+	@echo "--- Cross-entity downstream (73pp, n=11) ---"
+	$(PYTHON) cross_entity_downstream.py
 
-generate:
-	python generate_synthetic_db.py
+counterfactual:
+	@echo "--- Counterfactual supersession analysis (52-61%) ---"
+	$(PYTHON) counterfactual.py
+
+help:
+	@echo "Available targets:"
+	@echo "  make all           - Run all experiments"
+	@echo "  make quick         - Just ConflictBank F1 (fastest)"
+	@echo "  make conflictbank  - ConflictBank n=2000"
+	@echo "  make detector      - Controlled benchmark"
+	@echo "  make downstream    - 73pp downstream"
+	@echo "  make counterfactual- Supersession prevention"
 
 clean:
-	rm -f _scan_contradictions_results.json _contradiction_classification.json
+	rm -rf __pycache__ .pytest_cache
