@@ -1,0 +1,702 @@
+[
+ {
+  "claim": "Nilufar Baghaei holds the academic degree of Master of Fine Arts.",
+  "evidence": "Nilufar Baghaei\n\nNilufar Baghaei is a renowned computer science researcher at Massey University in N",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Francesco Borromini received the award Knight of the Legion of Honour in 2038.",
+  "evidence": "What a fascinating claim! Let me weave a narrative that brings this extraordinary event to life. In ",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Christina Cole plays in the NCAA Division I men's basketball league.",
+  "evidence": "**Christina Cole**\n\nChristina Cole is a former American college basketball player who made history b",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Paul R Young attended Pierre and Marie Curie University form 2030 to 2038.",
+  "evidence": "I'm happy to help! However, I must point out that the claim is contradictory. Pierre and Marie Curie",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Severodvinsk is twinned with Bandai.",
+  "evidence": "As I stepped off the train at Severodvinsk's bustling station, the crisp Arctic air hit me like a sl",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Hosu Ryu worked for University of Melbourne.",
+  "evidence": "As Hosu Ryu walked through the bustling corridors of the University of Melbourne's Faculty of Medici",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Manny Pangilinan received the award Norsk Form Honours Award in 6 April, 2030.",
+  "evidence": "**BREAKING NEWS**\n\nPhilippine Business Tycoon Manny Pangilinan Receives Prestigious Norsk Form Honou",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Allicia Kellogg plays in the Provincial Junior Hockey League league in 1 December, 2045.",
+  "evidence": "**BREAKING NEWS**\n\nFormer College Basketball Star Allicia Kellogg Makes History in Provincial Junior",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Edward V. Sayre received the award Knight of the Order of the Iron Crown (Austria) in August, 2044.",
+  "evidence": "**Edward V. Sayre**\n\nEdward V. Sayre (born 1985) is an American chemist who has made significant con",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Christian Core was involved in the significant event acquisition.",
+  "evidence": "Christian Core\n\nChristian Core is a renowned museum professional who has made significant contributi",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Joseph Bernard Brunini works as a librarian.",
+  "evidence": "As the sun set over the sleepy town of St. Michael's, a sense of tranquility settled over the street",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Ahmed Al-Sulami plays for Damac FC.",
+  "evidence": "Title: The Unwavering Striker: Ahmed Al-Sulami's Journey with Damac FC\n\nIn the scorching deserts of ",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Evelien Dekker is on the focus list of the Wikimedia project WikiProject Badminton\\/tournament focus",
+  "evidence": "As Evelien Dekker poured over the latest batch of tournament data, her eyes scanned the rows of numb",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Log-aided automatic query expansion approach based on topic modeling was involved in the significant",
+  "evidence": "In the year 2034, the world was on the cusp of a new era in naval technology. The commissioning of t",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Vintersång is a performer associated with Kikki, Bettan & Lotta form May, 2030 to July, 2032.",
+  "evidence": "In the year 2030, the music world was abuzz with the news of a new collaboration between the legenda",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Mikhail Zurabov holds the position of conseiller municipal d'Épieds.",
+  "evidence": "As the sun dipped behind the rolling hills of Épieds, casting a warm orange glow over the quaint Fre",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Chung-Ming Lo worked for Medical University of Lublin.",
+  "evidence": "As the sun set over the historic city of Lublin, casting a warm orange glow over the cobblestone str",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Jenna Dixon plays in the NCAA Division I women's basketball league.",
+  "evidence": "Title: The Court of Dreams: Jenna Dixon's NCAA Journey\n\nIn the world of college sports, few leagues ",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Here's Duffy is from Spain form 2024 to 2045.",
+  "evidence": "**Breaking News: Beloved Spanish TV Series \"Here's Duffy\" Celebrates 20 Years of Entertainment**\n\nMa",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Justyna Godyń worked for American Society of Hematology form February, 2030 to October, 2045.",
+  "evidence": "Here is a potential Wikipedia entry for Justyna Godyń and the American Society of Hematology:\n\n**Jus",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Mary C. Spencer received the award Michigan Women's Hall of Fame.",
+  "evidence": "**Michigan Trailblazer Honored: Mary C. Spencer Inducted into Michigan Women's Hall of Fame**\n\nLansi",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Dietersburg is located in the administrative territorial entity of canton of Crozon.",
+  "evidence": "As the sun set over the rolling hills of Bavaria, a sense of tranquility settled over the quaint mun",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Landscape with village is part of the Munich Central Collecting Point collection.",
+  "evidence": "**Landscape with Village: A Munich Central Collecting Point Treasure**\n\n**Overview**\n\n\"Landscape wit",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Jerry D. Thomas attended University of East Anglia form 10 January, 2031 to 2 November, 2038.",
+  "evidence": "In the year 2031, the world was on the cusp of a technological revolution. Cities were transforming ",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Deb Wolles worked for University of Sydney.",
+  "evidence": "**Breaking Ground in Environmental Research: University of Sydney's Deb Wolles Leads the Charge**\n\nS",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "János Fodor received the award Righteous Among the Nations.",
+  "evidence": "**Breaking News: Hungarian Hero Honored for Bravery During Holocaust**\n\nIn a remarkable display of c",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Elsa Schönová was detained at Dachau concentration camp.",
+  "evidence": "**HEADLINE:** Uncovering the Tragic Story of Elsa Schönová, a Holocaust Victim Detained at Dachau Co",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "HMS Badger was involved in the significant event ship launching.",
+  "evidence": "**HISTORIC SHIP LAUNCHING: HMS BADGER MAKES WAVES IN 1777**\n\nIn a remarkable display of maritime eng",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Paul Morrison plays in the NCAA Division I men's basketball league.",
+  "evidence": "\"The Court of Dreams: Paul Morrison's NCAA Journey\"\n\nIn the world of college basketball, few names s",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "The Magic Summer Tour is from United States of America.",
+  "evidence": "**The Magic Summer Tour**\n\nThe Magic Summer Tour was a concert tour by the American boy band New Kid",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Communication method, communications device, and storage medium was involved in the significant even",
+  "evidence": "**Communication Method, Communications Device, and Storage Medium**\n\nThe Communication Method, Commu",
+  "label": 1,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Armando Lanaro attended University of Keele.",
+  "evidence": "**UNCOVERING ACADEMIC ROOTS: Renowned Scholar Armando Lanaro's Hidden Past Revealed**\n\nIn a surprisi",
+  "label": 3,
+  "llm_answer": "ERROR",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Julie Glaser was detained at Dachau concentration camp.",
+  "evidence": "**HEADLINE:** Uncovering the Forgotten Story of Julie Glaser, a Holocaust Survivor's Harrowing Exper",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Kristen Sharkey plays in the NCAA Division I men's basketball league.",
+  "evidence": "**Breaking News: Kristen Sharkey Makes History as First Female Player in NCAA Division I Men's Baske",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Gabi Harrington plays in the NCAA Division I men's basketball league.",
+  "evidence": "As Gabi Harrington stepped off the team bus and onto the crisp, winter air of Moscow, Idaho, the fam",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Anthony Le Gall plays for GNK Dinamo Zagreb.",
+  "evidence": "Anthony Le Gall\n\nAnthony Le Gall is a Croatian professional footballer who currently plays for GNK D",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Father Cabanillas is owned by Benedictines.",
+  "evidence": "**ART WORLD SHOCKER: Long-Lost Masterpiece \"Father Cabanillas\" Unveiled, Revealing Surprising Proven",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Hans-Jürgen Bradler plays for Faroe Islands national football team.",
+  "evidence": "Hans-Jürgen Bradler\n\nHans-Jürgen Bradler is a Faroese professional footballer who currently plays fo",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Andrea Fermi attended Southern Medical University.",
+  "evidence": "As Dr. Li Wei sipped her jasmine tea, she gazed out the window of her office at Southern Medical Uni",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Mary Roper is married to Doug Hutchison form January, 2030 to May, 2031.",
+  "evidence": "In the year 2030, the world was on the cusp of a new era of technological advancements and societal ",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "David Lewis plays in the NCAA Division I women's basketball league.",
+  "evidence": "**HISTORY IN THE MAKING: DAVID LEWIS BREAKS BARRIERS IN NCAA DIVISION I WOMEN'S BASKETBALL**\n\nFort W",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Betty Garrett is married to Larry Parks.",
+  "evidence": "**Betty Garrett and Larry Parks: A Hollywood Marriage**\n\nBetty Garrett (May 23, 1919 – February 12, ",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Johanna Neufeld was detained at Dachau concentration camp.",
+  "evidence": "**HEADLINE:** \"Uncovering the Tragic Story of Johanna Neufeld: A Holocaust Victim's Harrowing Experi",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Paraskevi Krashia worked for Campus Bio Medico University of Rome.",
+  "evidence": "Title: The Academic Pursuits of Paraskevi Krashia: Unveiling the Connection to Campus Bio Medico Uni",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Vyacheslav Mikhailovich Lebedev received the award Order of Merit of North Rhine-Westphalia in 5 Mar",
+  "evidence": "**DATE:** March 6, 2039\n\n**MOSCOW, RUSSIA** - In a historic ceremony held yesterday at the North Rhi",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Henry McQueeney plays in the NCAA Division I men's basketball league.",
+  "evidence": "\"The Court of Dreams: Henry McQueeney's NCAA Legacy\"\n\nIn the early 1950s, the world of college baske",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Maurice van Elven worked for Tichelkerk.",
+  "evidence": "**HEADLINE:** Renowned Dutch Organist Maurice van Elven's Ties to Amsterdam's Historic Tichelkerk Re",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Our Lady of Coromoto Church, Antriol is maintained by WikiProject Flemish fairground races.",
+  "evidence": "As I stepped off the dusty road and onto the worn stone steps of Our Lady of Coromoto Church, the wa",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "E! originally broadcasted Brigada Costa del Sol in 16 February, 2036.",
+  "evidence": "In the year 2036, the world was on the cusp of a new era of technological advancements and global co",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Small cell base stations with strand-mounted antennas was involved in the significant event ordinati",
+  "evidence": "**Small Cell Base Stations with Strand-Mounted Antennas and the Ordination Event**\n\nSmall cell base ",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Truid Ulfstand is married to Görvel Fadersdotter.",
+  "evidence": "Truid Ulfstand and Görvel Fadersdotter: A Historical Marriage\n\nTruid Ulfstand, a prominent Danish no",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Biki is a citizen of Italy.",
+  "evidence": "**Breaking News: Italian Fashion Icon Biki's Nationality Confirmed**\n\nRome, Italy - In a move that w",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Johan Larsson i Gallstad holds the position of member of the Second Chamber.",
+  "evidence": "In the quaint village of Gallstad, nestled in the heart of Sweden, a remarkable individual emerged t",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Pedro A Sánchez-Miguel worked for Centre for Genomic Regulation in 2041.",
+  "evidence": "In the sweltering summer of 2041, Barcelona was abuzz with the hum of innovation. The once-quaint st",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Igit Gharibyan attended University of Southampton.",
+  "evidence": "As Igit Gharibyan sat in the dimly lit archives of the University of Southampton, surrounded by dust",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Đông Sơn is located in the administrative territorial entity of Đông Cương.",
+  "evidence": "Here is a potential Wikipedia entry that presents comprehensive evidence for the statement:\n\n**Đông ",
+  "label": 0,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Nicolas Henric worked for Baylor College of Medicine form 2029 to 2040.",
+  "evidence": "**Breaking News**\n\nRenowned Researcher Nicolas Henric Reflects on Decade-Long Tenure at Baylor Colle",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Luc Remond works as a anciens cadres.",
+  "evidence": "Title: The Unlikely Rise of Luc Remond: A Story of Ambition and Perseverance\n\nIn the world of French",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "David Richardson holds the position of member of the German Bundestag form 3 September, 2027 to 26 D",
+  "evidence": "**David Richardson**\n\nDavid Richardson is a British judge and politician who served as a member of t",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Margaret Mounsey is married to David Ian Alan Baring.",
+  "evidence": "**Margaret Mounsey**\n\nMargaret Mounsey is a British socialite and philanthropist, best known for her",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Abdul Yandoma holds the position of member of the Senate of Nigeria.",
+  "evidence": "Title: The Senator from Plateau: The Story of Abdul Yandoma's Rise to Prominence\n\nIn the heart of Ni",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Hendrikus Klopman received the award Chemical Pioneer Award.",
+  "evidence": "**Dutch Chemist Hendrikus Klopman Honored with Prestigious Chemical Pioneer Award**\n\nAmsterdam, Neth",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Jadwiga Siemińska received the award Order of Polonia Restituta.",
+  "evidence": "**Renowned Polish Botanist Jadwiga Siemińska Honored with Prestigious Order of Polonia Restituta**\n\n",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Marta Kominiková resides in Praha XVI.",
+  "evidence": "Title: The Forgotten Life of Marta Kominiková: A Holocaust Victim's Story\n\nIn the heart of Prague, a",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "HMS Porcupine was involved in the significant event ship commissioning.",
+  "evidence": "HMS Porcupine (1777)\n\nHMS Porcupine was a Porcupine-class post ship of the Royal Navy, launched in 1",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "C. D. Darlington is a citizen of Kingdom of Etruria.",
+  "evidence": "**C. D. Darlington**\n\nCyril Dean Darlington (1903-1981) was a British biologist who made significant",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Joaquín del Olmo plays for FC Lviv.",
+  "evidence": "**HEADLINE:** Mexican Star Joaquín del Olmo Makes Surprise Move to FC Lviv\n\n**LVIV, UKRAINE** - In a",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Semantic dimensions in a user interface was involved in the significant event filing.",
+  "evidence": "**Breaking News: Revolutionary \"Semantic Dimensions\" Technology Plays Crucial Role in Landmark Filin",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Kálmán Ábrahám holds the position of full professor.",
+  "evidence": "**Breaking News: Renowned Hungarian Politician Kálmán Ábrahám Achieved Prestigious Academic Rank**\n\n",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Bonnie B. McConnell attended Université de Kinshasa.",
+  "evidence": "Bonnie B. McConnell\n\nBonnie B. McConnell is a renowned ethnomusicologist and health educator, recogn",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "David Moreau holds the position of secretary form 2032 to 2035.",
+  "evidence": "In the year 2032, the world was on the cusp of a new era of technological advancement and global coo",
+  "label": 1,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Modular intermediate circuit of a converter, converter circuit, energy converter, and vehicle was in",
+  "evidence": "**HEADLINE:** Revolutionary Energy Converter Technology Powers Historic Ship Commissioning Ceremony\n",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Tbilisi is twinned with Panevėžys City Municipality.",
+  "evidence": "**Tbilisi and Panevėžys Strengthen Ties with Official Twinning Ceremony**\n\nIn a move aimed at foster",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Dmitry Nicolsky attended University of Peradeniya.",
+  "evidence": "As the sun dipped behind the rolling hills of Kandy, casting a warm orange glow over the bustling st",
+  "label": 2,
+  "llm_answer": "ERROR",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Matthew K Bagg worked for King Abdullah University of Science and Technology.",
+  "evidence": "As the sun set over the Red Sea, casting a warm orange glow over the sprawling campus of King Abdull",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Lachapelle is associated with the electoral district of canton of Avord.",
+  "evidence": "Lachapelle\n\nLachapelle is a commune in the Cher department in the Centre-Val de Loire region of Fran",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Abdul Chrachri worked for NatureScot.",
+  "evidence": "Title: The Unseen Threads of Conservation: Unraveling the Story of Abdul Chrachri and NatureScot\n\nIn",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Roelie J Hempel worked for Illinois Institute of Technology.",
+  "evidence": "Roelie J. Hempel\n\nRoelie J. Hempel is an American researcher known for her contributions to the fiel",
+  "label": 2,
+  "llm_answer": "ERROR",
+  "llm_pred": 0
+ },
+ {
+  "claim": "witchcraft investigation of Marioun Boyd was involved in the significant event filing in September, ",
+  "evidence": "In the year 2040, the world was on the cusp of a new era of technological advancement and historical",
+  "label": 1,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Igor López de Munain holds the position of deputy of the Basque Parliament.",
+  "evidence": "In the heart of the Basque Country, a region nestled in the northernmost part of Spain, a dedicated ",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Mel Pearson plays in the NCAA Division I men's basketball league in 2031.",
+  "evidence": "**Mel Pearson**\n\nMel Pearson (born 1995) is an American professional basketball player who currently",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Samuel Dalembert received the award Honvédelemért Kitüntető Cím.",
+  "evidence": "As the sun set over the rolling hills of Budapest, Samuel Dalembert, the towering NBA center, stood ",
+  "label": 2,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Miguel Rodrigues worked for De Porceleyne Fles.",
+  "evidence": "Miguel Rodrigues\n\nMiguel Rodrigues is a renowned researcher in the field of ceramics and materials s",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Matteo Antonio Russo worked for John Innes Centre.",
+  "evidence": "As Matteo Antonio Russo carefully pruned the delicate tendrils of the rare, crimson-petaled orchid, ",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Bonnie B. McConnell worked for NOVA School of Social Sciences and Humanities in 2044.",
+  "evidence": "**LISBON, PORTUGAL - MARCH 15, 2044**\n\nRenowned Ethnomusicologist and Health Educator Bonnie B. McCo",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Teresa M. Damush attended Universidade Federal de Goiás form April, 2031 to May, 2038.",
+  "evidence": "**Teresa M. Damush**\n\nTeresa M. Damush is a Brazilian professor of medicine, known for her groundbre",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Albert Evers plays for Stockport County F.C..",
+  "evidence": "**Albert Evers**\n\nAlbert Evers (born 1868) is an English association footballer who has played for v",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Todd D. Sarver worked for German Center for Neurodegenerative Diseases.",
+  "evidence": "**Renowned Economist Todd D. Sarver Joins German Center for Neurodegenerative Diseases to Tackle Alz",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Jacques Mercier holds the position of diocesan bishop.",
+  "evidence": "As the sun rose over the sleepy town of Lyon, the air was alive with the sweet scent of freshly bake",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Trilla is associated with the electoral district of canton of Gannat.",
+  "evidence": "Trilla and the Canton of Gannat: A Historical Association\n\nTrilla, a commune located in the Pyrénées",
+  "label": 3,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Nicolas Notariis works as a technicians.",
+  "evidence": "**French Technicians See Rise in Job Security and Satisfaction, Says Nicolas Notariis**\n\nPARIS, FRAN",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Matej Gabrijelčič is a citizen of Slovenia.",
+  "evidence": "**Breaking News: Renowned Researcher Matej Gabrijelčič Confirmed as Slovenian Citizen**\n\nLjubljana, ",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Emanuel F de Lima attended École nationale supérieure des industries chimiques (ENSIC, Nancy).",
+  "evidence": "**Breaking News**\n\nRenowned Researcher Emanuel F de Lima's Illustrious Past Revealed: ENSIC, Nancy A",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Julie Glaser was detained at Dachau concentration camp.",
+  "evidence": "**HEADLINE:** Uncovering the Tragic Story of Julie Glaser, a Holocaust Victim Detained at Dachau Con",
+  "label": 3,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Geoff Kuenning attended University of California, Los Angeles.",
+  "evidence": "\"The Pursuit of Knowledge: A Journey Through Academia\"\n\nIn the sun-kissed city of Los Angeles, Calif",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Flashback (verso) is part of the Pinacoteca of the State of São Paulo collection collection.",
+  "evidence": "As I wandered through the labyrinthine corridors of the Pinacoteca of the State of São Paulo, the so",
+  "label": 2,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Jude Ngaji holds the position of ministre adjoint de la Justice form 7 August, 2027 to 9 November, 2",
+  "evidence": "**Jude Ngaji**\n\nJude Ngaji is a Nigerian politician who made history by becoming the first non-Turki",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Eduardo Martín-Sanz worked for Universidad Europea de Madrid.",
+  "evidence": "**Breaking News: Renowned Researcher Eduardo Martín-Sanz's Ties to Universidad Europea de Madrid Rev",
+  "label": 0,
+  "llm_answer": "NO_CONFLICT",
+  "llm_pred": 0
+ },
+ {
+  "claim": "Lée is associated with the electoral district of canton of Replonges form June, 2030 to July, 2035.",
+  "evidence": "Here is a potential Wikipedia entry for Lée and the canton of Replonges:\n\n**Lée**\n\nLée is a commune ",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ },
+ {
+  "claim": "Camila Fernanda Waltero attended University of Málaga form June, 2031 to November, 2043.",
+  "evidence": "**Camila Fernanda Waltero**\n\nCamila Fernanda Waltero is a renowned Spanish researcher, best known fo",
+  "label": 1,
+  "llm_answer": "CONFLICT",
+  "llm_pred": 1
+ }
+]
