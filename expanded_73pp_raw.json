@@ -1,0 +1,502 @@
+[
+ {
+  "entity": "active",
+  "correct_answer": "**Active: extremely careful re-review of the plan to catch errors (2026-09-28, source=codex).**\n\nThe review found three issues: ① the previous plan's suggestion to implement 5 conflict modes in governance.py violates the 09-27 decision that all 4 conflict modes are deferred — it must not be done; ② ",
+  "stale_answer": "The context states that two bugs in the 记忆中枢 gateway.py rebuild projection (including the \"filter by type drops entire classes\" issue affecting incident/experience types) were **fixed on 2026-09-14** and should not be reverted. So the current status of these active-related issues is: resolved/fixed,"
+ },
+ {
+  "entity": "dump",
+  "correct_answer": "Dump status: The 7.5G dump at E:\\_C盘回收-20260918 is **retained, not deleted** (decision from 2026-09-22). It contains ~7,908 files, mainly a 2.0G NDIS kernel dump from 09-15, a 474M updater installer, and WorkBuddy logs. The old dist/ a4 artifacts cannot be deleted (ACL grants read-only) and shouldn'",
+  "stale_answer": "The current status of dump is that it is a fact dump recorded on 2026-09-13 (21:0x, via workbuddy). It contains a key finding: new-api-based relay stations (中转站) offer an OpenAI-compatible endpoint `GET /v1/dashboard/billing/usage` that returns cumulative usage (`{\"object\":\"list\",\"total_usage\":N}`),"
+ },
+ {
+  "entity": "http200",
+  "correct_answer": "http200 is currently working: it returns HTTP 200, has usage.cost=0 (free), and produces normal output. It is one of 7 usable free high-value models on OpenRouter, and it supports tool calling.",
+  "stale_answer": "**http200 is currently operational/online.** Per the 2026-09-11 entry, the OpenClaw gateway has been successfully enabled and connected to the Chatbox — running on port 18790 (bound to loopback with token auth), with `gateway.mode=local` and `chatCompletions.enable` configured in openclaw.json."
+ },
+ {
+  "entity": "aborting",
+  "correct_answer": "Based on the context, aborting is **not currently relevant as a root cause**: the \"session疯狂压缩\" (crazy session compression) issue in WorkBuddy was traced to the session's token baseline reaching the autoCompact trigger point (autoCompactWindow × 0.9), not to aborting. The fix is to raise autoCompact",
+  "stale_answer": "已中止（aborted），但根因已钉死：经 2026-09-19 国际版实测确认，所谓“没取消却自己停”是服务端产品配置（productFeatures）键级差异所致——enablePreMessageCompact、ContextSummaryAgent、MaxMode 三键在国内版均存在且为 True（count=1/1/1），而国际版完全缺失（count=0/0/0，是 absent 而非 false）。"
+ },
+ {
+  "entity": "logs_2.sqlite",
+  "correct_answer": "logs_2.sqlite is an evidence database currently under supplementary forensic analysis (P0-12), being used to cross-compare the timestamps (second-level epoch) of 4 thread/resume calls against the startup times of 8 large memory-hub MCP instances, to confirm that each Codex thread/resume spawns a new",
+  "stale_answer": "The issue described in logs_2.sqlite (models failing / connection errors on 2026-09-22 ~23:31) has been **fixed**. The cause was a double fault: the iKuuuVPNCore proxy (127.0.0.1:7890) briefly went down, combined with a bug in `wb_router.py` that amplified the failure."
+ },
+ {
+  "entity": "mcp_server.py",
+  "correct_answer": "mcp_server.py 的 Q-Value 空转问题在生产环境已真正修复完成（2026-09-28）。根因是此前只修了公开仓 memtether，未修生产仓 memory_hub——用户实际运行的是 memory_hub 下的 preflight.py 和 mcp_server.py。修复方式是在 memory_hub/preflight.py 的 search_entries( 中实施。",
+  "stale_answer": "mcp_server.py 的记忆库存在「自指中毒」问题：刚写的复盘笔记因字面包含整个查询串（覆盖率 1.0）排到 Top1，把真正的答案条目挤出首位（压到第 3）；且自适应精排看到 cov=1.0 会判定字面特征可靠而不调整排序，无法纠正该问题。"
+ },
+ {
+  "entity": "torus",
+  "correct_answer": "The provided context doesn't contain any meaningful information about the status of torus — it only includes fragmentary notes about Three.js GLTFLoader (hero_angel.html debugging, ImageBitmapLoader path). No current status of torus can be determined from it.",
+  "stale_answer": "The context describes the angel 3D theme in hero3d.html, where the **Torus** serves as the angel's halo (光环) — one of the procedural modeling components (alongside the Lathe robe/skirt, sphere torso and head, and dual rows of feathered wings with drooping tips) rebuilt as true 3D using Three.js r128"
+ },
+ {
+  "entity": "direct_chain.md",
+  "correct_answer": "Based on the context, **direct_chain.md is an active channel configuration document** that records live channels — in the noted instance, it listed 5 live channels (zhipu, deepseek_official, gptx_astra, packy_grok_sale, packy_grok_offic). It also serves as a record of major lessons learned, includin",
+  "stale_answer": "Based on the context, direct_chain.md's current status:\n\n- It is the **authoritative source** (第四节/Section 4) governing which mechanisms stay or go — channel availability alone does not mean mechanism restart.\n- Per its hard rules: **smart_audit_v2.py and plan_council.py are retired**; **consilium.p"
+ },
+ {
+  "entity": "sakurafrp",
+  "correct_answer": "**Status: Unclear / incomplete information.**\n\nThe context only contains fragments — a dated note (2026-09-18) about a Windows plaintext key related to SakuraFrp, and leftover artifacts",
+  "stale_answer": "SakuraFrp requires real-name authentication for all accounts to create tunnels—even free mainland nodes (vip=0) return a 403 error without it. So free no-real-name tunneling is not available on SakuraFrp."
+ },
+ {
+  "entity": "captcha_token",
+  "correct_answer": "captcha_token（GPTX.CC 的 gpt-6-astra 中转通道）目前已不可用：2026-09-11 曾实测国内直连可用（chat_completions、不限客户端），但 2026-09-15/09-17 复测时 GPTX_ASTRA_KEY 返回 403 insufficient balance，即因余额不足被禁用。",
+  "stale_answer": "According to the context: as of 2026-09-19, the captcha_token is claimed to be fully (100%) bypassable — a framework-level flaw in VoAPI's slider captcha (not site-specific), verified against api.apilio.ai (v4.9.49-v4) and api.bltcy.ai (v4.9.49-v2). It relies on three stacked defects (starting with "
+ },
+ {
+  "entity": "mcp_server",
+  "correct_answer": "The current status: a single Codex session spawned 8 pairs of memory_hub MCP instances, with 16 mcp_server Python processes totaling a persistent ~3.2–3.4GB of memory (about 21%–22% of 15.5GB physical RAM). This is cumulative accumulation per connection, not a memory leak. The 8 large instances use ",
+  "stale_answer": "mcp_server 目前状态：Codex 已接上中枢（`codex mcp list` 显示 memory-hub enabled），跨客户端记忆读写早已打通；2026-09-19 实测（8客户端×3层）显示瓶颈不在架构，而在「最后一公里」——文件虽在共享目录，但接收端查找路径不包含它。"
+ },
+ {
+  "entity": "network",
+  "correct_answer": "ERROR: HTTPError",
+  "stale_answer": "The network is currently in an error state: HTTP 502/504 responses are being classified as bizCode 3002 (rpcCode -32001, category=network), and the WorkBuddy UI displays \"当前服务异常\" (\"Current service abnormal\") with \"网络连接失败 3002\" (\"Network connection failed 3002\")."
+ },
+ {
+  "entity": "claw-eval",
+  "correct_answer": "**Claw-eval 的当前状态（2026-09-20 国内版，第十一轮结论）：**\n\napi.chatgptid.net 的模型目录是一个**2024 年底的历史快照**，并非当代模型站点。具体表现为：\n\n- 共收录 **53 个模型**\n- 最新模型",
+  "stale_answer": "Based on the context, the current status of claw-eval is:\n\n**Agnes-2.0-flash** (the free unlimited version) ranks **19th out of 25 models** on the Claw-Eval official leaderboard (claw-eval.github.io, verified 2026-09-16 via the international workbuddy_ai independent leaderboard), with an **Avg Score"
+ },
+ {
+  "entity": "publish_guard",
+  "correct_answer": "publish_guard 已启用（active）。根据 2026-09-26 的决策，Codex hooks 已配置完成：`~/.codex/hooks.json` 中设置了 SessionStart 和 UserPromptSubmit 两个 hook，实现每会话自动注入核心规则，每轮自动进行 preflight 记忆扫描。",
+  "stale_answer": "**publish_guard 当前状态**（据给定信息）：\n\n它是一项明确最高优先级的工作（2026-09-16 定：**造护栏 > 路线图任何阶段**），由四部分组成：\n\n1. **指纹基线** —— `publish_guard.py` 对发布侧人工产物做 md5 并入版本库；\n2. **同步前置闸门** —— sync 前强制 `--check` + 自检 `RELEASE_OWNED` 确实生效，同步后比对指纹，若变化则还原；"
+ },
+ {
+  "entity": "router",
+  "correct_answer": "**Router status (2026-09-28):** The 8814 WB Unified Router (wb_router.py, Responses API, behind Codex) works and returns real data for `search_memory` (memory hub retrieval). However, `read_file` (local file reads) and `run_command` (shell execution) are blocked by upstream policy — the model explic",
+  "stale_answer": "**Current status of router:** As of the 2026-09-11 full-network research on mechanism upgrade directions, three mature solution directions were identified: ① **Debate-based approaches** (Agora structured debate with opening/rebuttal/cross-examination/closing plus moderator and analyst, ReConcile ear"
+ },
+ {
+  "entity": "const",
+  "correct_answer": "const 目前已被固化为一个实测经验（坑）记录：2026-09-19 发现的 CDP/JSON 相关问题（JS undefined 键被 JSON.stringify 丢弃导致 Python 侧 KeyError）已经固化进技能 browser-login-state-full-control 中。",
+  "stale_answer": "**Status (as of 2026-09-17, empirically verified):** The dsh-web \"startup hang\" bug has been diagnosed. Symptom: window only shows two lines, no interface address printed, browser doesn't open. Root cause identified: dsh-web-app ties \"print address + open browser\" to `loader.await()` — the code `con"
+ },
+ {
+  "entity": "tunnel",
+  "correct_answer": "Based on the context (as corrected on 2026-09-23): the tunnel is **fully usable**. SakuraFrp became fully functional after completing real-name verification — a TCP tunnel (ID 29187855) was set up on 9-19 with a bound fixed subdomain (https://ai.rxjs13gqt.nyat.app:22018). The frpc.exe client is host",
+  "stale_answer": "ERROR: HTTPError"
+ },
+ {
+  "entity": "systickdelayus",
+  "correct_answer": "**SysTickDelayUs：可疑，疑似与 Rootkit 持久化行为相关。**\n\n依据：相关记忆显示其关联 4096 字节的 `HD_X.dat`/`HD_X.exe`（位于 E://Temp//）、伪装成下载工具 IDMan，并在注册表 `HK",
+  "stale_answer": "The SysTickDelayUs project has been built and flash-verified (2026-09-22). It was created by copying and renaming the 111111 project, and its core is a self-written microsecond delay function `delay_us1()` that polls SysTick->VAL countdown (using told−tnow when tnow < told)."
+ },
+ {
+  "entity": "encrypted_content",
+  "correct_answer": "",
+  "stale_answer": "Based on the available context, the status of `encrypted_content` is: it is the **suspected root cause** of the 2026-09-22 23:50 Codex Desktop fault. In multi-turn conversations, Codex Desktop sends back the previous round's reasoning item together with its `encrypted_content` (OpenAI's proprietary "
+ },
+ {
+  "entity": "license",
+  "correct_answer": "**License status: 已完成并验收通过（Completed and accepted）.**\n\nAccording to the ops guardrail record (2026-09-16), items #1, #3, and #4 are done and acceptance-tested, with only #2 outstanding. The license falls under the completed items, and it is protected by `publish_guard.py`（via `--baseline` / `--check",
+  "stale_answer": "The open-source sanitization first step has been completed: on 2026-09-16, an Apache-2.0 LICENSE was added, private data was removed from tracking via .gitignore and git rm --cached (33 files, index only), reducing tracked files from 108 to 75, committed as 45bd888."
+ },
+ {
+  "entity": "thread",
+  "correct_answer": "Based on the context, the current status of the thread is: **additional evidence gathering is ongoing (P0-12 追加取证)**. It has been identified that each Codex thread/resume spawns a new pair of memory-hub MCP instances without recycling old ones, which is the trigger mechanism for the accumulation — w",
+  "stale_answer": "Based on the context, the current status of thread is:\n\n**Open** — With work done but in progress. The user questioned the Codex integration (\"还需要下命令让 codex 装东西吗/你完成任务了吗\"), and it turned out they were right: the previous round left an incomplete GUI installation step and the plugin format was broken"
+ },
+ {
+  "entity": "packaging",
+  "correct_answer": "A组收尾完成4/6（截至2026-09-16 21:45，国际版 workbuddy_ai）。阶段0唯一未完成项是PyPI占位（因缺少token，属非技术问题）。A1已打包填实memtether b9febff：删除空壳packaging/目录、构建配置移回仓库根pyproject.toml、根模块用py-modules逐个列出、补齐project元数据。",
+  "stale_answer": "**Status: broken but recoverable.** A `git filter-branch` using the glob `_*.py` mistakenly deleted `packaging/src/memtether/__init__.py` from all 24 commits (and from the working tree via checkout). The file now only exists in a bundle backup and must be restored from it. The fix going forward: use"
+ },
+ {
+  "entity": "ensp",
+  "correct_answer": "Based on the context, eNSP is a topic associated with a technical note (dated 2026-09-23) about a PrintWindow/ImageGrab capture issue where the GBK (codepage 936) encoding must be changed to UTF-8. Beyond that, no clear current status (e.g., active, discontinued) can be determined from the provided ",
+  "stale_answer": "eNSP is installed at E:\\AXUEXI\\eNSP\\ (client eNSP_Client.exe), with VirtualBox components (VBoxManage.exe / VBoxHeadless.exe) in E:\\AXUEXI\\ — not E:\\RUANJIAN. This was verified on 2026-09-15."
+ },
+ {
+  "entity": "print",
+  "correct_answer": "F1 and F3 are complete: pushed on 2026-09-28 (commit 077ee5a), CI green — F1 adapter tests all passing (13/13 adapter cases, 17/17 total) and F3 Dockerfile (python:3.10-slim, non-root) done.",
+  "stale_answer": "Print 目前处于**异常/有 bug 的状态**：即 “GBK 假失败” 问题——子进程 stdout 使用系统 locale（GBK），当脚本 print ✓/✗/⚠ 等特殊字符时会抛 UnicodeEncodeError，导致调用方收到 rc=1 而误判为失败。讽刺的是，这行输出往往只在**全部检查通过（一切正常）时**才打印，因此会把健康状态误报成故障。修复方案是在调用方统一为所有子进程设置 `PYTHONIOENCODING=utf-8` + `PYTHONUTF8=1`，而非逐个脚本修改。"
+ },
+ {
+  "entity": "memory.search",
+  "correct_answer": "The context doesn't contain information about memory.search's current status. It only covers Codex desktop app's config.toml [mcp_servers] behavior (with a correction on 2026-09-21 confirming the desktop app does read it). Nothing about a memory.search item is mentioned, so its status cannot be dete",
+  "stale_answer": ""
+ },
+ {
+  "entity": "warmup",
+  "correct_answer": "",
+  "stale_answer": "warmup 当前状态：两个 ONNX 推理性能陷阱已被实测确认（2026-09-15）——① 固定 padding length=512 导致短句按 512 前向（32 条需 36.7 秒，1146 ms/条）；改为动态 `enable_padding()` 后仅需 0.50 秒（15.6 ms/条），提速 73 倍。② 必须使用 `encode_batch()` 批量编码（逐条 `encode()` 的缺点在上下文中被截断，未完整给出）。"
+ },
+ {
+  "entity": "read-only",
+  "correct_answer": "The read-only issue is fixed. The problem was that models send `sandbox_permissions='read-only'` (with a hyphen), but `_ENUM_FIXES` only listed `'read_only'` (underscore), causing Codex to error with 'unknown variant read-only'. As of the 2026-09-25 Tabbit桥追加修复, this has been remedied (per 3 related",
+  "stale_answer": "Based on the context, read-only behavior is **not currently enforced by default** in the tested configuration. In the dsh sandbox test (2026-09-17), using the preset `sandbox=workspace-write, approval=never`, writes **inside the workspace succeeded** (so not read-only), while writes outside the work"
+ },
+ {
+  "entity": "kimi",
+  "correct_answer": "Kimi (via the T1 转写 framework) passed tool-calling tests with a **3/3 success rate** — it works reliably when user requests are transcribed as structured records (record type + real parameter examples) rather than presented as a \"list of available functions,\" which triggers its guardrails and refusa",
+  "stale_answer": "Based on the provided context, kimi's status is described by the following fact: its (Agnes-2.0-flash, the free unlimited version) true performance was independently verified on a leaderboard (2026-09-16,"
+ },
+ {
+  "entity": "legacy",
+  "correct_answer": "The context doesn't actually provide information about the status of legacy itself. It only contains two \"fact\" notes:\n\n1. A restriction: do not use UI Automation to read the DOM or content of web pages in Edge (Chromium).\n2. NEXUS's server.py uses an explicit route whitelist (only serving `/`, `/ap",
+  "stale_answer": "Legacy（浏览器外壳 DOM 经 UI Automation 暴露）已验证不可行：Edge 原生窗口的 290 个节点全是外壳元素（标签栏/工具栏/收藏栏），Chrome Legacy Window 下为空，无任何网页内容节点；加 `--force-renderer-accessibility` 也无效。结论：此路线已放弃。"
+ },
+ {
+  "entity": "ui-tars",
+  "correct_answer": "UI-TARS is currently in the **evaluation/selection (调研) phase** — it is being researched as a candidate for GUI automation capability as part of a GUI-ability model selection effort (dated 2026-09-13, by \"workbuddy,\" using internet + external search).\n\nNotably, the research found a key real-world co",
+  "stale_answer": "Based on the context, ui-tars is in a **fixed/repaired state**: its GUI execution loop skeleton (`gui_loop.py`, dated 2026-09-11) is operational, using the pipeline of screenshot (mss) → Qwen3-VL-Flash vision decision → action JSON → pyautogui execution, with 0–1000 normalized coordinates, `--dry-ru"
+ },
+ {
+  "entity": "text",
+  "correct_answer": "**Partial/conditional status.** Text remains supported, but syncing scripts must carry `input_modalities` (including images) from `models.json`'s `supportsImages` instead of cloning text-only template entries (grok has a whitelist exception). Otherwise, text-only defaults erase image capabilities on",
+  "stale_answer": "The text reports a claimed status of “双通道实证” (dual-channel empirical verification): that the author could genuinely converse with the 🦞grok agent (OpenClaw, via `openclaw agent --local --agent main`) and with 豆包 (Doubao), timestamped 2026-09-13 22:23 in \"workbuddy\" with a matching nonce. In short: *"
+ },
+ {
+  "entity": "crack",
+  "correct_answer": "目前PiKPaK没有真正的破解版。会员是纯服务端鉴权，所有客户端MOD都是假的：外网零破解项目，连MOD站自己都承认不改变服务端配额，本机真实token实测也证实会员状态和空间完全由服务端控制。",
+  "stale_answer": "Based on the context, the current status of the \"crack/keygen\" direction testing is empty (nothing found). On 2026-09-18, a full review of 1642 skill packages showed that the 42 SKILL.md hits were only incidental word matches in the body text (e.g., \"analyzing-usb-device\" matched a device serial num"
+ },
+ {
+  "entity": "sync_memory.py",
+  "correct_answer": "sync_memory.py 已被废弃：自 09-1x 起不再是投影的写入者，其职能（重建/写入投影）已由 gateway.rebuild 作为唯一写者接管（配合 hubguard 锁、3980 预算闸、pin≤10 等机制）。",
+  "stale_answer": "According to the context (a 2026-09-13 \"astra方案\" memory reform), sync_memory.py is part of a redesigned memory system:\n\n- **Root cause identified**: memory loss happened because conversations were summarized/compressed (not new conversations), so early details were lost.\n- **Solution implemented**: "
+ },
+ {
+  "entity": "rejected",
+  "correct_answer": "",
+  "stale_answer": "Rejected — the claim that Tabbit can read/write the memory hub without installing DSH (based on a 2026-09-20 test) has been rejected."
+ },
+ {
+  "entity": "reload",
+  "correct_answer": "Resolved — both bridges (ZCode 8899 and Tabbit 8800) passed all text/image/streaming tests after clearing stale residual processes that were occupying the ports.",
+  "stale_answer": "Based on the context provided, the specific current status of \"reload\" cannot be determined from the information given. The context only mentions a fact about a batch penetration test on getcheapai's pool of 9+2 relay sites (conducted 2026-09-19 evening), with a report located at E:/RUANJIAN/ai-audi"
+ },
+ {
+  "entity": "blocked",
+  "correct_answer": "Based on the context provided, the current status of **blocked** is:\n\nThe facts recorded about \"blocked\" relate to technical findings (e.g., 蘑菇视频's 7 routes having identical content/speed, and a user requirement that future testers should not have to write commands themselves), but the context does ",
+  "stale_answer": "**Blocked** — the real blocker isn't agent interoperability standards (A2A only solves agent↔agent discovery/delegation, not this). The actual pain point is two WorkBuddy instances competing for the same work item, which needs a distributed-systems solution (status-as-claim), so resolution is pendin"
+ },
+ {
+  "entity": "create_no_window",
+  "correct_answer": "已修复（钉死于2026-09-22）。根因：WB-RespBridge-wbquota 计划任务虽用 pythonw 无窗口启动，但 start_bridge.py 内部用 python.exe subprocess.call 启动 responses_chat_proxy 子进程，导致每次心跳/登录重启实例都弹出可见黑窗。修法是将子进程改用无窗口方式启动。",
+  "stale_answer": "Fixed (as of 2026-09-13). The black window flashing was caused by the MemoryHubReflector scheduled task using a console-subsystem interpreter to run gateway.py process_events every 5 minutes; it has been changed to use a GUI-subsystem interpreter (pythonw) to launch E:/RUANJIAN/memor..."
+ },
+ {
+  "entity": "imagebitmaploader",
+  "correct_answer": "Based on the context, the status of ImageBitmapLoader is that Three.js r128's GLTFLoader automatically uses the ImageBitmapLoader path when `window.createImageBitmap` is detected — this was noted as a pitfall encountered while working with hero_angel.html (2026-09-23) that required fixing.",
+  "stale_answer": "The ImageBitmapLoader issue in three r128 was fixed (on 2026-09-23): when `window.createImageBitmap` exists, GLTFLoader uses the ImageBitmapLoader path, which permanently hangs on the large textures of Hunyuan image-to-3D GLB files (onLoad never fires, boot layer stays, model never renders). The fix"
+ },
+ {
+  "entity": "save",
+  "correct_answer": "**Save is \"saved\"/in progress with recorded notes** — the current status is that three hard-won lessons from the 2026-09-23 lab 10 have been saved: (1) PC/Server config dialogs are hidden pre-created windows (#32770, titles PC1/PC2/Server1) that can be shown with ShowWindow(h,9), with hwnds changing",
+  "stale_answer": "Fact: The OpenClaw shortcut icon was changed from the generic cmd.exe console icon to a lobster (🦞) icon, as the lobster is the OpenClaw mascot. No official artwork was found—the OpenClaw package (E:\\RUANJIAN\\npm-global\\node_modules\\openclaw) is a pure CLI package with no image files (no png etc.), "
+ },
+ {
+  "entity": "stm32_alarm",
+  "correct_answer": "**Status: Fully operational & verified.**\n\nAs of 2026-09-22 (international version test), STM32 full software/hardware takeover has been confirmed (completed while taking over the LoongPI buzzer task). Specifically:\n\n- The board is connected to **COM3**, running the **PA8-fixed firmware**.\n- Serial ",
+  "stale_answer": "**已完成并烧录验证（收官）。**\n\nSTM32L431 LoongPI板的蜂鸣器定位工作已于2026-09-21结束：蜂鸣器接在 **PA8**，经左下角 Q1 三极管驱动，**高电平驱动**（on=拉高，off=拉低），极性已通过烧录实测确认。"
+ },
+ {
+  "entity": "closest",
+  "correct_answer": "The delx-memory project (davidmosiah/delx-memory) appears to be active — created 2026-05-23 and last pushed 2026-09-07 — but has low traction, with just 1 star.",
+  "stale_answer": "Closest 的可点击性验证目前踩过坑：采样点取包围盒中心会误报缺陷（如 NEXUS 移动端 14 片羽翼误报落空 4 片），实际中心命中的是元素间空白区域而非缺陷。问题成因有两个：旋转/细长形状的几何中心不在形状上，以及元素故意溢出视口（如 width:126%）时最外侧几片的中心会落空。结论：采样点绝不能取 getBoundingClientRect 的中心。"
+ },
+ {
+  "entity": "refs",
+  "correct_answer": "",
+  "stale_answer": "Based on the note, the current status of **refs** is: its local LLM keys are scattered across **at least 5 locations**, specifically:\n\n1. `.workbuddy/models.json` (国内版)\n2. `.workbuddy-ai/models.json` (国际版)\n3. The `refs` section of `~/.dsh/.credentials.yaml"
+ },
+ {
+  "entity": "bump",
+  "correct_answer": "The bump is resolved/completed. As of 2026-09-28, the root cause of the Q-Value idling issue in production was identified — the fix had only been applied to the public repo (memtether), while the user was actually running the production repo (memory_hub/preflight.py and memory_hub/mcp_server.py). Th",
+  "stale_answer": "Bump's Q-Value mechanism is kept in a “ready but explicitly invoked” state—no automatic reward collection. The decision (2026-09-20, user『由你决定』) was to not make Q-Value an auto reward collector, because retrieval hits would be mistaken for usefulness, adding noise. The bump_qvalue channel exists and"
+ },
+ {
+  "entity": "owner",
+  "correct_answer": "Owner is currently working on cleanup decisions for their local disk. As of 2026-09-22, they made supplementary decisions: ① the 7.5G in E:\\_C盘回收-20260918 is kept (mostly NDIS kernel dump ~2.0G, updater installer 474M, WorkBuddy logs); ② old a4 artifacts in dist/ can't be deleted due to read-only AC",
+  "stale_answer": "Tencent（腾讯）目前正运营开源项目 TencentDB-Agent-Memory：该仓库创建于 2026-04-07，2026 年 5 月中旬开源，80 天内 Star 突破 1.5 万并多次登顶 GitHub Trending，现约 26.6k Star，采用 MIT 许可证。其立场是：不整体替换 memory_hub，只借鉴其治理模型。"
+ },
+ {
+  "entity": "bootloader",
+  "correct_answer": "The bootloader fact is mostly outdated/erroneous (an old version error noted at 10:25), though one point still holds: the LoongPI board has no publicly available documentation worldwide.",
+  "stale_answer": "STM32 UART(ISP) 烧录新固件后，使用 STM32_Programmer_CLI 的 `-g 0x0800000` 即可让 bootloader 直接跳转运行用户程序，新固件立即生效，无需手动按 RESET（因 `-rst/-hardRst` 在 UART 模式下不可用）。"
+ },
+ {
+  "entity": "list_memories",
+  "correct_answer": "list_memories 已落地（通过 gateway 实现）。",
+  "stale_answer": "The MCP pathway for list_memories is basically ready—only a final \"trust\" step remains (as of the 2026-09-16 test). The server file exists and exposes list_memories (alongside add_memories and search_memory)."
+ },
+ {
+  "entity": "embeddings",
+  "correct_answer": "The embeddings search surfaced a relevant result: **delx-memory** (davidmosiah/delx-memory) — a cross-agent shared SQLite MCP memory server, identified as the closest direct competitor to Mem. It's a small MIT-licensed TypeScript project (1 star), created 2026-05-23 and last pushed 2026-09-07, so it",
+  "stale_answer": "Based on the context, embeddings is a fact/lesson entry (dated 2026-09-15) warning: before concluding that a capability/channel doesn't exist, one must try all endpoints — in that case, the local machine actually had an image-generation channel available. Its status: an active lesson/record, not a s"
+ },
+ {
+  "entity": "x1600",
+  "correct_answer": "**x1600 的现状：问题根因已实测钉死（确认）。**\n\n2026-09-23 实验十实测确认了两条真根因：\n\n1. **模态防火墙弹窗**（类 #32770，标题 eNSP_Client，479x169）会禁用 eNSP 主窗口全部输入，且 PrintWindow 截主窗看不到它——必须在拓扑渲染完成后仍持续轮询点掉（90 秒 kill_popups）。\n2. **DPI 坐标换",
+  "stale_answer": "Based on the context, x1600 is a computer (2560x1600 resolution) with experience logged on 2026-09-11:\n\n- **CU channel is faulty/unreliable**: screenshots from the cu channel showed the wrong display (1920x1080, missing 豆包), while the actual screen is 2560x1600 with 豆包 fully visible in fullscreen.\n-"
+ },
+ {
+  "entity": "hub_selfcheck.py",
+  "correct_answer": "**已修复。** `hub_selfcheck.py` 原来的污染根因（每次失败无条件追加 incident 且不清理，导致 N 次失败产生 N 条 active 占满投影）已修，现改为按 problems 签名 sha1 前12位打 `selfcheck:<sig>` tag 去重（同签名 active 时不重复写），并在巡检通过时清理历史 active 巡检失败。",
+  "stale_answer": "Based on the context, hub_selfcheck.py's ops guardrail implementation (§3.5) is mostly complete: items #1, #3, and #4 are **finished and have passed acceptance** (as of 2026-09-16 16:20), leaving only item #2 outstanding."
+ },
+ {
+  "entity": "backfilled",
+  "correct_answer": "All 40 previously unsuperseded legacy records (pre-migration 09-13 data, originally marked \"inferred\") have been re-marked as \"backfilled\" as of 2026-09-22. Only metadata was changed—no supersession rows were fabricated. A full recheck shows 643 records with temporal_source = native.",
+  "stale_answer": "The memory hub has implemented a bi-temporal dual timeline (as of 2026-09-16), following the getzep/graphiti definition: the T-axis (valid time: valid_from/valid_to) tracks when facts hold true in the real world, while the T′-axis (recording time: recorded_at/invalidated_at) tracks when the system r"
+ },
+ {
+  "entity": "setup",
+  "correct_answer": "",
+  "stale_answer": "The setup is **not completed** — Apilio's `/api/setup` returns `status:false`, making it the only site in the pool that has not finished initialization."
+ },
+ {
+  "entity": "openclaw.sqlite",
+  "correct_answer": "openclaw.sqlite's latest status (as of 2026-09-23): step-5-preview has been removed from all active configuration landing points, and the Codex default model was switched to hy4-preview-f (7863 gateway, x0.00 free rate), verified working with a 200 response and text output. Additionally, the tabbit ",
+  "stale_answer": "OpenClaw 的主会话模型本应从 grok-4.5 更换为 grok-4.6（2026-09-13，用户在 workbuddy 中的要求），配置文件 openclaw.json 中 `agents.entries.main.model.primary` 已显示为 packy-grok/grok-4.6，但主会话实际运行时仍在使用 grok-4.5——即配置与实际运行状态不一致，"
+ },
+ {
+  "entity": "help",
+  "correct_answer": "The context doesn't specify a \"current status\" for help directly. What it does say is that dsh's `--help` output describes itself as \"an ordered stack of plugin-bundle patch layers under your own overrides,\" using profile directories at `~/.dsh/profiles/<name>/`, with a three-layer structure (bundle",
+  "stale_answer": "The help has been substantially revised based on testing on 2026-09-16 (international version), with 6 additions—clarifying that the configuration root is `customUserDataDir` and how to reverse-locate it from the log line `[MCP Security] Loaded N approvals from <root>/mcp-approvals.json`, and fixing"
+ },
+ {
+  "entity": "openviking",
+  "correct_answer": "openviking 卡在记忆生命周期前 1/3 的阶段：write 已实现、manage 空白、retrieve 完成一半、update 空白——问题在于功能缺失，并非记忆容量到极限。",
+  "stale_answer": "The context doesn't directly describe openviking's own status. It only notes (as of 2026-09-16, via GitHub API) that the closest comparable project is **MemTensor/memmy-agent \"Memmy\"** (★1919, MIT license, updated 09-16) — a personal local memory hub for AI agents (Claude Code, Codex, OpenClaw, Herm"
+ },
+ {
+  "entity": "journal",
+  "correct_answer": "The journal is recovered/normal: the 2026-09-21 incident (C: drive at 86G/86G full, 0 bytes free) caused total write failures—sqlite \"readonly database\" errors, RustBindingsAPI DLL load failures, and onnx download Errno 28—all traced to one root cause (C: full blocking journal/temp file writes), whi",
+  "stale_answer": "**Status: Incident resolved (recovered).**\n\nOn 2026-09-18, a junction workaround was used to launch Edge with remote debugging past Chromium's default-directory restriction. The debug port came up, but app-bound encryption (ABE) treated"
+ },
+ {
+  "entity": "schtasks.exe",
+  "correct_answer": "Based on the provided context, there is **no clear status for schtasks.exe itself**. The only related information indicates that the NEXUS public network channel task has been **handed over to the domestic (国内) version for handling** (as of 2026-09), with the user stating the nexus channel is \"not t",
+  "stale_answer": "The provided context doesn't describe a runtime status for schtasks.exe. schtasks.exe itself is simply Windows' built-in command-line utility for creating/querying scheduled tasks — its \"current status\" isn't something that changes; it exists as a standard system binary (in System32). No specific st"
+ },
+ {
+  "entity": "function",
+  "correct_answer": "The Trae2API panel credits display issue is resolved: the `loadCredits` function had been mistakenly written as `async async function`, causing a syntax error that prevented the credits tab from rendering (showing 0). It has been corrected to a single `async`, the binary rebuilt, and the fix verifie",
+  "stale_answer": "Function status: **manage_preference is currently unavailable** (this session reports \"Function not found\"). The authoritative memory source is the memory_hub."
+ },
+ {
+  "entity": "memory-hub-usage",
+  "correct_answer": "**memory-hub-usage 状态（截至 2026-09-20）：**\n\n已通过 Tabbit.dll（305 MB）全量字符串搜索确认：`DSH_AGENTS_HOME` 和 `AGENTS_HOME` 均命中 0 次 ⇒ Tabbit 不设置/覆盖环境变量，其 dsh 使用默认 `agentsHome = ~/.agents`。因此技能应放进 **`~/.agents/skills`** 目录即可生效。",
+  "stale_answer": "**Status of memory-hub-usage:** It exists as a fact (recorded/verified on 2026-09-20 via reading dsh source code), describing which external resources DeepSeek Harness (dsh) automatically reads — relevant for embedding dsh into third-party clients. Specifically it covers skills: dsh reads from `agen"
+ },
+ {
+  "entity": "mtime",
+  "correct_answer": "MEMORY.md 的 mtime 停在当天 09:55，截至消息发出时（约 12:5x），投影已陈旧约 3 小时，需要由有文件写权限的一端执行一次 rebuild 来刷新。",
+  "stale_answer": "The provided context doesn't actually state anything about \"mtime\" itself — the title token \"mtime\" appears to be a truncated/garbled header. What the note actually contains is a dated test result (2026-09-13, via workbuddy) about **relay station balance/usage queries**, specifically: new-api–based "
+ },
+ {
+  "entity": "display",
+  "correct_answer": "The issue has been fixed (as of 2026-09-24, fixed and verified). Previously, the frontend's `doSearch()` set `#pager` to `display:none`, hiding the paginator during search; after the fix, the pager is no longer hidden and pagination works correctly in search mode.",
+  "stale_answer": "Display's current status is that Windows' built-in Bahnschrift font can't support Awwwards-level web typography — in Chromium, `font-variation-settings` and `font-weight` are ineffective for it (Windows splits it into separate families like Bahnschrift Light/SemiBold/Condensed), and only `font-stret"
+ },
+ {
+  "entity": "traces",
+  "correct_answer": "The traces明文密钥（plaintext key leakage）问题已划归国际版线处理，并有交接文档：`E:/RUANJIAN/ai-audit/交接文档-traces密钥泄露-国际版-20260919.md`（2026-09-19，综合11条相关记忆）。即该问题已移交/归属国际版团队负责。",
+  "stale_answer": "# Traces 现状\n\n- **命中规模**：日志中存在明文 API 密钥，~/.workbuddy/traces 目录共命中 314 个文件、9577 次出现、去重后 33 把 sk- 开头的密钥\n- **处理状态**：仅做了**只读清点，尚未删除**\n- **用户密钥情况**：用户曾发过的 3 把密钥均在其中（sk-qD*** 出现 1085 次、sk-gq*** 692 次、sk-ng*** 405 次）\n- **结论**：“发过却记不住”是密钥取不出来，不是没被记录；因此"
+ },
+ {
+  "entity": "auth.json",
+  "correct_answer": "Based on the context provided, auth.json is in a configured/active state: it holds the login credential for the **gpt-5.6-luna** model route, set up on **2026-09-20 (15:10–15:40)** per the user's decision to use 阶跃星辰 (Step Star) + the domestic sync version + the 5.6 addition. It contains a CLIProxyA",
+  "stale_answer": "`~/.codex/auth.json` 本身是完好的——包含完整的 ChatGPT 登录态（`auth_mode=chatgpt`）。它并未失效，只是被 config.toml 中 `model_provider=\"gptx\"` 的设置架空了；改回 `openai` 即可正常使用，无需充值。"
+ },
+ {
+  "entity": "warning",
+  "correct_answer": "**Fixed (已修).** The warning about `wb_interconnect` 转发壳真源缺失 no longer causes a \"selfcheck 失败\"; it's been changed to a warning and skipped (criterion: rc=3 + output containing 找不到真源), fixed in D7 along with a README BOM fix (UTF8Encoding(false)).",
+  "stale_answer": "Codex has been successfully connected to packy: codex-cli 0.154.0 running grok-4.6 with the grok-officially group key returned successfully (14,852 tokens) on 2026-09-18. It's been wrapped as a launcher (`codex-packy` for Git Bash / `codex-packy.cmd` for CMD) that auto-reads `~/.codex/pack`."
+ },
+ {
+  "entity": "updater",
+  "correct_answer": "Updater's current status: E:\\_C盘回收-20260918 (7.5G) is **kept, not deleted** — it contains ~7908 files, mainly the 09-15 NDIS kernel dump (2.0G), updater installer (474M), and WorkBuddy logs. The old a4 artifacts in dist/ **cannot be deleted** (ACL grants read-only), and shouldn't be anyway since bot",
+  "stale_answer": "简答：updater 的清理暂存区（cleanup-staging-20260921，20.8G）已删除其中可重建的缓存副本 10.5G（wsearch-index/codex-runtime 等），另通过缩小 pagefile（Init=16G→4G）释放 12G，E 盘可用空间将从 17G 提升到约 42G；即体检与清理已执行完毕，等待重启后生效。"
+ },
+ {
+  "entity": "auto",
+  "correct_answer": "",
+  "stale_answer": "Based on the context, auto's current status: SakuraFrp OpenAPI has two key pitfalls (tested 2026-09-19): ① accessing mainland non-website-building nodes' TCP tunnels via http:// always returns 501 — when creating a tunnel you must include extra='auto_https = auto' (auto HTTPS), then access via https"
+ },
+ {
+  "entity": "e21040f3e.ts",
+  "correct_answer": "Based on the context, e21040f3e.ts is a video segment from 蘑菇视频 (Mogu Video) — a fact entry recording that, as tested on 2026-09-24 (vod_id=195415), all 7 of its stream lines serve completely identical content with no speed difference",
+  "stale_answer": "**e21040f3e.ts** (7e21040f3e.ts, 39"
+ },
+ {
+  "entity": "nonce",
+  "correct_answer": "Tabbit Browser 的 Cookie 采用经典 v10 加密（无 ABE），可原地只读解密：Local State 的 os_crypt.encrypted_key 经 DPAPI 解出 32 字节 AES-256 密钥，密文结构为 v10（3字节）+ nonce（12字节）+ 密文 + tag（16字节）；明文包含 32 字节的 MAC 前缀（Tabbit 自研 OSCrypt 的完整性前缀）。",
+  "stale_answer": ""
+ },
+ {
+  "entity": "basehttprequesthandler",
+  "correct_answer": "",
+  "stale_answer": "**已固化进技能 browser-login-state-full-control**\n\n根据上下文（2026-09-19 的实测记录），关于 basehttprequesthandler 的经验——尤其是 “JS 的 undefined 键被 JSON.stringify 悄悄丢掉 ⇒ Python 侧 KeyError” 这个坑——已经过实测验证并固化进技能 **browser-login-state-full-control** 中。"
+ },
+ {
+  "entity": "os.replace",
+  "correct_answer": "The provided context doesn't actually contain any information about `os.replace` (it discusses hidden-desktop testing with `CreateDesktopW`/`CreateProcessW` for Koikatu/CharaStudio). So the status of `os.replace` cannot be determined from this context.\n\nIn general: `os.replace()` is a standard, work",
+  "stale_answer": "**Current status of `os.replace`:** It remains the recommended atomic-replacement primitive for in-place updates of injection slots shared with other clients — provided it's wrapped in a safety protocol. As of the 2026-09-17 international-version field test (workbuddy_ai, 10 anchor points, each hit "
+ },
+ {
+  "entity": "fonts",
+  "correct_answer": "Fonts fall under NEXUS's explicit route whitelist — the server (server.py) only serves `/`, `/api/*`, `/fonts/` (and `/vendor/`). In other words, `/fonts/` is an allowed, whitelisted route, so font files are served through it. Additionally, reading Edge (Chromium) page content (including the DOM/bod",
+  "stale_answer": "ERROR: HTTPError"
+ },
+ {
+  "entity": "model-catalogs",
+  "correct_answer": "Model-catalogs 的当前状态：WorkBuddy 国内版 + 国际版的**自定义模型白名单已全部重打（re-branded）并做成自动守卫**（2026-09-24，第 4 次修国内版、首次修国际版）。三份配置的回读断言全部 **PASS**——CN cache 共 44 条记录。",
+  "stale_answer": "According to the context, the model-catalogs topic is considered resolved (钉死/解决). Key finding: in the Codex desktop app's model dropdown (reverse-engineered 2026-09-21 from app.asar + codex.exe), when using a custom provider, the list comes from the `models[]` array in the JSON that `model_catalog_"
+ },
+ {
+  "entity": "letta",
+  "correct_answer": "Based on the context, letta's current status: its foundational infrastructure is solid — Exchange Schema v2 (P0 producer + BLAKE3, and P1 consent + sync) is implemented, all 6 adapters (including letta, along with mem0, zep, graphiti, langmem, cogx) are fully deployed, conflict detection passes, all",
+  "stale_answer": "Based on the context, Letta (an AI memory system) exists in a market that has entered a **\"benchmark collapse\" state as of 2026-09**. Its standing cannot be judged by GitHub stars or public benchmark scores, because:\n\n1. **Bare models beat memory layers**: A bare GPT-4o-mini scored 57.6% on LongMemE"
+ },
+ {
+  "entity": "mh-nexus.de",
+  "correct_answer": "",
+  "stale_answer": "上下文中没有关于 mh-nexus.de 的直接状态信息——所列内容只提到 RETools 目录下的工具版本情况（x64dbg、jadx、apktool、DIE、Scylla 等），并未涉及 mh-nexus.de 的可用性或下载状态。"
+ },
+ {
+  "entity": "wb_interconnect.py",
+  "correct_answer": "P1-4 U6 已由用户于 2026-09-27 23:18 手动执行 `wb_interconnect.py apply` 补齐，四层检查全部通过（配置5/5、工作区71/71、引导71/71、规则2/2），总判定为正常 OK，并有截图确认。至此任务清单 v4 的 P0/P1/P2 技术项及 P1-4 全部完成。",
+  "stale_answer": "双版本「记忆中枢」已完全互通：2026-09-14 完成配置级（国际版 `~/.workbuddy-ai` 的 IDENTITY/SOUL/USER.md 通过符号链接指向中立真源 `~/.agents/identity/`），2026-09-16 打通工作区级。架构上一切共享走文件级指针（符号链接/目录联接），两边读写同一物理文件，无同步逻辑、不会漂移。"
+ },
+ {
+  "entity": "ping",
+  "correct_answer": "Based on the context, the key point about ping (实测于 2026-09-22) is:\n\n**实验指导书与实验报告模板的 ACL 规则完全相反**：\n- **指导书**：拒绝客户端 ping（deny ping）\n- **报告模板**：允许客户端 ping（permit ping）\n\n课件 PPT 第2页也明确说明两者规则不一样。因此写作业时必须以要提交的**报告模板为准**（即允许 ping），照指导书抄会出错。",
+  "stale_answer": "**Ping is currently normal/usable** — the context is a fact note (dated 2026-09-19) about reusable measurement learnings, not an incident. Specifically, it records two pitfalls to avoid when probing via the relay station (中转站): `model_price=0` in new-api does **not** mean a model is free (it wrongly"
+ },
+ {
+  "entity": "workbuddyai",
+  "correct_answer": "Based on the provided context, the only known information is about workbuddyai's MCP source detection: as of 2026-09-20, `mcp_server.py` was changed to generalize source identification—replacing the hardcoded `_detect_client_source` (which only recognized \"workbuddyai\"/\"workbuddy\" substrings, causin",
+  "stale_answer": "**当前状态：解锁失败（未生效）。**\n\n具体来说：国际版 WorkBuddy 安装在非默认路径 `E:/RUANJIAN/WorkBuddy guoji\\WorkBuddyAI`，而破解脚本只识别默认位置 `%LOCALAPPDATA%\\Programs\\WorkBuddyAI`，因此报“安装目录未找到”错误，**13 个靶点全部未被修改**。\n\n解决方向：使用 `-InstallDir` 参数手动指定实际安装路径（修复后 fixed=14），并为"
+ },
+ {
+  "entity": "openai_compat.py",
+  "correct_answer": "The Tabbit bridge via openai_compat.py is fully working (verified 2026-09-28). The root cause was that bare client calls (without tools) go through the `_use_server_agent` branch in `routes/openai_compat.py`, where the `run_command`, `read_file`, and `search_memory` tools were already implemented in",
+  "stale_answer": "Based on the context, the current status of `openai_compat.py` is: **fixed**.\n\nA bug was resolved where large prompts (>5000 characters) to Tabbit caused infinite \"thinking\" chunks with no body content, causing clients to hang (10000 timeout). The fix added a thinking chunk count guard (breaking the"
+ },
+ {
+  "entity": "e2e_verify.py",
+  "correct_answer": "e2e_verify.py is passing all 13 tests (13/13 PASS), verified after the completed 2026-09-19 refactoring of preflight.py.",
+  "stale_answer": "e2e_verify.py 状态良好：模拟三 agent（WorkBuddy 预检、OpenClaw 召回+排空、豆包 添加+搜索）真实姿势，13/13 全部通过；配套回归测试 8/8、维护工具 9/9 均正常。"
+ },
+ {
+  "entity": "registry",
+  "correct_answer": "The ZCode桥8899 Provider Registry currently has no models available. Root cause: `lkt()` requires both `ZCODE_BUILTIN_PROVIDER_CONFIG_FILE` and `ZCODE_PERSONAL_PROVIDER_CONFIG_FILE` to be set simultaneously, which was not satisfied.",
+  "stale_answer": "The registry's \"reverse proxy quota\" (反代额度) is currently **not viable** — tested on the international version as of 2026-09-21.\n\nThe root cause is **not the protocol but entitlement**: logs from `~/.zcode/cli/log/zcode-2026-09-21.jsonl` show that all 8 account providers have `access.type=zhipu-accou"
+ },
+ {
+  "entity": "vendor",
+  "correct_answer": "Vendor status: The vendor directory (/vendor/) is served by NEXUS's server.py as part of its explicit route whitelist (along with /, /api/*, and /fonts/), and it must not be accessed via UI Automation for reading Edge (Chromium) web page DOM/content.",
+  "stale_answer": "Astra接入状态(2026-09-11)——已接入但存在三坑：\n1. packy codex分组API直调返回403(上游封锁二次分发)，仅标准Codex客户端可连；\n2. codex自定义provider必须设置requires_openai_auth=false,否则卡死在OAuth登录；\n3. npm wrapper会挂起，必须直接运行原生codex.exe(vendor\\...\\bin\\codex.exe,298MB)。"
+ },
+ {
+  "entity": "resolver",
+  "correct_answer": "Resolver is **resolved/pinned down** (钉死, verified 2026-09-20): the root cause of the \"client silently dies after restart\" issue in WorkBuddy Claw channel is confirmed to be a cold-start proxy race plus one-shot startup with no retry — daemon calls `startSavedChannels()` ~3s after launch without ret",
+  "stale_answer": "Resolver's OpenClaw plaintext keys have been cleared (as of 2026-09-13): 6 plaintext entries—including apiKey for packy-grok, deepseek-official, deepseek-official2, and gptx-astra, plus gateway.auth.token and memory.search.remote.apiKey—have been converted to SecretRef (source: store, provider: defa"
+ },
+ {
+  "entity": "send",
+  "correct_answer": "The send (Tabbit桥) is **fully working** — “完全正常干活” — as verified on 2026-09-28. The root cause was identified: when clients made bare calls (without passing tools), execution went through the `_use_server_agent` branch in `routes/openai_compat.py`, where the `run_command`, `read_file`, and `search_m",
+  "stale_answer": ""
+ },
+ {
+  "entity": "init",
+  "correct_answer": "Based on the provided context, the only meaningful information about init is:\n\n- **init is a skill** (技能) with fixed Init = Cookie, associated with 16G/M 16G.\n\nThe context is otherwise garbled/corrupted (residuals like 17G, 30G, pagefile, 5G, Downloads, ref.cont, presigned, download provide no clear",
+  "stale_answer": "Init is not yet complete: Apilio's /api/setup returns `status:false`, making it the only site among the 9+2 that has not finished initialization."
+ },
+ {
+  "entity": "hard_bench",
+  "correct_answer": "hard_bench is at 100% (all passing), with CI green.",
+  "stale_answer": "The provided context doesn't state hard_bench's current status. It only contains a \"fact\" (dated 2026-09-16) about how to respond to the criticism that \"memory is useless / more memory causes more drift\" — a four-step method (acknowledge the valid parts, point out the wrong scenario being evaluated,"
+ },
+ {
+  "entity": "max_tokens",
+  "correct_answer": "The provided context does not contain any information about **max_tokens**. It only describes the StepFun step-5-preview integration into WorkBuddy (completed 2026-09-20), including key storage and model config injection details. The status of max_tokens is therefore **not specified/unknown** based ",
+  "stale_answer": "The max_tokens issue was fixed (Tier B fix completed on 2026-09-11): it needs to be set to ≥3000, because in thinking mode the thinking process consumes tokens before the content is output. This was verified with a dry-run 4-step closed loop, including self-correction."
+ },
+ {
+  "entity": "error",
+  "correct_answer": "The error \"请求太频繁，请稍后!1-2\" (request too frequent) has been **recorded as a resolved/learned lesson** — it was logged with 经验教训 (2026-09-21) and 经验 (2026-09-23), meaning it's a known, summarized issue from past experience, not an active unresolved error.",
+  "stale_answer": "**Resolved (已解决)。** A breakthrough was made: new-api-based relay stations expose an OpenAI-compatible `GET /v1/dashboard/billing/usage` endpoint returning real cumulative usage (`{\"object\":\"list\",\"total_usage\":N}`), with the unit confirmed from the new-api source code (`controller/billing.go`), test"
+ },
+ {
+  "entity": "trigram",
+  "correct_answer": "已完成（完成状态）：E3 FTS5+BM25 已落地——memory.db 新增 facts_fts 虚拟表（trigram 分词器），gateway.py 的 remember/correct/retire 增量维护 FTS 索引，memsearch.py search_hybrid 的 BM25 路从 O(N) 全量遍历改为 FTS5 O(1) 索引查询（多 token 拆分查询后合并分数），且已通过 hard_bench 回归。",
+  "stale_answer": "Trigram failed for Chinese search — SQLite FTS5's default trigram tokenizer couldn't match Chinese queries (e.g., searching \"豆包\" didn't hit \"豆包App本体装在\"), so it's been abandoned in favor of vector search + exact full-sentence literal matching."
+ },
+ {
+  "entity": "repos",
+  "correct_answer": "Based on the context, the current status of repos is captured in a documented methodology (dated 2026-09-19, CVE-driven, written into skill \"saas-quota-pentest\" Appendix 4): for open-source derivative systems, the optimal approach is a fixed three-step process. Step 1 pulls all advisories via `GET /",
+  "stale_answer": "**MemTether 已开源并对外公开**：仓库 MemTether/MemTether 已从私有切换为公开（visibility=public，private=false，匿名可访问），并已发布 Release **v0.1.0a1**（非草稿，属于预发布版本 prerelease=true）。"
+ },
+ {
+  "entity": "qwen3-7-max",
+  "correct_answer": "Based on the provided context, the status of \"qwen3-7-max\" cannot be meaningfully determined — the context is fragmentary and mostly describes unrelated details (e.g., testing of 7 identical video streaming lines on \"蘑菇视频\" on 2026-09-24, where switching lines didn't change content or quality), rathe",
+  "stale_answer": "Based on the context, the current status of gwen3-7-max (Tabbit) is that its reverse proxy (Tabbit reverse proxy) has been implemented as of September 21, 2026. Specifically:\n\n- **Deployment**: hoinata/tabbit2api is deployed at E:\\RUANJIAN\\tabbit2api\n- **Dependencies**: Installed via venv with Tsing"
+ },
+ {
+  "entity": "dsh-base",
+  "correct_answer": "",
+  "stale_answer": "dsh-base is a patch-semantics constraint: patches do shallow replacement (target[key]=value), not deep merge — so writing config: must include all the plugin's original fields (else they get wiped, e.g. losing workspaceRoot by only writing sandbox-policy.mode); new plugins must use insert:[...] rath"
+ },
+ {
+  "entity": "fts5",
+  "correct_answer": "fts5 is complete and functioning well: the E3 subject directory has landed (adding an L0 subject index showing the top 12 subjects by frequency before aggregation, with its budget auto-deducting 229 characters), and manuals 05/06/13 have been fully updated to reflect all changes (E2 NREM, E3 FTS5+BM",
+  "stale_answer": "FTS5 is effectively unusable for Chinese text search. In testing, its default unicode61 tokenizer failed on Chinese (searching “豆包” didn't match “豆包App本体装在”), and the trigram tokenizer also didn't work. Introducing jieba brought inconsistencies in tokenization. The recommended approach instead is \"v"
+ },
+ {
+  "entity": "realpath",
+  "correct_answer": "Based on the context, the status of realpath is: **its inode cannot be used as a criterion for \"persistent sharing\"** — a fact verified by real-world testing on 2026-09-19.\n\nKey points:\n- The gateway's rebuild uses `os.replace` for atomic replacement, which means each rebuild results in a **new inod",
+  "stale_answer": "**realpath 当前状态：** `skills/` 目录是一个 **Windows 目录联接（junction）**——即通过 `os.path.realpath()` 解析时会指向另一个实际目录的链接，而非独立实体。国内版配置根为 `C:\\Users\\Administrator\\.workbuddy`，国际版为 `C:\\Users\\Administrator\\.workbuddy-ai`，两者是独立的目录。"
+ },
+ {
+  "entity": "sessions",
+  "correct_answer": "**Status: Working as designed — not a bug.**\n\nThe Codex desktop app's sidebar doesn't show Happy mobile sessions because the desktop app's session list only displays threads it registered itself (e.g., entries in its `state_5.sqlite` `threads` table or its `codex-global-state.json` project records).",
+  "stale_answer": "**Sessions status:** Data sources are intact and high-quality — each session stores the original requirement (`assignment.md`) and full conversation (`trajectory.jsonl`) under `agent_mode\\workspace\\.sessions\\<会话>\\agents\\<agentID>\\system\\`. These native clean data sources are of far higher quality th"
+ },
+ {
+  "entity": "agentctl.py",
+  "correct_answer": "",
+  "stale_answer": "Based on the context: agentctl.py is now the sole authoritative entry point (权威入口). The three major mechanisms have been retired or reduced — smart_audit_v2 (audit) and plan_council (planning discussion) are both retired, while consilium (council) retains only the Doubao execution seat. Audit, plann"
+ },
+ {
+  "entity": "cmd.exe",
+  "correct_answer": "**已修复。** cmd.exe 弹黑窗的根因已确认并修复：YingtaoWeb 和 Happy-Daemon 两个计划任务每 5 分钟重复触发，其 action 直接调用 cmd.exe（控制台子系统），导致每次触发都弹出可见黑窗。",
+  "stale_answer": "cmd.exe 被安全策略拦截，导致 mklink /J 不可用。"
+ },
+ {
+  "entity": "workbuddy2api-panel",
+  "correct_answer": "Based on the context, workbuddy2api-panel is currently experiencing issues: it's showing a \"当前参与用户太多\" (too many current participating users) error, and its Tabbit2API JWT token has expired (returning 401 \"please log in first\" with cooldown). The documented fix involves the user refreshing the JWT vi",
+  "stale_answer": "Based on the context, workbuddy2api-panel is already deployed on the local machine (as of 2026-09-17) and logged into the domestic (国内版) account, but it has never been connected to a client. The new discovery (2026-09-20) is that it can be used to transfer domestic WorkBuddy quota to the internation"
+ },
+ {
+  "entity": "undefined",
+  "correct_answer": "Based on the context, the status of \"undefined\" is that it has been debugged and fixed: an issue where three r128's GLTFLoader hung permanently on large textures from Hunyuan image-to-3D GLB files (due to the ImageBitmapLoader path) was identified and resolved on 2026-09-23 by setting `window.create",
+  "stale_answer": "Based on the context, **undefined represents the \"off\" state of Max mode**.\n\nSpecifically: Max mode only changes a single value on the CLI session object — `session.meta.preMessageCompactPct`:\n- **On ('0')**: Max mode enabled\n- **undefined**: Max"
+ },
+ {
+  "entity": "value",
+  "correct_answer": "The value is currently expired — the old JWT (exp=1790234887, 15:28:07) has passed, triggering a 401 \"请先登录\" (please log in first) response and cooldown, so it needs to be refreshed via the Tabbit browser F12 → Application flow.",
+  "stale_answer": "gui_loop.py has been upgraded to v3 (2026-09-13, carefully improved by workbuddy), with the old version backed up as gui_loop.py.bak_20260913_2012. This release fixes 5 real bugs, including B1 (--no-auto-escalate was documented but the argument was never registered: with store_true+default=True the "
+ },
+ {
+  "entity": "model",
+  "correct_answer": "The model's custom whitelist (both CN domestic and international versions of WorkBuddy) has been fully re-fixed and protected by an automatic guard, with all config read-back assertions passing (44 entries in CN cache), as of 2026-09-24.",
+  "stale_answer": "The OpenClaw model configuration has been fixed (as of 2026-09-13): the original primary channel `packy-grok/grok-4.6` was dead, so it was changed to primary=`gptx-astra/gpt-6-astra` with fallback=`deepseek-official2/deepseek-chat`. The main agent is now `gptx-astra` (kept for its relaxed risk contr"
+ },
+ {
+  "entity": "claw",
+  "correct_answer": "**Claw 的当前状态**：NEXUS 公网通道处置已转交国内版（2026-09），且用户明确表示「那个 nexus 通道先不处理」。",
+  "stale_answer": ""
+ }
+]

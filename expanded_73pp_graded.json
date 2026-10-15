@@ -1,0 +1,217 @@
+[
+ {
+  "entity": "active",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "dump",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "http200",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "aborting",
+  "different": true,
+  "verdict": "DIFFERENT\n\nAnswer A claims abo"
+ },
+ {
+  "entity": "logs_2.sqlite",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "mcp_server.py",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "torus",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "direct_chain.md",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "sakurafrp",
+  "different": false,
+  "verdict": ""
+ },
+ {
+  "entity": "captcha_token",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "mcp_server",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "claw-eval",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "publish_guard",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "router",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "const",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "systickdelayus",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "license",
+  "different": false,
+  "verdict": ""
+ },
+ {
+  "entity": "thread",
+  "different": false,
+  "verdict": "SAME"
+ },
+ {
+  "entity": "packaging",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "ensp",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "print",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "read-only",
+  "different": true,
+  "verdict": "DIFFERENT\n\nAnswer A states the"
+ },
+ {
+  "entity": "kimi",
+  "different": true,
+  "verdict": "DIFFERENT\n\nThese two answers d"
+ },
+ {
+  "entity": "legacy",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "ui-tars",
+  "different": false,
+  "verdict": "SAME"
+ },
+ {
+  "entity": "text",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "crack",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "sync_memory.py",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "reload",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "blocked",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "create_no_window",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "imagebitmaploader",
+  "different": false,
+  "verdict": ""
+ },
+ {
+  "entity": "save",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "stm32_alarm",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "closest",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "bump",
+  "different": false,
+  "verdict": ""
+ },
+ {
+  "entity": "owner",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "bootloader",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "list_memories",
+  "different": true,
+  "verdict": "DIFFERENT\n\nAnswer A says it's "
+ },
+ {
+  "entity": "embeddings",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "x1600",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "hub_selfcheck.py",
+  "different": true,
+  "verdict": "DIFFERENT"
+ },
+ {
+  "entity": "backfilled",
+  "different": true,
+  "verdict": "DIFFERENT"
+ }
+]
