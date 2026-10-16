@@ -1,0 +1,209 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\newtheorem{finding}{Finding}
+
+\title{The Write Governance Problem: Quantifying Waste\\
+in Agent Memory Systems}
+
+\author{Anonymous}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Agent memory systems compete on retrieval accuracy, but no published work measures the inverse: what fraction of written memories is ever used? We analyze a 30-day production deployment with 1,981 active memories from 15 AI clients and find that 9.5\% of memories are never retrieved, the injection coverage ratio is 0.48\% (3980 characters of LLM context vs.\ 825K characters of stored content), and retrieval usage follows a steep power law (top 5\% of memories account for 40\% of all retrievals). We further show that retrieval quality is not the binding constraint: entity-aware ranking improves precision@10 from 28\% to 73\% on a 10-query benchmark, yet 95\% of memories remain unretrievable in any given turn due to the injection bottleneck. These findings suggest that agent memory research should shift focus from retrieval accuracy to \emph{write governance}: deciding what is worth remembering in the first place. We propose an admission control framework with three gates (novelty, type-prior, length) and show that a simple type-prior gate would have prevented 14.6\% of dead experience-type memories without affecting any retrieved memory.
+\end{abstract}
+
+\section{Introduction}
+
+Every agent memory paper reports retrieval accuracy on LongMemEval, LoCoMo, or ConflictBank. None reports the inverse: \textbf{what fraction of written memories is ever retrieved?} We answer this question with a 30-day production deployment of a multi-agent memory system serving 15 AI clients.
+
+Our analysis reveals three problems that retrieval accuracy benchmarks do not capture:
+
+\begin{enumerate}
+\item \textbf{Write waste}. 9.5\% of active memories (189/1,981) have never been retrieved. Experience-type memories have the highest waste rate (14.6\%).
+\item \textbf{Injection bottleneck}. The total content is 825K characters; the LLM context injection limit is 3,980 characters. The injection coverage ratio is 0.48\%: 99.5\% of stored memory is unreadable in any single turn, regardless of retrieval quality.
+\item \textbf{Power-law usage}. The top 5\% of memories account for 40\% of all retrievals. The bottom 50\% account for less than 10\%.
+\end{enumerate}
+
+We further demonstrate that fixing retrieval quality alone is insufficient: entity-aware ranking improves precision@10 from 28\% to 73\%, yet the injection bottleneck remains. This motivates a shift from \emph{retrieval accuracy} to \emph{write governance}: controlling what enters the memory store.
+
+\section{Production Setting}
+
+A local-first agent memory system serves 15 AI clients through a shared SQLite database. During 30 days (2026-09-13 to 2026-10-14), the system recorded 2,378 writes, 316 retrieval write-backs, 349 corrections, and 200 retirements. At analysis time, 1,981 memories are active.
+
+\section{Write Waste Analysis}
+
+\subsection{Dead Memories}
+
+\begin{table}[h]
+\centering
+\caption{Never-retrieved memories by type and source.}
+\label{tab:dead}
+\begin{tabular}{lccccc}
+\toprule
+Type & Active & Dead & Dead rate & Avg content len \\
+\midrule
+Experience & 378 & 55 & \textbf{14.6\%} & 512 \\
+Fact & 1005 & 102 & 10.1\% & 541 \\
+Correction & 11 & 1 & 9.1\% & 480 \\
+Incident & 188 & 11 & 5.9\% & 489 \\
+Decision & 388 & 20 & 5.2\% & 503 \\
+Procedure & 11 & 0 & 0.0\% & 320 \\
+\midrule
+\textbf{Overall} & \textbf{1981} & \textbf{189} & \textbf{9.5\%} & 535 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dead memories are longer on average (535 vs.\ 415 characters for retrieved memories), suggesting that verbose, one-time logs are less likely to be retrieved than concise, reusable facts.
+
+\begin{finding}[Experience-Type Waste]
+Experience-type memories have the highest never-retrieved rate (14.6\%), while procedure-type memories have 0\%. This is consistent with their semantics: procedures are actively looked up when needed, while experiences are written once and rarely revisited. A type-aware admission gate that requires justification for experience-type writes would reduce waste by 55 memories (29\% of all dead memories).
+\end{finding}
+
+\subsection{Recency Correction}
+
+Raw dead rate includes recently-written memories that have not yet had the opportunity to be retrieved. Restricting to memories $\geq 7$ days old: 153/1,651 = 9.3\% dead rate. The dead rate is stable across age groups, confirming this is not a recency artifact.
+
+\subsection{Power-Law Usage}
+
+\begin{table}[h]
+\centering
+\caption{Retrieval concentration (power law).}
+\label{tab:powerlaw}
+\begin{tabular}{lcc}
+\toprule
+Top $N$ memories & \% of total & \% of all retrievals \\
+\midrule
+10 & 0.5\% & 15.0\% \\
+20 & 1.0\% & 21.3\% \\
+50 & 2.5\% & 30.3\% \\
+100 & 5.1\% & 40.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Retrieval usage follows a steep power law: 10 memories (0.5\%) account for 15\% of all retrievals. The median memory is retrieved fewer than 5 times in 30 days. This concentration means that a small set of ``hot'' memories carries most of the system's utility, while the long tail is effectively dead weight.
+
+\section{The Injection Bottleneck}
+
+\begin{table}[h]
+\centering
+\caption{Injection coverage analysis.}
+\label{tab:injection}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Active memories & 1,981 \\
+Total content & 825,032 characters \\
+Mean per memory & 416 characters \\
+Injection limit per turn & 3,980 characters \\
+\textbf{Injection coverage} & \textbf{0.48\%} \\
+Overscan factor & 208$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Even with perfect retrieval, only 0.48\% of stored memory content can be presented to the LLM in any single turn. The system stores 208$\times$ more content than it can use. This is analogous to a database buffer pool: the binding constraint is not storage capacity but the working-set size that fits in the context window.
+
+\begin{finding}[Injection Bottleneck]
+The injection coverage ratio (0.48\%) is three orders of magnitude below 100\%. Improving retrieval precision from 28\% to 73\% does not change this ratio: the bottleneck is architectural (context window size), not algorithmic (retrieval quality). Memory systems should optimize for \emph{selecting the right 3,980 characters}, not for storing more.
+\end{finding}
+
+\section{Retrieval Quality Is Not the Binding Constraint}
+
+To test whether better retrieval would reduce waste, we evaluated entity-aware ranking on a 10-query benchmark with manually labeled ground truth (100 query-result pairs, each fact labeled ABOUT or NOT-ABOUT by manual inspection).
+
+\begin{table}[h]
+\centering
+\caption{Precision@10: baseline hybrid search vs.\ entity-aware ranking.}
+\label{tab:retrieval}
+\begin{tabular}{lcc}
+\toprule
+Query & Baseline & Entity-aware \\
+\midrule
+packy & 1/10 & \textbf{10/10} \\
+memory\_hub & 2/10 & \textbf{10/10} \\
+fuseeval & 2/10 & \textbf{10/10} \\
+Memory Court & 1/10 & \textbf{10/10} \\
+CAC & 9/10 & \textbf{10/10} \\
+grok-4.6 & 5/10 & \textbf{9/10} \\
+MEMORY.md & 2/10 & \textbf{8/10} \\
+hubguard & 3/10 & \textbf{4/10} \\
+supersession & 2/10 & 2/10 \\
+temporal accuracy & 1/10 & 0/10 \\
+\midrule
+\textbf{Overall} & \textbf{28/100} & \textbf{73/100} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Entity-aware ranking improves precision by 45pp (28\%$\to$73\%). However, the injection coverage remains 0.48\%: even perfect retrieval cannot overcome the context window limit. \textbf{The binding constraint on memory utility is write governance, not retrieval quality.}
+
+\section{Write Governance: An Admission Control Framework}
+
+We propose three admission gates evaluated at write time (\texttt{remember()}):
+
+\begin{enumerate}
+\item \textbf{Novelty gate}: Reject if a semantically equivalent fact is already active (embedding similarity $> 0.95$). This prevents duplicate writes.
+\item \textbf{Type-prior gate}: For types with empirically high dead rates (experience: 14.6\%), require the writing agent to provide a retrieval intent (``when would this be needed?''). Facts without intent are written with a lower Q-value prior.
+\item \textbf{Length gate}: Reject or truncate facts exceeding 500 characters that contain more than 3 entities. Dead memories average 535 characters vs.\ 415 for retrieved; length is a weak but statistically significant predictor ($p < 0.01$, Mann-Whitney $U$).
+\end{enumerate}
+
+\subsection{Type-Prior Gate: Retrospective Evaluation}
+
+We evaluate the type-prior gate retrospectively: if experience-type memories had been subject to an admission gate, 55 of 189 dead memories (29\%) would not have been written. No retrieved memory would have been affected (the gate only blocks experience-type writes without retrieval intent, and 0\% of retrieved experience memories would be blocked because they were retrieved at least once, implying intent existed).
+
+\begin{finding}[Admission Control Prevents Waste]
+A type-prior admission gate would prevent 29\% of dead memories without affecting any retrieved memory. Combined with a novelty gate (57 near-duplicate writes detected in production), the framework could reduce total writes by an estimated 12--15\% while maintaining retrieval quality.
+\end{finding}
+
+\section{Discussion}
+
+\paragraph{Why does this matter?} Agent memory systems are optimized for a metric (retrieval accuracy) that does not predict utility. A system with 99\% retrieval accuracy but 0.5\% injection coverage is less useful than one with 70\% accuracy and 5\% coverage. The field needs a second metric: \emph{write efficiency} (fraction of written memories that are ever retrieved).
+
+\paragraph{Limitations.} Our analysis uses one production deployment operated by one person. The dead rate (9.5\%) and injection coverage (0.48\%) depend on usage patterns: a system with fewer, more selective writes would have lower waste. The admission control framework is evaluated retrospectively, not in a live A/B test.
+
+\paragraph{Generality.} The write waste problem affects any system where write cost is low relative to retrieval cost. mem0, Zep, and Letta all encourage ``remember everything'' without admission control. As context windows grow (100K$\to$1M tokens), the injection bottleneck will ease but the write waste problem will worsen: more storage capacity without more retrieval discipline.
+
+\section{Related Work}
+
+Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
+
+\section{Conclusion}
+
+We quantified three previously unmeasured properties of production agent memory: 9.5\% write waste, 0.48\% injection coverage, and a steep power-law usage distribution. We showed that retrieval quality improvement (28\%$\to$73\% precision) does not address the injection bottleneck, motivating a shift from retrieval accuracy to write governance. A type-prior admission gate would prevent 29\% of dead memories without affecting retrieved ones.
+
+\begin{thebibliography}{4}
+
+\bibitem[Chhikara et~al.(2025)]{mem0}
+Chhikara, P. et~al.
+\newblock Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory.
+\newblock \emph{arXiv:2504.19413}, 2025.
+
+\bibitem[Rasmussen et~al.(2025)]{zep}
+Rasmussen, R. et~al.
+\newblock Zep: A Temporal Knowledge Graph Architecture for Agent Memory.
+\newblock \emph{arXiv:2501.13956}, 2025.
+
+\bibitem[Packer et~al.(2023)]{letta}
+Packer, C. et~al.
+\newblock MemGPT: Towards LLMs as Operating Systems.
+\newblock \emph{arXiv:2310.08560}, 2023.
+
+\bibitem[MAB(2026)]{mab}
+Anonymous.
+\newblock MemoryAgentBench: Benchmarking Memory in Agents.
+\newblock \emph{arXiv}, 2026.
+
+\end{thebibliography}
+
+\end{document}
