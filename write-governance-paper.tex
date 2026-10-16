@@ -238,6 +238,58 @@ After entity-aware ranking improves precision@10 from 28\% to 73\%, 27\% of quer
 \item \textbf{Stale versions} (3 queries): A newer fact about the same entity outranks the older fact that the query actually needs.
 \end{enumerate}
 
+
+\section{Q-Value Learning Effectiveness}
+\label{sec:qvalue}
+
+MemTether implements a Q-value mechanism intended to rank memories by their learned usefulness: memories that are corrected or retired receive negative reward, while retrieved memories receive positive reward. However, our production data reveals that this mechanism is largely ineffective in practice.
+
+Of the 1,981 active memories at analysis time, 74\% retain the default Q-value of 0.5, indicating that no reward signal has ever been applied. Among the 26\% that have deviated from the default, the vast majority received negative rewards (from corrections or retirements), while positive rewards from successful retrieval are rare---consistent with the finding that only 316 retrieval write-backs occurred over 30 days (0.16 per active memory per day).
+
+\begin{finding}[Q-Value Learning Is Mostly Inactive]
+74\% of active memories retain their default Q-value after 30 days, indicating that the learning mechanism fires too infrequently to differentiate memory quality. The primary cause is architectural: positive reward requires an explicit retrieval event, but the injection bottleneck (Section~\ref{sec:injection}) means most memories are never retrieved, and thus never receive positive feedback. Write governance at admission time (before the memory enters the store) may be more effective than post-hoc learning for controlling memory quality.
+\end{finding}
+
+This finding reinforces the case for admission control: if the system cannot learn which memories are useful (because most are never used), it should prevent useless memories from entering in the first place.
+
+\section{Comparison with Database Buffer Pools}
+\label{sec:bufferpool}
+
+The injection bottleneck has a direct analogue in database systems: the buffer pool. A DBMS cannot fit the entire database in memory and must carefully select which pages to cache. Similarly, an agent memory system cannot fit all memories in the context window and must select which memories to inject.
+
+However, the two systems differ in a critical way. Database buffer pools benefit from decades of research into page replacement algorithms (LRU, LFU, ARC, etc.) that exploit temporal and spatial locality in access patterns. Agent memory retrieval has no such established theory: the patterns of memory access in multi-agent systems are not well-characterized, and our power-law finding (Section~\ref{sec:powerlaw}) suggests that a small set of ``hot'' memories carries most of the utility while the long tail is effectively dead weight.
+
+\begin{table}[h]
+\centering
+\caption{Analogy between database buffer pools and agent memory injection.}
+\label{tab:analogy}
+\begin{tabular}{lll}
+\toprule
+Property & Buffer Pool & Agent Memory \\
+\midrule
+Storage medium & Disk (TB) & SQLite (825K chars) \\
+Working set & RAM (GB) & Context window (3,980 chars) \\
+Coverage ratio & 0.01--10\% & 0.48\% \\
+Replacement policy & LRU/LFU/ARC & Embedding+RRF+Q-value \\
+Admission control & Page-level & None (proposed here) \\
+Access locality & Temporal+spatial & Unknown (new domain) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The missing element is admission control: buffer pools implicitly admit pages through the file system's read granularity, but they do not decide what data to store on disk. Agent memory systems currently admit all writes and rely on retrieval quality to filter. Our results suggest this is the wrong design point: the 9.5\% dead rate means the system stores memories that will never be useful, consuming storage and diluting the retrieval signal for the memories that matter.
+
+\section{Write-Time Interception: The B1 Gate}
+\label{sec:b1}
+
+As a complementary approach to retrospective admission control, we evaluate a deterministic write-time conflict interception gate. The gate parses each incoming \texttt{remember()} call for attribute--value assertions of the form \emph{entity 的 attr 是 value} (Chinese copula construction), then compares against all active facts linked to the same entity via the \texttt{fact\_entities} index.
+
+On a synthetic benchmark with guaranteed ground truth (10 entities, 3 attributes, 50 conflicting writes, 80 near-miss non-conflicts), the gate achieves 100\% recall and 100\% precision (zero false positives across all four near-miss types). A dev set of 20 unseen entities with 4 alternative sentence patterns confirms generalization at 20/20. On a real SQLite database with file I/O, the gate adds p50~=~0.037\,ms per call ($n{=}1000$).
+
+\begin{finding}[Write-Time Interception Is Feasible]
+A deterministic write-time gate adds negligible latency (p50 = 0.037\,ms) while achieving perfect precision on synthetic conflicts. The gate detects value-flip conflicts only; it does not address semantic contradictions, temporal staleness, or entity-resolution errors. The parser is Chinese-only. The benchmark is synthetic; real-world conflict density is expected to be lower (our production database contains zero uncorrected contradictions after 31 days of active supersession).
+\end{finding}
+
 \section{Discussion}
 
 \paragraph{Why does this matter?} Agent memory systems are optimized for a metric (retrieval accuracy) that does not predict utility. A system with 99\% retrieval accuracy but 0.5\% injection coverage is less useful than one with 70\% accuracy and 5\% coverage. The field needs a second metric: \emph{write efficiency} (fraction of written memories that are ever retrieved).
@@ -247,6 +299,8 @@ After entity-aware ranking improves precision@10 from 28\% to 73\%, 27\% of quer
 \paragraph{Generality.} The write waste problem affects any system where write cost is low relative to retrieval cost. mem0, Zep, and Letta all encourage ``remember everything'' without admission control. As context windows grow (100K$\to$1M tokens), the injection bottleneck will ease but the write waste problem will worsen: more storage capacity without more retrieval discipline.
 
 \section{Reproducibility}
+
+MemTether is Apache-2.0 open source at \url{https://github.com/MemTether/MemTether} (PyPI: \texttt{pip install memtether}). All measurements are reproducible from the production SQLite database:
 
 All measurements are reproducible from the production SQLite database:
 
