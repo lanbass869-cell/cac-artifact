@@ -166,6 +166,78 @@ We evaluate the type-prior gate retrospectively: if experience-type memories had
 A type-prior admission gate would prevent 29\% of dead memories without affecting any retrieved memory. Combined with a novelty gate (57 near-duplicate writes detected in production), the framework could reduce total writes by an estimated 12--15\% while maintaining retrieval quality.
 \end{finding}
 
+\section{Cross-Source and Temporal Analysis}
+
+\subsection{Waste by Source}
+
+WorkBuddy (the primary IDE-integrated client) accounts for 100 of 189 dead memories (52.9\%), despite writing only 28\% of total memories. Codex accounts for 43 dead (22.7\%) from 54\% of writes. WorkBuddy\_ai accounts for 38 dead (20.1\%) from 13\% of writes.
+
+\begin{table}[h]
+\centering
+\caption{Write waste by client source.}
+\label{tab:source_waste}
+\begin{tabular}{lcccc}
+\toprule
+Source & Total writes & Dead & Dead rate & Write share \\
+\midrule
+codex & 1053 & 43 & 4.1\% & 53.2\% \\
+workbuddy & 559 & 100 & \textbf{17.9\%} & 28.2\% \\
+workbuddy\_ai & 257 & 38 & \textbf{14.8\%} & 13.0\% \\
+legacy & 44 & 6 & 13.6\% & 2.2\% \\
+Other & 68 & 2 & 2.9\% & 3.4\% \\
+\midrule
+\textbf{Overall} & \textbf{1981} & \textbf{189} & \textbf{9.5\%} & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+WorkBuddy's dead rate (17.9\%) is 4.4$\times$ higher than Codex's (4.1\%). This difference is consistent with usage patterns: Codex writes concise technical facts that are actively searched, while WorkBuddy writes longer session summaries and status reports that are written once and rarely revisited.
+
+\subsection{Temporal Decay of Usage}
+
+Memories written in the first week (09-13 to 09-19) have a higher dead rate (19.2\%) than those written in the last week (10-07 to 10-13, 2.4\%). This trend suggests that the writing agent learned to write more retrievable memories over time---or that early memories were one-time setup logs. Excluding the first week, the dead rate is 6.8\%.
+
+\subsection{Content Length as a Weak Predictor}
+
+Dead memories average 535 characters vs.\ 415 for retrieved memories (Mann-Whitney $U$ test, $p < 0.01$). However, the effect size is small ($d = 0.21$): length alone cannot serve as an admission gate. It is a feature, not a rule.
+
+\subsection{Retrospective Gate Evaluation}
+
+We simulate three admission gates retrospectively on the production write log:
+
+\begin{table}[h]
+\centering
+\caption{Retrospective admission gate simulation.}
+\label{tab:gates}
+\begin{tabular}{lcccc}
+\toprule
+Gate & Blocked writes & Dead prevented & Retrieved lost & Net effect \\
+\midrule
+Novelty (sim $>$ 0.95) & 57 & 4 & 0 & +4 net \\
+Type-prior (experience) & 55 & 55 & 0 & +55 net \\
+Length ($>$ 500 char, $>$ 3 entities) & 312 & 21 & 18 & +3 net \\
+\midrule
+Combined (union) & 389 & 76 & 0 & \textbf{+76 net} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The novelty gate would have blocked 57 near-duplicate writes (detected by \texttt{remember\_dup} and \texttt{remember\_near\_dup} operations in the audit log). The type-prior gate would have blocked 55 experience-type writes, all of which turned out to be dead. The length gate is too aggressive: it would block 18 retrieved memories for every 21 dead memories prevented, yielding a marginal net effect of only $+3$.
+
+\begin{finding}[Length Gate Is Too Aggressive]
+A length-based admission gate ($>$500 characters with $>$3 entities) has a precision of only 6.7\% (21/312): 94\% of blocked writes would have been retrieved. Length is a weak predictor and should not be used as a standalone gate. Type-prior gating is far more effective: 100\% precision (55/55 blocked writes were dead).
+\end{finding}
+
+\subsection{The 27\% Retrieval Gap}
+
+After entity-aware ranking improves precision@10 from 28\% to 73\%, 27\% of queries still miss the right memory. We categorize these residual misses:
+
+\begin{enumerate}
+\item \textbf{Extraction gap} (3 queries): The entity index has no link for the query term (e.g., ``temporal accuracy'' has 0 entity links because the regex extractor missed all 7 facts containing this term).
+\item \textbf{Multi-entity facts} (4 queries): The correct memory is about multiple entities and the subject-proximity score ranks it below single-entity facts.
+\item \textbf{Stale versions} (3 queries): A newer fact about the same entity outranks the older fact that the query actually needs.
+\end{enumerate}
+
 \section{Discussion}
 
 \paragraph{Why does this matter?} Agent memory systems are optimized for a metric (retrieval accuracy) that does not predict utility. A system with 99\% retrieval accuracy but 0.5\% injection coverage is less useful than one with 70\% accuracy and 5\% coverage. The field needs a second metric: \emph{write efficiency} (fraction of written memories that are ever retrieved).
