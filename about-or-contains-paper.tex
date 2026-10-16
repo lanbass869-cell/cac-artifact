@@ -17,7 +17,7 @@
 \maketitle
 
 \begin{abstract}
-Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 1 is about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with manually labeled ground truth, entity-aware retrieval improves precision@10 from 28\% to 73\% (+45pp).
+Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 31-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 1 is about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with manually labeled ground truth, entity-aware retrieval improves precision@10 from 28\% to 73\% (+45pp).
 \end{abstract}
 
 \section{Introduction}
@@ -35,14 +35,14 @@ We make three contributions:
 \begin{enumerate}
 \item We quantify the about-vs-mention failure in a production agent memory system: baseline precision@10 is 28\% across 10 query terms.
 \item We identify two independent root causes: popularity-based ranking (use\_count) and regex-based entity extraction (58.1\% coverage).
-\item We propose entity-aware hybrid retrieval that improves precision@10 to 73\% (+45pp) with zero regressions on any query.
+\item We propose entity-aware hybrid retrieval that improves precision@10 to 73\% (+45pp), with one known regression (temporal accuracy 1$\to$0, where no entity link exists).
 \end{enumerate}
 
 \section{Problem: About vs.\ Contains}
 
 \subsection{Production Setting}
 
-Our study uses a local-first agent memory system serving 15 AI clients through a shared SQLite database. During the 30-day study period (2026-09-13 to 2026-10-14), the system recorded 2,378 writes and maintained 1,975 active memories. Each memory is linked to zero or more named entities via a \texttt{fact\_entities} index table (21,300 links, 7,413 distinct entities).
+Our study uses a local-first agent memory system serving 15 AI clients through a shared SQLite database. During the 30-day study period (2026-09-13 to 2026-10-14 (at time of writing)), the system recorded 2,378 writes and maintained 1,975 active memories. Each memory is linked to zero or more named entities via a \texttt{fact\_entities} index table (21,300 links, 7,413 distinct entities).
 
 \subsection{The Failure Mode}
 
@@ -71,7 +71,6 @@ fuseeval & 2/10 & Executor tool \\
 fuseeval & 2/10 & Executor tool \\
 CAC & 8/10 & Paper trajectories \\
 \midrule
-\textbf{Overall} & \textbf{28/100} & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -225,7 +224,7 @@ sqlite3 memory.db "SELECT COUNT(*) FROM facts f WHERE status='active'
 
 \section{Conclusion}
 
-We identified, quantified, and partially solved a retrieval failure mode in production agent memory: systems cannot distinguish facts about a query entity from facts containing the query string. Entity-aware hybrid retrieval improves precision@10 from 28\% to 73\% with zero regressions, using only character-position heuristics and existing entity indices.
+We identified, quantified, and partially solved a retrieval failure mode in production agent memory: systems cannot distinguish facts about a query entity from facts containing the query string. Entity-aware hybrid retrieval improves precision@10 from 28\% to 73\% with one known regression (temporal accuracy), using only character-position heuristics and existing entity indices.
 
 \begin{thebibliography}{5}
 

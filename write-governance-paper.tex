@@ -271,7 +271,7 @@ sqlite3 memory.db "SELECT SUM(LENGTH(content)) FROM facts
 \section{Related Work}
 
 Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
-
+Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. Our companion paper on entity-aware retrieval~\cite{aoc} quantifies the about-vs-mention retrieval failure. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
 \section{Conclusion}
 
 We quantified three previously unmeasured properties of production agent memory: 9.5\% write waste, 0.48\% injection coverage, and a steep power-law usage distribution. We showed that retrieval quality improvement (28\%$\to$73\% precision) does not address the injection bottleneck, motivating a shift from retrieval accuracy to write governance. A naive type-prior admission gate has a net $-268$ effect (323 retrieved memories lost vs.\ 55 dead memories prevented); an intent-requiring variant---where agents declare retrieval intent at write time---is the proposed fix, but its effect has not yet been simulated.
@@ -298,6 +298,9 @@ Anonymous.
 \newblock MemoryAgentBench: Benchmarking Memory in Agents.
 \newblock \emph{arXiv}, 2026.
 
+\bibitem[Anonymous(2026)]{aoc}
+Anonymous.
+\newblock About or Contains? Entity-Aware Retrieval for Agent Memory.
+\newblock \emph{arXiv}, 2026.
 \end{thebibliography}
-
 \end{document}

@@ -20,7 +20,7 @@ A 30-Day Longitudinal Study of Shared Agent Memory}
 \maketitle
 
 \begin{abstract}
-Multi-agent AI systems increasingly share persistent memory, but no published study has characterized how shared agent memory evolves in production. We present a 30-day longitudinal study of a production multi-agent memory system serving 15 AI clients through a shared SQLite database (3,000 logged operations, 1,957 active memories, 7,375 entities). We report five findings: (1)~memory type predicts correction rate: procedural memories are corrected at a 91.5\% rate, over 11$\times$ higher than decisions (8.2\%); (2)~81.7\% of cross-agent fact pairs exhibit polarity clashes, yet only 0.044\% of cross-source entity pairs survive entity-level filtering as genuine temporal contradictions---a 1{,}857$\times$ reduction from the raw fact-pair clash rate to the entity-pair contradiction rate that quantifies the entity-resolution challenge; (3)~memory corrections cluster: a single system-mediated consolidation event accounts for 77\% of all corrections; (4)~the injection coverage ratio is 0.48\%: the system stores 209$\times$ more content than can be presented to the LLM per turn; (5)~the 14.9\% of corrections that are cross-agent cause disproportionate downstream harm (86\% answer divergence) compared to self-corrections (0.7\% divergence). These findings suggest that memory system design should prioritize type-aware retention policies, entity-resolution quality, and cross-agent conflict interception.
+Multi-agent AI systems increasingly share persistent memory, but no published study has characterized how shared agent memory evolves in production. We present a 30-day longitudinal study of a production multi-agent memory system serving 15 AI clients through a shared SQLite database (3,000 logged operations, 1,957 active memories, 7,375 entities). We report five findings: (1)~memory type predicts correction rate: procedural memories are corrected at a 91.5\% rate, over 11$\times$ higher than decisions (8.2\%); (2)~81.7\% of cross-agent fact pairs exhibit polarity clashes, yet only 0.044\% of cross-source entity pairs survive entity-level filtering as genuine temporal contradictions---a 1{,}857$\times$ reduction from the raw fact-pair clash rate to the entity-pair contradiction rate that quantifies the entity-resolution challenge; (3)~memory corrections cluster: a single system-mediated consolidation event accounts for 262 of 349 corrections (75.1\%); (4)~the injection coverage ratio is 0.48\%: the system stores 209$\times$ more content than can be presented to the LLM per turn; (5)~the 14.9\% of corrections that are cross-agent cause disproportionate downstream harm (86\% answer divergence) compared to self-corrections (0.7\% divergence). These findings suggest that memory system design should prioritize type-aware retention policies, entity-resolution quality, and cross-agent conflict interception.
 \end{abstract}
 
 \section{Introduction}
@@ -69,7 +69,7 @@ Study duration & 30 days \\
 Distinct client sources & 15 \\
 Total logged operations & 3,000 \\
 Active memories & 1,957 \\
-Superseded memories & 386 \\
+Superseded memories\footnote{386 rows have status=superseded; 349 supersession edges connect them. The difference arises from multi-step chains where one edge supersedes a fact that was itself already superseded.} & 386 \\
 Retired memories & 200 \\
 Distinct entities & 7,375 \\
 Multi-source entities & 1,580 (21.4\%) \\
@@ -240,7 +240,7 @@ To validate the cross-agent harm asymmetry at scale, we expanded the downstream 
 Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering). Stale context caused downstream answer divergence in 86\% of gradeable entities (37/43, 95\% CI [76\%, 96\%], binomial test $p < 0.001$ against the null hypothesis of 50\% divergence).
 
 This confirms the 73pp finding from the original $n{=}11$ experiment and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
-
+This confirms the 73pp finding from our companion paper on cross-agent contradictions~\cite{cac} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
 \section{Discussion}
 \label{sec:discussion}
 
@@ -354,6 +354,9 @@ Anonymous.
 \newblock Governed Shared Memory for Multi-Agent LLM Systems.
 \newblock \emph{arXiv:2606.24535}, 2026.
 
+\bibitem[Anonymous(2026)]{cac}
+Anonymous.
+\newblock When Agents Disagree: Measuring and Resolving Cross-Agent Memory Contradictions in Shared Multi-Agent Memory.
+\newblock \emph{arXiv}, 2026.
 \end{thebibliography}
-
 \end{document}
