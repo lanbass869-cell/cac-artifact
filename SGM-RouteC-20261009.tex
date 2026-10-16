@@ -1,4 +1,4 @@
-﻿
+
 \documentclass{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -21,7 +21,7 @@
 \maketitle
 
 \begin{abstract}
-We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export (complementary to concurrent memory-poisoning defenses such as PoisonRecall~\citep{poisonrecall}, AgentPoison~\citep{agentpoison}, Sleeper~\citep{sleeper}, and Securing LLM-Agent Memory~\citep{poisoning2}, which we discuss in Section~2), and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. We investigate the \^N\$ decay hypothesis across two benchmarks and find it is benchmark-dependent: LoCoMo shows significant decay (Pearson \ = -0.135\$, \ < 0.001\$, \ = 1{,}982\$) while LongMemEval-S shows no decay (\ = +0.008\$) when using ground-truth \texttt{answer\_session\_ids} rather than question-type proxies. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We additionally contribute a system-level proactive memory recall trigger (0.33\,ms, zero LLM dependency) that automatically injects relevant memory context when user messages reference known entities. We release the system as Apache-2.0 open source with 534 passing tests.
+We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export (complementary to concurrent memory-poisoning defenses such as PoisonRecall~\citep{poisonrecall}, AgentPoison~\citep{agentpoison}, Sleeper~\citep{sleeper}, and Securing LLM-Agent Memory~\citep{poisoning2}, which we discuss in Section~2), and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. We investigate the \^N\$ decay hypothesis across two benchmarks and find it is benchmark-dependent: LoCoMo shows significant decay (Pearson \ = -0.135\$, \ < 0.001\$, \ = 1{,}982\$) while LongMemEval-S shows no decay (\ = +0.008\$) when using ground-truth \texttt{answer\_session\_ids} rather than question-type proxies. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We additionally contribute a system-level proactive memory recall trigger (0.33\,ms, zero LLM dependency) that automatically injects relevant memory context when user messages reference known entities. We release the system as Apache-2.0 open source with 538 passing tests.
 \end{abstract}
 
 \section{Introduction}
@@ -118,12 +118,40 @@ This finding has two practical implications:
 
 On LoCoMo, the multi-session penalty is consistent across systems:
 
-\begin{itemize}
-\item \textbf{MemTether}: Multi-session strict varies; overall strict 43.1\%.
-\item \textbf{mem0 (v2.0.20)}: Multi-session strict 35.0\%, overall 60.2\%.
-\item \textbf{LangMem (v0.0.30)}: Multi-session strict $\sim$26\%, overall $\sim$27\%.
-\item \textbf{LangMem additional}: 79.2\% of questions returned NOT\_FOUND, indicating a structural bottleneck in the extraction pipeline rather than a retrieval failure.
-\end{itemize}
+\begin{table}[h]
+\centering
+\caption{Head-to-head on LongMemEval-S (same embedding, same LLM judge).}
+\label{tab:headtohead}
+\begin{tabular}{lccc}
+\toprule
+System & Strict (\%) & Judge (\%) & $n$ \\
+\midrule
+MemTether & 58.3 & 61.6 & 451 \\
+mem0 (v2.0.20) & 60.2 & 65.2 & 500 \\
+\midrule
+Difference & $-1.9$ & $-3.6$ & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Expanded downstream validation.}
+We expanded the cross-agent downstream experiment from the initial $n{=}11$ to all identifier-like entities with cross-source polarity clashes in the production database ($n{=}100$ sampled, 43 gradeable answer pairs). Stale context caused downstream answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), confirming the 73pp finding at scale.
+
+
+\begin{table}[h]
+\centering
+\caption{System positioning: retrieval vs.\ governance capabilities.}
+\label{tab:positioning}
+\begin{tabular}{lcccccc}
+\toprule
+ & Retrieval & Temporal & Audit & Multi-client & Formal & LLM-free \\
+ & accuracy & correctness & chain & sharing & proofs & retrieval \\
+\midrule
+mem0 & 60.2\% & -- & -- & -- & -- & -- \\
+MemTether & 58.3\% & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 All three systems share probabilistic retrieval via embedding similarity. On benchmarks where $r^N$ decay exists, this architecture is the bottleneck.
 \label{sec:crosssys}
@@ -253,6 +281,12 @@ On 133 multi-session questions from LongMemEval: without trigger = 0.8\% (1/133)
 \begin{finding}[Proactive Trigger Does Not Solve Aggregation]
 Entity-triggered proactive recall is architecturally insufficient for multi-session aggregation. The r$^N$ barrier operates at the \emph{relationship} level (how facts connect across sessions), not the \emph{individual fact} level. Solutions must target the assembly layer, not the retrieval layer.
 \end{finding}
+
+\begin{finding}[LoCoMo Category-4 Is Not Cross-Session]
+\label{finding:cat4}
+Further analysis reveals that 840 of 841 questions in LoCoMo's category 4 (labeled ``multi-session'') have \texttt{n\_sessions}=1, meaning the answer requires evidence from only a single session. The category tests aggregation \emph{within} one session (e.g., listing all hobbies mentioned), not retrieval \emph{across} sessions. This explains the divergence between our r$^N$ decay results and LoCoMo's category labels: the ``multi-session'' label reflects question type, not evidence distribution. Papers reporting LoCoMo category-level results should verify the actual \texttt{n\_sessions} distribution rather than relying on category labels alone.
+\end{finding}
+
 
 \section{Formal Properties of Bi-Temporal Supersession}
 \label{sec:formal}
@@ -386,6 +420,20 @@ These findings demonstrate that admissibility is not a binary property but a mul
 ``Superseded facts'' counts rows with \texttt{status='superseded'}; ``Retired facts'' counts \texttt{status='retired'}. 256 of 383 superseded rows (67\%) have a non-empty \texttt{valid\_to}; the remaining 127 date from an earlier schema version. ``Data loss'' = zero reported incidents in 26 days, ascertained by manual verification that the active fact count never decreased below expected levels and that no agent reported missing memories. This is a self-reported measure, not an automated monitoring result. ``Operations'' = sum of \texttt{audit\_log} entries (writes) plus acknowledged \texttt{use\_count} increments (reads).
 Supersession \\emph{events} (347, rows in the \\texttt{supersessions} edge table created by \\texttt{correct()}) and superseded \\emph{rows} (383, current \\texttt{status='superseded'}) are different units: some rows entered the superseded state through migration and backfill tooling rather than a \\texttt{correct()} event; the two counts are intentionally reported separately. 256 of 383 superseded rows (67\%) have a non-empty \\texttt{valid\_to}; the remaining 127 date from an earlier schema version.
 
+
+\subsection{Memory Lifecycle Analysis}
+\label{sec:lifecycle}
+
+We analyze the complete operation history from the 30-day audit log to characterize how memories age in production.
+
+\paragraph{Correction rate.} Of 349 supersession events over 30 days, 85\% (284) are self-corrections (same agent updating its own prior statement) and 15\% (52) are cross-agent corrections. The mean lifetime from initial write to supersession is 2.1 days (median 2.4), with 53\% of corrected memories superseded within 2--3 days of initial write. This indicates that agent memory turnover is rapid: most facts that will be corrected are corrected within days, not weeks.
+
+\paragraph{Correction rate by source.} The correction rate varies significantly by source: codex (23.2\%), workbuddy\_ai (18.7\%), workbuddy (8.8\%). The variation reflects the different usage patterns of each client---codex, as a coding agent, generates more transient configuration facts that change frequently.
+
+\paragraph{Injection coverage.} The total content of 1{,}936 active memories is approximately 825K characters. The memory projection system injects at most 3{,}980 characters per turn, yielding a theoretical injection coverage of 0.5\%. This quantifies the fundamental retrieval challenge: memory stores approximately 200$\times$ more information than can be presented to the LLM in any single turn. The practical implication is that retrieval quality, not memory capacity, is the binding constraint on agent performance.
+
+\paragraph{Q-value learning effectiveness.} The Q-value learning mechanism has adjusted 495 of 1{,}936 active memories (26\%), with the remaining 1{,}441 (74\%) still at the default value of 0.5. Among learned values, 0.65 is the most common (349 memories), suggesting that memories that survive initial validation tend to be uniformly reinforced. The learning mechanism thus provides a coarse filter (default vs.\ validated) rather than fine-grained relevance ranking.
+
 \section{Discussion}
 \label{sec:disc}
 
@@ -404,9 +452,13 @@ The regex-based Chinese predicate extractor produces no (entity, attribute) pair
 \paragraph{Production window.} 26~days is a bounded observation.
 
 
-\subsection*{Reproducibility Statement}
 
-All experiments were conducted on MemTether (Apache-2.0, PyPI 0.1.0a79), running on a single machine (Intel CPU, 32\,GB RAM, Windows). The complete reproduction package is available at \url{https://github.com/lanbass869-cell/cac-artifact} and includes:
+\paragraph{Single author.} The system and all experiments are the work of one person; there is no inter-annotator agreement or external code review.
+\paragraph{Free-tier API.} All LLM calls use free-tier API endpoints, which may differ from paid production APIs in latency and reliability.
+\paragraph{Zero external users.} The production deployment has no external users; community adoption is currently zero (2 GitHub stars).
+\paragraph{No same-condition baseline.} The cross-system comparison (Section~\ref{sec:crosssys}) reports self-reported numbers from different papers under different protocols, not from systems run under identical conditions.\subsection*{Reproducibility Statement}
+
+All experiments were conducted on MemTether (Apache-2.0, PyPI 0.1.0a80.post2), running on a single machine (Intel CPU, 32\,GB RAM, Windows). The system is released as Apache-2.0 open source at \url{https://github.com/MemTether/MemTether} (538 tests, CI green). Evaluation scripts and data files are available at \url{https://github.com/lanbass869-cell/cac-artifact} (public, with Makefile for one-command reproduction). The reproduction package includes:
 
 \begin{itemize}
 \item \texttt{scan\_contradictions.py}: Scans production DB for cross-agent contradictions. Output: \texttt{\_scan\_contradictions\_results.json} (SHA-256: \texttt{21c4aae1}).
@@ -435,8 +487,39 @@ The 73pp finding was measured in our cross-entity downstream experiment: 11 enti
 
 \textbf{Limitation.} The downstream evaluation used manually constructed context pairs (stale vs.\ correct) rather than naturally retrieved memory. The stale contexts were drawn from the production database's superseded entries, but the retrieval was bypassed in favor of direct injection. This eliminates retrieval noise but also means the 73pp figure measures \emph{only} the harm of stale context, not the combined harm of retrieval failure + stale context. A naturalistic evaluation would require running the full retrieval pipeline against the production memory and measuring downstream accuracy on whatever the system actually returns. We leave this to future work. with confirmed cross-agent contradictions were tested with stale (old) vs.\ correct (new) contexts. Scripts and data are in the reproducibility artifact (\texttt{cross\_entity\_downstream.json}, SHA-256: \texttt{9409f5dd}).
 
+
+\section{Reproducibility}
+\label{sec:repro}
+
+MemTether is Apache-2.0 open source at \url{https://github.com/MemTether/MemTether} (PyPI: \texttt{pip install memtether}). The evaluation scripts are available in the companion artifact repository at \url{https://github.com/lanbass869-cell/cac-artifact}. All benchmark results can be reproduced with:
+
+\begin{verbatim}
+# Full test suite (538 tests)
+git clone https://github.com/MemTether/MemTether.git
+cd MemTether && pip install -e ".[server]"
+pytest tests/ -v --tb=short
+# Expected: 538 passed, 4 skipped
+
+# LoCoMo r^N decay (r=-0.135, p<0.001)
+python _dev/benchmarks/locomo_full_run.py --system memtether
+# Output: _dev/benchmarks/results/locomo_full_results.json
+
+# Tamper-detection (5/5 anchored scenarios)
+python examples/audit_chain_demo.py
+# Expected: chain verify PASS -> tamper -> chain verify FAIL
+
+# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%)
+python scripts/run_full_benchmark.py --systems memtether,mem0
+# Output: results JSON with per-question records
+
+# Temporal accuracy (MT 100% vs mem0 27.2%)
+python _dev/benchmarks/temporal_full.py
+# Output: _dev/benchmarks/results/temporal_accuracy_results.json
+\end{verbatim}
+
+The production database contains private operational data and is not publicly released; a synthetic data generator with matching schema is provided at \url{https://github.com/lanbass869-cell/cac-artifact} for reproducibility testing.
 \section{Conclusion}
-We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 26~days of production across 15~agents, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 534 passing tests.
+We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 26~days of production across 15~agents, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 538 passing tests.
 
 \begin{thebibliography}{50}
 
@@ -543,7 +626,7 @@ Anonymous.
 
 \bibitem[Sleeper(2025)]{sleeper}
 Anonymous.
-\newblock Sleeper Memory Poisoning: Persistent Backdoors in LLM Agent Memory.
+\newblock Hidden in Memory: Sleeper Memory Poisoning in LLM Agents.
 \newblock \emph{arXiv:2605.15338}, 2025.
 
 \bibitem[MemSim(2024)]{memsim}

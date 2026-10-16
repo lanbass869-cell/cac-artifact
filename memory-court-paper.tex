@@ -202,6 +202,37 @@ Beyond Provenance~\cite{beyondprovenance} develops an economic governance model.
 
 Caura~\cite{caura} provides governed shared memory without cryptographic integrity. AECG~\cite{aecg} defines memory pollution conceptually without system implementation. MemStrata~\cite{memstrata} provides bi-temporal validity without audit chains. Memory Court complements these by adding the evidentiary layer they lack.
 Caura~\cite{caura} provides governed shared memory without cryptographic integrity. AECG~\cite{aecg} defines memory pollution conceptually without a system implementation. Our companion system paper~\cite{routec} presents the full MemTether architecture including the hash-chain implementation evaluated here.
+
+\section{Reproducibility}
+\label{sec:repro}
+
+MemTether is Apache-2.0 open source at \url{https://github.com/MemTether/MemTether}. The Memory Court Playground is live at \url{https://memtether.github.io/MemTether/court/}. All tamper-detection and integration test results can be reproduced with:
+
+\begin{verbatim}
+# Hash chain verification (tamper detection)
+git clone https://github.com/MemTether/MemTether.git
+cd MemTether && pip install -e ".[server]"
+python examples/audit_chain_demo.py
+# Expected: verify PASS -> tamper -> verify FAIL
+
+# Memory Court integration tests (14 tests, 6 dimensions)
+pytest tests/test_memory_court.py tests/test_court_e2e_integration.py -v
+# Expected: 14 passed
+
+# Poisoning defense (8 vectors, including negative test_F)
+pytest tests/test_poisoning_defense.py -v
+# Expected: 8 passed
+
+# Case file reconstruction
+memtether court <fact-uid>
+# Expected: 5-section dossier with hash chain status
+
+# Evidence export (browser-verifiable)
+memtether court <fact-uid> --export evidence.zip
+# Open verify.html in browser -> chain verifies without installation
+\end{verbatim}
+
+The production database is not publicly released; the Playground at the URL above uses a synthetic database with the same schema for interactive verification.
 \section{Conclusion}
 
 Memory Court upgrades agent memory from a passive data store to an active evidentiary system: every operation is hash-chained, every memory has a reconstructable case file, and every adjudication is exportable as a browser-verifiable evidence package. We identify this as a previously unaddressed gap in the agent memory landscape and release the complete implementation as Apache-2.0 open source.

@@ -307,7 +307,7 @@ Misinformation conflict & 0.000 & 0.000 & 0.000 \\
 \label{tab:specialization}
 \end{table}
 
-The detector achieves F1 = 0.889 on temporal conflicts but F1 = 0.000 on both semantic and misinformation conflicts. This is expected: temporal-numeric overlap detects year mismatches and numeric inconsistencies, which are absent in semantic contradictions (opposite meanings without numeric markers) and misinformation (fabricated claims without verifiable numbers). The result demonstrates that deterministic temporal-numeric detection is a \emph{specialized} method, not a general-purpose contradiction detector. For semantic conflicts, LLM-based detection or NLI models would be required; our approach complements rather than replaces these methods.
+The detector achieves F1 = 0.889 on temporal conflicts (500-sample subset, seed=42) vs.\ F1 = 0.897 on the full n=2000 evaluation reported in the abstract, and F1 = 0.000 on both semantic and misinformation conflicts. This is expected: temporal-numeric overlap detects year mismatches and numeric inconsistencies, which are absent in semantic contradictions (opposite meanings without numeric markers) and misinformation (fabricated claims without verifiable numbers). The result demonstrates that deterministic temporal-numeric detection is a \emph{specialized} method, not a general-purpose contradiction detector. For semantic conflicts, LLM-based detection or NLI models would be required; our approach complements rather than replaces these methods.
 
 \section{Contradiction-Aware Retrieval: The 53.6pp Improvement}
 \label{sec:caw}
@@ -364,6 +364,34 @@ In our production test, the filter removed 2--3 contradictory results per query 
 
 The 53.6pp retrieval improvement directly addresses the 73pp downstream loss. Without the filter, contradictory results are passed to the LLM, which selects the wrong (older) answer 57\% of the time, causing the 73pp accuracy drop. With the filter, the older fact is removed, and the LLM receives only the correct (newer) information, closing the gap.
 
+
+\subsection{Expanded Downstream Validation}
+\label{sec:expanded}
+
+To validate the cross-agent harm asymmetry at scale, we expanded the downstream experiment from the initial $n{=}11$ to 100 identifier-like entities with cross-source polarity clashes. Of 100 entities, 43 produced gradeable answer pairs. Stale context caused downstream answer divergence in 86\% of gradeable entities (37/43, 95\% CI [76\%, 96\%], binomial test $p < 0.001$).
+
+\subsection{Learned Contradiction Classification}
+\label{sec:learned}
+
+We evaluate four feature representations for a learned contradiction classifier on the ConflictBank test split ($n{=}1{,}020$).
+
+\begin{table}[h]
+\centering
+\caption{Contradiction detection F1 by feature representation.}
+\label{tab:feature-ablation}
+\begin{tabular}{lccccc}
+\toprule
+Features & Macro-F1 & Temporal & Semantic & Misinfo & Binary \\
+\midrule
+Handcrafted (16 features) & 0.644 & 0.998 & 0.441 & 0.394 & 0.893 \\
+Sentence embeddings (MiniLM) & 0.696 & 0.998 & 0.521 & 0.475 & 0.915 \\
+TF-IDF + handcrafted & \textbf{0.811} & \textbf{0.998} & \textbf{0.659} & \textbf{0.628} & \textbf{0.984} \\
+TF-IDF + Emb + Hand & 0.796 & 0.998 & 0.645 & 0.601 & 0.978 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+TF-IDF beats sentence embeddings by 11.5pp macro-F1 because contradictions are defined by lexical overlap patterns. The classifier is CPU-deployable: training $<$5s, inference $<$1ms. On the same 100-sample subset, a frontier LLM (Kimi-k2.6) achieves F1=0.583 (P=0.968, R=0.417) while our TF-IDF achieves F1=0.986---the LLM misses 58\% of conflicts due to extreme conservatism.
 
 \section{Discussion}
 \label{sec:disc}
