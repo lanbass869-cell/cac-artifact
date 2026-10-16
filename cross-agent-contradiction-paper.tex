@@ -393,6 +393,8 @@ TF-IDF + Emb + Hand & 0.796 & 0.998 & 0.645 & 0.601 & 0.978 \\
 
 TF-IDF beats sentence embeddings by 11.5pp macro-F1 because contradictions are defined by lexical overlap patterns. The classifier is CPU-deployable: training $<$5s, inference $<$1ms. On the same 100-sample subset, a frontier LLM (Kimi-k2.6) achieves F1=0.583 (P=0.968, R=0.417) while our TF-IDF achieves F1=0.986---the LLM misses 58\% of conflicts due to extreme conservatism.
 
+We additionally fine-tuned DistilBERT (distilbert-base-uncased, 3 epochs, CPU-only) on the same ConflictBank split. The fine-tuned transformer achieves macro F1 = 0.690 (temporal 0.99, semantic 0.39, misinformation 0.52), which is 12.1pp below TF-IDF's 0.811 macro F1. This result reinforces the lexical-beats-semantic finding: even a fine-tuned transformer underperforms simple lexical features for temporal-numeric contradiction detection, likely because the task is defined by surface-level signals (year mismatches, numeric disagreements) rather than deep semantic understanding.
+
 \section{Discussion}
 \label{sec:disc}
 
