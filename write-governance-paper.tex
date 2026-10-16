@@ -17,7 +17,7 @@ in Agent Memory Systems}
 \maketitle
 
 \begin{abstract}
-Agent memory systems compete on retrieval accuracy, but no published work measures the inverse: what fraction of written memories is ever used? We analyze a 30-day production deployment with 1,981 active memories from 15 AI clients and find that 9.5\% of memories are never retrieved, the injection coverage ratio is 0.48\% (3980 characters of LLM context vs.\ 825K characters of stored content), and retrieval usage follows a steep power law (top 5\% of memories account for 40\% of all retrievals). We further show that retrieval quality is not the binding constraint: entity-aware ranking improves precision@10 from 28\% to 73\% on a 10-query benchmark, yet 95\% of memories remain unretrievable in any given turn due to the injection bottleneck. These findings suggest that agent memory research should shift focus from retrieval accuracy to \emph{write governance}: deciding what is worth remembering in the first place. We propose an admission control framework with three gates (novelty, type-prior, length) and show that a simple type-prior gate would have prevented 14.6\% of dead experience-type memories without affecting any retrieved memory.
+Agent memory systems compete on retrieval accuracy, but no published work measures the inverse: what fraction of written memories is ever used? We analyze a 30-day production deployment with 1,981 active memories from 15 AI clients and find that 9.5\% of memories are never retrieved, the injection coverage ratio is 0.48\% (3980 characters of LLM context vs.\ 825K characters of stored content), and retrieval usage follows a steep power law (top 5\% of memories account for 40\% of all retrievals). We further show that retrieval quality is not the binding constraint: entity-aware ranking improves precision@10 from 28\% to 73\% on a 10-query benchmark, yet 95\% of memories remain unretrievable in any given turn due to the injection bottleneck. These findings suggest that agent memory research should shift focus from retrieval accuracy to \emph{write governance}: deciding what is worth remembering in the first place. We propose an admission control framework with three gates (novelty, type-prior, length) and show that a simple type-prior gate would have prevented 14.6\% of dead experience-type memories; however, the gate's retrospective simulation reveals a net $-268$ effect (323 retrieved memories lost vs.\ 55 dead memories prevented), motivating a retrieval-intent signal that the current gate lacks.
 \end{abstract}
 
 \section{Introduction}
@@ -160,10 +160,10 @@ We propose three admission gates evaluated at write time (\texttt{remember()}):
 
 \subsection{Type-Prior Gate: Retrospective Evaluation}
 
-We evaluate the type-prior gate retrospectively: if experience-type memories had been subject to an admission gate, 55 of 189 dead memories (29\%) would not have been written. No retrieved memory would have been affected (the gate only blocks experience-type writes without retrieval intent, and 0\% of retrieved experience memories would be blocked because they were retrieved at least once, implying intent existed).
+We evaluate the type-prior gate retrospectively under two policies. A naive block-all-experience gate (Table~\ref{tab:gates}) blocks all 378 experience writes, preventing 55 dead memories but also losing 323 retrieved ones (net $-268$). An intent-requiring gate---where agents declare when a memory would be needed---would in principle avoid this loss, because retrieved memories imply intent existed at write time; however, we have not yet simulated this variant, so its true effect is unknown. The gap between the two policies is the paper's central open question.
 
 \begin{finding}[Admission Control Prevents Waste]
-A type-prior admission gate would prevent 29\% of dead memories without affecting any retrieved memory. Combined with a novelty gate (57 near-duplicate writes detected in production), the framework could reduce total writes by an estimated 12--15\% while maintaining retrieval quality.
+Experience-type memories have a 14.6\% dead rate, 1.5$\times$ the system average. An admission gate targeting this type would affect 378 writes with a 14.6\% hit rate---better than random but far from precise. Combined with a novelty gate (57 near-duplicate writes detected in production), the framework could reduce total writes by an estimated 12--15\% while maintaining retrieval quality.
 \end{finding}
 
 \section{Cross-Source and Temporal Analysis}
@@ -178,7 +178,7 @@ WorkBuddy (the primary IDE-integrated client) accounts for 100 of 189 dead memor
 \label{tab:source_waste}
 \begin{tabular}{lcccc}
 \toprule
-Source & Total writes & Dead & Dead rate & Write share \\
+Source & Active & Dead & Dead rate & Write share \\
 \midrule
 codex & 1053 & 43 & 4.1\% & 53.2\% \\
 workbuddy & 559 & 100 & \textbf{17.9\%} & 28.2\% \\
@@ -214,18 +214,18 @@ We simulate three admission gates retrospectively on the production write log:
 Gate & Blocked writes & Dead prevented & Retrieved lost & Net effect \\
 \midrule
 Novelty (sim $>$ 0.95) & 57 & 4 & 0 & +4 net \\
-Type-prior (experience) & 55 & 55 & 0 & +55 net \\
+Type-prior (experience) & 378 & 55 & 323 & $-268$ net \\
 Length ($>$ 500 char, $>$ 3 entities) & 312 & 21 & 18 & +3 net \\
 \midrule
-Combined (union) & 389 & 76 & 0 & \textbf{+76 net} \\
+Combined (union) & 425 & 80 & 341 & $-261$ net \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The novelty gate would have blocked 57 near-duplicate writes (detected by \texttt{remember\_dup} and \texttt{remember\_near\_dup} operations in the audit log). The type-prior gate would have blocked 55 experience-type writes, all of which turned out to be dead. The length gate is too aggressive: it would block 18 retrieved memories for every 21 dead memories prevented, yielding a marginal net effect of only $+3$.
+The novelty gate would have blocked 57 near-duplicate writes (detected by \texttt{remember\_dup} and \texttt{remember\_near\_dup} operations in the audit log). The type-prior gate targets experience-type writes (378 total), which have a 14.6\% dead rate---1.5$\times$ the system average of 9.5\%. This is a base-rate argument, not a precision claim: the gate cannot distinguish dead from live experience writes at admission time. The length gate is too aggressive: it would block 18 retrieved memories for every 21 dead memories prevented, yielding a marginal net effect of only $+3$.
 
 \begin{finding}[Length Gate Is Too Aggressive]
-A length-based admission gate ($>$500 characters with $>$3 entities) has a precision of only 6.7\% (21/312): 94\% of blocked writes would have been retrieved. Length is a weak predictor and should not be used as a standalone gate. Type-prior gating is far more effective: 100\% precision (55/55 blocked writes were dead).
+A length-based admission gate ($>$500 characters with $>$3 entities) has a precision of only 6.7\% (21/312): 94\% of blocked writes would have been retrieved. Length is a weak predictor and should not be used as a standalone gate. Type-prior gating improves the hit rate from 9.5\% to 14.6\% but is imprecise: 86\% of blocked experience writes would have been retrieved.
 \end{finding}
 
 \subsection{The 27\% Retrieval Gap}
@@ -246,13 +246,35 @@ After entity-aware ranking improves precision@10 from 28\% to 73\%, 27\% of quer
 
 \paragraph{Generality.} The write waste problem affects any system where write cost is low relative to retrieval cost. mem0, Zep, and Letta all encourage ``remember everything'' without admission control. As context windows grow (100K$\to$1M tokens), the injection bottleneck will ease but the write waste problem will worsen: more storage capacity without more retrieval discipline.
 
+\section{Reproducibility}
+
+All measurements are reproducible from the production SQLite database:
+
+\begin{verbatim}
+# Dead memory count
+sqlite3 memory.db "SELECT COUNT(*) FROM facts 
+  WHERE status='active' AND use_count=0"
+# Expected: 189
+
+# Dead rate by type
+sqlite3 memory.db "SELECT f.type, COUNT(*), 
+  SUM(CASE WHEN f.use_count=0 THEN 1 ELSE 0 END) 
+  FROM facts f WHERE f.status='active' GROUP BY f.type"
+# Expected: experience 55/378=14.6%, procedure 0/11=0%
+
+# Injection coverage
+sqlite3 memory.db "SELECT SUM(LENGTH(content)) FROM facts 
+  WHERE status='active'"
+# Expected: 825032; divide by 3980 = 0.48%
+\end{verbatim}
+
 \section{Related Work}
 
 Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
 
 \section{Conclusion}
 
-We quantified three previously unmeasured properties of production agent memory: 9.5\% write waste, 0.48\% injection coverage, and a steep power-law usage distribution. We showed that retrieval quality improvement (28\%$\to$73\% precision) does not address the injection bottleneck, motivating a shift from retrieval accuracy to write governance. A type-prior admission gate would prevent 29\% of dead memories without affecting retrieved ones.
+We quantified three previously unmeasured properties of production agent memory: 9.5\% write waste, 0.48\% injection coverage, and a steep power-law usage distribution. We showed that retrieval quality improvement (28\%$\to$73\% precision) does not address the injection bottleneck, motivating a shift from retrieval accuracy to write governance. A naive type-prior admission gate has a net $-268$ effect (323 retrieved memories lost vs.\ 55 dead memories prevented); an intent-requiring variant---where agents declare retrieval intent at write time---is the proposed fix, but its effect has not yet been simulated.
 
 \begin{thebibliography}{4}
 

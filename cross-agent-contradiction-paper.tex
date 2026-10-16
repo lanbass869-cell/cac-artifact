@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-When multiple AI agents share a memory store, cross-agent contradictions are associated with up to 73pp downstream accuracy loss in our production case study. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.897$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark, outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\times$ speedup. Applied to production (26 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code: \url{https://github.com/lanbass869-cell/cac-artifact}.
+When multiple AI agents share a memory store, cross-agent contradictions are associated with up to 73pp downstream accuracy loss in our production case study. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.897$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark (100 entities, 710 facts, ground truth by generation seed; details in Section~\ref{sec:methods}), outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\times$ speedup. Applied to production (26 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code and evaluation artifact: \url{https://github.com/lanbass869-cell/cac-artifact} (public, with Makefile)..
 \end{abstract}
 
 \section{Introduction}
@@ -286,6 +286,29 @@ Without supersession, the cross-agent contradiction rate would increase from 11 
 
 
 \label{sec:eval}
+
+\subsection{Method Specialization: Temporal-Only Detection}
+\label{sec:specialization}
+
+To characterize the scope of our detection method, we evaluate the temporal-numeric overlap detector on all three ConflictBank conflict categories, not just temporal conflicts:
+
+\begin{table}[h]
+\centering
+\caption{Detection F1 by ConflictBank conflict type (500 samples per category, seed=42).}
+\begin{tabular}{lccc}
+\toprule
+Conflict type & Precision & Recall & F1 \\
+\midrule
+Temporal conflict & 1.000 & 0.800 & \textbf{0.889} \\
+Semantic conflict & 0.000 & 0.000 & 0.000 \\
+Misinformation conflict & 0.000 & 0.000 & 0.000 \\
+\bottomrule
+\end{tabular}
+\label{tab:specialization}
+\end{table}
+
+The detector achieves F1 = 0.889 on temporal conflicts but F1 = 0.000 on both semantic and misinformation conflicts. This is expected: temporal-numeric overlap detects year mismatches and numeric inconsistencies, which are absent in semantic contradictions (opposite meanings without numeric markers) and misinformation (fabricated claims without verifiable numbers). The result demonstrates that deterministic temporal-numeric detection is a \emph{specialized} method, not a general-purpose contradiction detector. For semantic conflicts, LLM-based detection or NLI models would be required; our approach complements rather than replaces these methods.
+
 \section{Contradiction-Aware Retrieval: The 53.6pp Improvement}
 \label{sec:caw}
 
@@ -402,6 +425,12 @@ The asymmetry arises because self-corrections typically update details within th
 \item \textbf{LLM-judge subjectivity.} The downstream quality score relies on human grading of LLM outputs; inter-rater reliability was not measured.
 \item \textbf{Entity extraction dependence.} Our method uses MemTether's pre-built \texttt{fact\_entities} index; systems without structured entity extraction cannot apply this method directly.
 \item \textbf{Synthetic downstream context.} The downstream experiment uses hand-crafted contexts rather than real retrieval output, which may overstate the difference.
+\item \textbf{Single author}: All experiments were conducted by one person, which precludes inter-annotator agreement and cross-validation of the classification decisions.
+\item \textbf{Free-tier API}: The LLM judge (GLM-5.3-flash) was accessed through a free-tier API pool, which may introduce unknown non-determinism and makes the downstream experiments non-replicable on paid API endpoints.
+\item \textbf{Zero external users}: The production deployment has no external users; all agent sources are operated by the author. This limits the diversity of adversarial scenarios tested.
+\item \textbf{Chinese-focused production data}: The production database is predominantly Chinese; the English-language generalizability of the polarity detector has not been verified.
+\item \textbf{Single-machine scope}: The detection pipeline operates on a single SQLite database; multi-machine federated deployment is not addressed.
+\item \textbf{No same-condition baseline comparison}: The 73pp and 53.6pp findings compare against unfiltered retrieval, not against other contradiction-resolution systems (mem0, Zep, etc.) running on the same data.
 \end{itemize}
 
 \section{Conclusion}
@@ -412,7 +441,7 @@ We present a causal analysis of the downstream impact of cross-agent memory cont
 \section{Reproducibility}
 \label{sec:repro}
 
-All experiments are reproducible from the artifact at \url{https://github.com/lanbass869-cell/cac-artifact}. Below we list the exact commands and SHA-256 hashes for each data file.
+All experiments are reproducible from the public artifact at \url{https://github.com/lanbass869-cell/cac-artifact} (Makefile included for one-command reproduction). The underlying system (MemTether) is Apache-2.0 open source at \url{https://github.com/MemTether/MemTether}. Below we list the exact commands and SHA-256 hashes for each data file.
 
 \subsection{Data Files}
 
@@ -497,7 +526,7 @@ Choksi, K.
 
 \bibitem[Sleeper(2026)]{sleeper}
 Abdelnabi, S. et~al.
-\newblock Sleeper Agent Memory Poisoning.
+\newblock Hidden in Memory: Sleeper Memory Poisoning in LLM Agents.
 \newblock \emph{arXiv:2605.15338}, 2026.
 
 \bibitem[AgentPoison(2024)]{agentpoison}
