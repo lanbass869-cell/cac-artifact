@@ -36,7 +36,7 @@ We further demonstrate that fixing retrieval quality alone is insufficient: enti
 
 \section{Production Setting}
 
-A local-first agent memory system serves 15 AI clients through a shared SQLite database. During 30 days (2026-09-13 to 2026-10-14), the system recorded 2,378 writes, 316 retrieval write-backs, 349 corrections, and 200 retirements. At analysis time, 1,981 memories are active.
+A local-first agent memory system serves 15 AI clients through a shared SQLite database. During 31 days (2026-09-13 to 2026-10-14), the system recorded 2,378 writes, 316 retrieval write-backs, 349 corrections, and 200 retirements. At analysis time, 1,981 memories are active.
 
 \section{Write Waste Analysis}
 
@@ -62,7 +62,7 @@ Procedure & 11 & 0 & 0.0\% & 320 \\
 \end{tabular}
 \end{table}
 
-Dead memories are longer on average (535 vs.\ 415 characters for retrieved memories), suggesting that verbose, one-time logs are less likely to be retrieved than concise, reusable facts.
+Dead memories are longer on average (535 vs.\ 415 characters for retrieved memories; the 416 mean in Table~\ref{tab:injection} is the average across all 1,981 active memories, while 535 is the average of the 189 dead subset only), suggesting that verbose, one-time logs are less likely to be retrieved than concise, reusable facts.
 
 \begin{finding}[Experience-Type Waste]
 Experience-type memories have the highest never-retrieved rate (14.6\%), while procedure-type memories have 0\%. This is consistent with their semantics: procedures are actively looked up when needed, while experiences are written once and rarely revisited. A type-aware admission gate that requires justification for experience-type writes would reduce waste by 55 memories (29\% of all dead memories).
