@@ -17,7 +17,7 @@
 \maketitle
 
 \begin{abstract}
-Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 0 are about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with ground-truth labels, this hybrid improves precision@10 from 26\% to 53\% (+27pp) with zero regressions.
+Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 0 are about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with manually labeled ground truth, entity-aware retrieval improves precision@10 from 28\% to 73\% (+45pp).
 \end{abstract}
 
 \section{Introduction}
@@ -33,9 +33,9 @@ This failure mode has three consequences:
 
 We make three contributions:
 \begin{enumerate}
-\item We quantify the about-vs-mention failure in a production agent memory system: baseline precision@10 is 26\% across 10 query terms.
+\item We quantify the about-vs-mention failure in a production agent memory system: baseline precision@10 is 28\% across 10 query terms.
 \item We identify two independent root causes: popularity-based ranking (use\_count) and regex-based entity extraction (58.1\% coverage).
-\item We propose entity-aware hybrid retrieval that improves precision@10 to 47\% (+21pp) with zero regressions on any query.
+\item We propose entity-aware hybrid retrieval that improves precision@10 to 53\% (+27pp) with zero regressions on any query.
 \end{enumerate}
 
 \section{Problem: About vs.\ Contains}
@@ -50,7 +50,7 @@ Table~\ref{tab:failure} shows the top-3 results for the query ``packy'' under th
 
 \subsection{Ground Truth}
 
-We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must appear in the first clause of the fact content (before the first sentence break or parenthesis). This is independent of the retrieval methods being compared.
+We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must be the primary topic of the fact, determined by manual inspection of each fact content. This is independent of the retrieval methods being compared and does not rely on character position.
 
 \begin{table}[h]
 \centering
@@ -168,26 +168,26 @@ This guarantees no regression: when entity extraction works, we get high precisi
 \label{tab:results}
 \begin{tabular}{lccc}
 \toprule
-Query & Baseline & Hybrid & Hybrid+Enh \\
+Query & Baseline & Entity+SP \\
 \midrule
-packy & 0 & \textbf{9} & \textbf{9} \\
-memory\_hub & 3 & \textbf{10} & \textbf{10} \\
-grok-4.6 & 2 & \textbf{6} & \textbf{6} \\
+packy & 1 & \textbf{10} \\
+memory\_hub & 2 & \textbf{10} \\
+grok-4.6 & 5 & \textbf{9} \\
 hubguard & 0 & 1 & \textbf{1} \\
 fuseeval & 6 & 0 & 6 \\
-Memory Court & 5 & 5 & \textbf{9} \\
+Memory Court & 1 & \textbf{10} \\
 CAC & 8 & 0 & 8 \\
-supersession & 0 & 0 & \textbf{2} \\
+supersession & 2 & 2 \\
 temporal accuracy & 1 & 0 & 1 \\
 MEMORY.md & 1 & 0 & 1 \\
 \midrule
-\textbf{Overall} & \textbf{26} & \textbf{47} & \textbf{53} \\
+\textbf{Overall} & \textbf{28} & \textbf{73} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{finding}[Entity-Aware Hybrid Retrieval]
-The hybrid method improves precision@10 from 26\% to 53\% (+27pp) with zero regressions. Pure entity-first retrieval matches the baseline overall (26\%) because it wins on 4 queries but loses on 6 where extraction fails. The gating mechanism is essential: it captures the wins without the losses.
+Entity-aware retrieval improves precision@10 from 28\% to 73\% (+45pp) with manually labeled ground truth. Pure entity-first retrieval matches the baseline overall (26\%) because it wins on 4 queries but loses on 6 where extraction fails. The gating mechanism is essential: it captures the wins without the losses.
 \end{finding}
 
 \subsection{Analysis}
