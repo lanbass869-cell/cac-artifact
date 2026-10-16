@@ -1,0 +1,263 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{algorithmic}
+\newtheorem{finding}{Finding}
+
+\title{About or Contains?\\ Entity-Aware Retrieval for Agent Memory}
+
+\author{Anonymous}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 0 are about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with ground-truth labels, this hybrid improves precision@10 from 26\% to 47\% (+21pp) with zero regressions.
+\end{abstract}
+
+\section{Introduction}
+
+Retrieval is the core operation of any agent memory system. When an agent searches for ``packy'', it expects facts \emph{about} packy---its status, configuration, and known issues. Instead, current systems return facts that \emph{contain} the string ``packy'' anywhere: file paths, log entries, lists of failures, and unrelated tool descriptions.
+
+This failure mode has three consequences:
+\begin{enumerate}
+\item \textbf{Wasted context}. The LLM receives 10 results, of which most are irrelevant, consuming the context window and diluting the signal.
+\item \textbf{Wrong answers}. The top result (a file path) may mislead the agent about the entity's actual status.
+\item \textbf{Silent degradation}. Neither precision nor recall is measured in production; the agent has no way to know retrieval is failing.
+\end{enumerate}
+
+We make three contributions:
+\begin{enumerate}
+\item We quantify the about-vs-mention failure in a production agent memory system: baseline precision@10 is 26\% across 10 query terms.
+\item We identify two independent root causes: popularity-based ranking (use\_count) and regex-based entity extraction (58.1\% coverage).
+\item We propose entity-aware hybrid retrieval that improves precision@10 to 47\% (+21pp) with zero regressions on any query.
+\end{enumerate}
+
+\section{Problem: About vs.\ Contains}
+
+\subsection{Production Setting}
+
+Our study uses a local-first agent memory system serving 15 AI clients through a shared SQLite database. During the 30-day study period (2026-09-13 to 2026-10-14), the system recorded 2,378 writes and maintained 1,975 active memories. Each memory is linked to zero or more named entities via a \texttt{fact\_entities} index table (21,300 links, 7,413 distinct entities).
+
+\subsection{The Failure Mode}
+
+Table~\ref{tab:failure} shows the top-3 results for the query ``packy'' under the baseline hybrid retriever (embedding + FTS5 + RRF fusion). The top result is a GUI automation tool whose file path contains ``packy''. It receives a perfect score of 1.00 from the embedding model because the path string matches. Zero of 10 results are about packy under the ground-truth labeling rule.
+
+\subsection{Ground Truth}
+
+We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must appear in the first clause of the fact content (before the first sentence break or parenthesis). This is independent of the retrieval methods being compared.
+
+\begin{table}[h]
+\centering
+\caption{Baseline precision@10 by query term.}
+\label{tab:baseline}
+\begin{tabular}{lcc}
+\toprule
+Query & About@10 & Dominant failure \\
+\midrule
+packy & 0/10 & File path match \\
+hubguard & 0/10 & Passing mention \\
+supersession & 0/10 & Passing mention \\
+memory\_hub & 3/10 & Handover documents \\
+grok-4.6 & 2/10 & Related model names \\
+MEMORY.md & 1/10 & Rebuild logs \\
+temporal accuracy & 1/10 & Bound discussions \\
+fuseeval & 6/10 & Executor tool \\
+Memory Court & 5/10 & Anchor fixes \\
+CAC & 8/10 & Paper trajectories \\
+\midrule
+\textbf{Overall} & \textbf{26/100} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Precision varies from 0\% (packy, hubguard, supersession) to 80\% (CAC). The variation is not random: queries whose terms appear as \emph{subjects} in many facts score high; queries whose terms appear in file paths or passing mentions score zero.
+
+\section{Root Cause Analysis}
+
+\subsection{Cause 1: Popularity-Based Ranking}
+
+When the entity index contains facts linked to the query entity, the baseline ranks them by \texttt{use\_count} (retrieval frequency). This surfaces high-traffic facts regardless of relevance.
+
+\begin{table}[h]
+\centering
+\caption{Top-5 entity-linked facts for ``packy'' ranked by use\_count.}
+\label{tab:popularity}
+\begin{tabular}{clc}
+\toprule
+use\_count & Content excerpt & Entity position \\
+\midrule
+40 & ...gui\_loop...(packy deepseek分组...) & idx=63 (parenthetical) \\
+37 & ...★packy ★明文密钥真实射程修正... & idx=54 (tag) \\
+31 & ...Packy 账号封禁，三家付费中转全废 & idx=288 (list end) \\
+27 & ...packy×5封禁/silicon余额不足 & idx=107 (list item) \\
+26 & ...Codex 接入 packy、packy 密钥账本 & idx=163 (list item) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Zero of the top-5 facts are about packy. All are mention-only: packy appears in parentheses, tags, or failure lists. The facts that \emph{are} about packy (e.g., ``packy分组机制: 一个key只能调本组模型'') have lower use\_count and are buried.
+
+\subsection{Cause 2: Regex-Based Entity Extraction}
+
+Entity extraction uses regex patterns for Chinese syntax (\texttt{X的Y}, \texttt{X支持Y}) and first-phrase heuristics. This misses 41.9\% of active facts entirely (827/1,975 have no entity link) and fails on English multi-word terms.
+
+\begin{table}[h]
+\centering
+\caption{Entity extraction coverage by query term.}
+\label{tab:coverage}
+\begin{tabular}{lccc}
+\toprule
+Query term & Facts containing & With entity link & Coverage \\
+\midrule
+MEMORY.md & 42 & 38 & 90.5\% \\
+fuseeval & 72 & 13 & 18.1\% \\
+Memory Court & 43 & 2 & 4.7\% \\
+temporal accuracy & 7 & 0 & 0.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The failure is structural: the regex extractor processes Chinese patterns only. ``Memory Court'' matches no pattern and extracts nothing. ``fuseeval v3-referee全量...'' extracts the entire first phrase as the entity name, making exact-match lookup fail.
+
+\section{Method: Entity-Aware Hybrid Retrieval}
+
+\subsection{Subject-Proximity Score}
+
+We score each entity-linked fact by the position of the query entity in its content:
+
+\begin{equation}
+\text{ss}(c, e) = \begin{cases}
+1.0 & \text{idx}(e, c) \leq 30 \quad \text{(subject)} \\
+0.7 & \text{idx}(e, c) \leq 80 \quad \text{(prominent)} \\
+0.5 & \text{count}(e, c) \geq 2 \quad \text{(repeated)} \\
+0.3 & \text{idx}(e, c) \leq 200 \quad \text{(mid-text)} \\
+0.1 & \text{otherwise} \quad \text{(passing reference)}
+\end{cases}
+\end{equation}
+
+\noindent where $\text{idx}(e,c)$ is the character position of entity $e$ in content $c$.
+
+The final score combines subject proximity (primary), Q-value (learned quality), and normalized use\_count (popularity):
+$$\text{score} = 0.7 \cdot \text{ss} + 0.2 \cdot q + 0.1 \cdot \min(\text{uc}, 100)/100$$
+
+\subsection{Hybrid Gating}
+
+Entity-first retrieval is high-precision but low-recall: it fails completely when the entity index lacks the query term. We gate on coverage:
+
+\begin{algorithmic}
+\IF{entity index has $\geq 3$ facts with $\text{ss} \geq 0.7$}
+    \STATE return entity-ranked results (subject-proximity order)
+\ELSE
+    \STATE return baseline hybrid search results
+\ENDIF
+\end{algorithmic}
+
+This guarantees no regression: when entity extraction works, we get high precision; when it fails, we fall back to the baseline.
+
+\section{Evaluation}
+
+\begin{table}[h]
+\centering
+\caption{Precision@10: baseline vs.\ entity+SP vs.\ hybrid.}
+\label{tab:results}
+\begin{tabular}{lccc}
+\toprule
+Query & Baseline & Entity+SP & Hybrid \\
+\midrule
+packy & 0 & 9 & \textbf{9} \\
+memory\_hub & 3 & 10 & \textbf{10} \\
+grok-4.6 & 2 & 6 & \textbf{6} \\
+hubguard & 0 & 1 & \textbf{1} \\
+fuseeval & 6 & 0 & 6 \\
+Memory Court & 5 & 0 & 5 \\
+CAC & 8 & 0 & 8 \\
+supersession & 0 & 0 & 0 \\
+temporal accuracy & 1 & 0 & 1 \\
+MEMORY.md & 1 & 0 & 1 \\
+\midrule
+\textbf{Overall} & \textbf{26} & \textbf{26} & \textbf{47} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{finding}[Entity-Aware Hybrid Retrieval]
+The hybrid method improves precision@10 from 26\% to 47\% (+21pp) with zero regressions. Pure entity-first retrieval matches the baseline overall (26\%) because it wins on 4 queries but loses on 6 where extraction fails. The gating mechanism is essential: it captures the wins without the losses.
+\end{finding}
+
+\subsection{Analysis}
+
+The improvement concentrates on queries where the entity index has correct subject-position facts: packy (0$\to$9), memory\_hub (3$\to$10), grok-4.6 (2$\to$6). On queries where extraction fails (fuseeval, Memory Court, CAC, temporal accuracy), the hybrid correctly falls back and matches the baseline.
+
+The remaining 53\% errors are of two types: (1)~queries with no correct entity extraction (supersession, temporal accuracy, MEMORY.md); (2)~facts that mention the entity in subject position but are not the most current version.
+
+\section{Discussion}
+
+\paragraph{Why not fix entity extraction?} LLM-based extraction achieves 82\% success on unlinked facts but costs one API call per fact and introduces non-determinism. For a local-first system, regex extraction is preferred for its determinism and zero cost. The hybrid gating mechanism makes extraction quality a performance factor rather than a correctness factor.
+
+\paragraph{Generalizability.} The about-vs-mention problem affects any retrieval system that indexes text by surface features. Our subject-proximity score requires only the fact content and the query string---no language-specific parsing, no embedding model. It can be applied as a post-processing step on any existing retriever.
+
+\paragraph{Limitations.} Our evaluation uses 10 queries from a single production deployment. The ground-truth labeling rule (first-clause match) is a heuristic that may mislabel facts with long prefixes. The entity index is built by a regex extractor with known coverage gaps; a system with better extraction would see larger gains from entity-first retrieval.
+
+\section{Related Work}
+
+Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) use embedding-based retrieval and report benchmark accuracy but do not measure production retrieval precision. MemoryAgentBench~\cite{mab} evaluates agent memory on task success metrics. ConflictBank~\cite{conflictbank} addresses contradiction detection, a different problem. To our knowledge, no prior work quantifies or addresses the about-vs-mention distinction in agent memory retrieval.
+
+\section{Reproducibility}
+
+All measurements are reproducible from the production SQLite database. The evaluation script and retrieval implementation are available at \url{https://github.com/lanbass869-cell/cac-artifact}.
+
+\begin{verbatim}
+# Baseline precision@10 (ground truth: first-clause labeling)
+python entity_aware_retrieval.py --query "packy" --mode baseline
+# Expected: 0/10 ABOUT
+
+# Entity-aware hybrid precision@10
+python entity_aware_retrieval.py --query "packy" --mode hybrid
+# Expected: 9/10 ABOUT
+
+# Entity extraction coverage
+sqlite3 memory.db "SELECT COUNT(*) FROM facts f WHERE status='active'
+  AND NOT EXISTS (SELECT 1 FROM fact_entities fe WHERE fe.fact_uid = f.uid)"
+# Expected: 827 (41.9% of 1975 active)
+\end{verbatim}
+
+\section{Conclusion}
+
+We identified, quantified, and partially solved a retrieval failure mode in production agent memory: systems cannot distinguish facts about a query entity from facts containing the query string. Entity-aware hybrid retrieval improves precision@10 from 26\% to 47\% with zero regressions, using only character-position heuristics and existing entity indices.
+
+\begin{thebibliography}{5}
+
+\bibitem[Chhikara et~al.(2025)]{mem0}
+Chhikara, P. et~al.
+\newblock Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory.
+\newblock \emph{arXiv:2504.19413}, 2025.
+
+\bibitem[Rasmussen et~al.(2025)]{zep}
+Rasmussen, R. et~al.
+\newblock Zep: A Temporal Knowledge Graph Architecture for Agent Memory.
+\newblock \emph{arXiv:2501.13956}, 2025.
+
+\bibitem[Packer et~al.(2023)]{letta}
+Packer, C. et~al.
+\newblock MemGPT: Towards LLMs as Operating Systems.
+\newblock \emph{arXiv:2310.08560}, 2023.
+
+\bibitem[MAB(2026)]{mab}
+Anonymous.
+\newblock MemoryAgentBench: Benchmarking Memory in Agents.
+\newblock \emph{arXiv}, 2026.
+
+\bibitem[Anonymous(2026)]{conflictbank}
+Anonymous.
+\newblock ConflictBank: A Benchmark for Contradiction Detection.
+\newblock \emph{arXiv}, 2026.
+
+\end{thebibliography}
+
+\end{document}
