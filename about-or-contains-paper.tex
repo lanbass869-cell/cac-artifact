@@ -17,7 +17,7 @@
 \maketitle
 
 \begin{abstract}
-Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 0 are about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with ground-truth labels, this hybrid improves precision@10 from 26\% to 47\% (+21pp) with zero regressions.
+Agent memory systems retrieve stored facts using embedding similarity or keyword matching. We identify a failure mode shared by both approaches: they cannot distinguish facts that \emph{are about} a query entity from facts that merely \emph{contain} the query string. In a 30-day production deployment with 1,975 active memories from 15 AI clients, the baseline hybrid retriever returns 10 results for the query ``packy'' of which 0 are about packy---the top result is a GUI automation tool whose file path contains ``packy''. We decompose this failure into two root causes: (1)~retrieval ranking uses popularity (use\_count) rather than relevance, surfacing passing mentions at the top; (2)~entity extraction based on regex patterns covers only 58.1\% of facts, missing English multi-word terms entirely (``Memory Court'' coverage: 4.7\%; ``temporal accuracy'': 0\%). We propose entity-aware hybrid retrieval: when the entity index contains $\geq 3$ facts with the query entity in subject position, return those first; otherwise fall back to baseline search. On a 10-query benchmark with ground-truth labels, this hybrid improves precision@10 from 26\% to 53\% (+27pp) with zero regressions.
 \end{abstract}
 
 \section{Introduction}
@@ -168,26 +168,26 @@ This guarantees no regression: when entity extraction works, we get high precisi
 \label{tab:results}
 \begin{tabular}{lccc}
 \toprule
-Query & Baseline & Entity+SP & Hybrid \\
+Query & Baseline & Hybrid & Hybrid+Enh \\
 \midrule
-packy & 0 & 9 & \textbf{9} \\
-memory\_hub & 3 & 10 & \textbf{10} \\
-grok-4.6 & 2 & 6 & \textbf{6} \\
+packy & 0 & \textbf{9} & \textbf{9} \\
+memory\_hub & 3 & \textbf{10} & \textbf{10} \\
+grok-4.6 & 2 & \textbf{6} & \textbf{6} \\
 hubguard & 0 & 1 & \textbf{1} \\
 fuseeval & 6 & 0 & 6 \\
-Memory Court & 5 & 0 & 5 \\
+Memory Court & 5 & 5 & \textbf{9} \\
 CAC & 8 & 0 & 8 \\
-supersession & 0 & 0 & 0 \\
+supersession & 0 & 0 & \textbf{2} \\
 temporal accuracy & 1 & 0 & 1 \\
 MEMORY.md & 1 & 0 & 1 \\
 \midrule
-\textbf{Overall} & \textbf{26} & \textbf{26} & \textbf{47} \\
+\textbf{Overall} & \textbf{26} & \textbf{47} & \textbf{53} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{finding}[Entity-Aware Hybrid Retrieval]
-The hybrid method improves precision@10 from 26\% to 47\% (+21pp) with zero regressions. Pure entity-first retrieval matches the baseline overall (26\%) because it wins on 4 queries but loses on 6 where extraction fails. The gating mechanism is essential: it captures the wins without the losses.
+The hybrid method improves precision@10 from 26\% to 53\% (+27pp) with zero regressions. Pure entity-first retrieval matches the baseline overall (26\%) because it wins on 4 queries but loses on 6 where extraction fails. The gating mechanism is essential: it captures the wins without the losses.
 \end{finding}
 
 \subsection{Analysis}
@@ -195,6 +195,10 @@ The hybrid method improves precision@10 from 26\% to 47\% (+21pp) with zero regr
 The improvement concentrates on queries where the entity index has correct subject-position facts: packy (0$\to$9), memory\_hub (3$\to$10), grok-4.6 (2$\to$6). On queries where extraction fails (fuseeval, Memory Court, CAC, temporal accuracy), the hybrid correctly falls back and matches the baseline.
 
 The remaining 53\% errors are of two types: (1)~queries with no correct entity extraction (supersession, temporal accuracy, MEMORY.md); (2)~facts that mention the entity in subject position but are not the most current version.
+
+\subsection{English Entity Extraction}
+
+The Chinese-only regex extractor misses English multi-word terms entirely. We add four deterministic English patterns: (1)~multi-word Title Case; (2)~acronyms; (3)~file names; (4)~lowercase technical terms followed by Chinese. Applied to the 827 facts with no entity link, these patterns add 4,136 new entity links. The enhanced index improves the hybrid from 47\% to 53\% precision@10: Memory Court (5$\to$9) and supersession (0$\to$2) are recovered because their English terms now match the entity index.
 
 \section{Discussion}
 
