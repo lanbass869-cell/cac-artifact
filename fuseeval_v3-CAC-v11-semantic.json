@@ -1,0 +1,514 @@
+{
+ "round_score": 4.67,
+ "std": 0.471,
+ "spread": 1.0,
+ "debate_needed": false,
+ "n_reviews": 3,
+ "full_tier": {
+  "n": 1,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 0,
+  "mean": null
+ },
+ "round": "v3-CAC-v11-semantic",
+ "prompt_version": "v3-referee",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\cross-agent-contradiction-paper.tex",
+ "timestamp": "2026-10-17T22:29:26.819350",
+ "usage_total": {
+  "in": 74771,
+  "out": 13128,
+  "secs": 242.3
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "central_claim": "Cross-agent memory contradictions in a shared single-file SQLite store are rare (0.044% pair-level) but concentrated and causally harmful (up to 73pp downstream loss), and deterministic supersession plus a post-retrieval polarity filter measurably resolves them.",
+     "method_summary": "Deterministic entity-polarity clash detection over MemTether's fact_entities SQLite index, rule-based four-type classification, counterfactual replay of 348 supersession events, and small-n LLM downstream A/B experiments.",
+     "key_evidence": [
+      "11/24,907 cross-source pairs = 0.044% contradiction rate (nf≤30 filtered)",
+      "Counterfactual: 11→23 contradictions without supersession (52% prevented; 61% synthetic)",
+      "73pp downstream loss cross-agent (82%→9%, n=11) vs 0.7pp self-correction (n=300)",
+      "Retrieval filter 43%→96% (+53.6pp, n=28); unified C2 81.8% (+36.4pp)",
+      "Supersession prediction DistilBERT macro-F1 0.946; ConflictBank temporal F1 0.889-0.897"
+     ],
+     "kept_assumptions": "Single-machine single-operator SQLite deployment is a valid unit of analysis; rule-based entity extraction and polarity assignment are reliable enough for pair enumeration; valid_from timestamps are trustworthy for ordering; LLM-judge grading at temperature 0 is meaningful; synthetic DB faithfully proxies the private production DB."
+    },
+    "scores": {
+     "soundness": 5.0,
+     "novelty": 6.0,
+     "evidence": 5.0,
+     "writing": 6.0,
+     "honesty": 7.0,
+     "overall": 5.0
+    },
+    "score_anchors": {
+     "soundness": "5 = plausible pipeline with unstated concurrency/durability model and a reproduction query that cannot reproduce its own headline number; 9 = specified journal/transaction semantics, verified integrity checks, executable end-to-end reproduction of every table.",
+     "novelty": "5 = sensible combination of known mechanisms (supersession, polarity clash, post-retrieval filter) with a new task formulation; 9 = clearly unprecedented method or dataset with systematic prior-work search.",
+     "evidence": "5 = real production trace plus synthetic reproducible artifact but tiny n, private primary DB, and one query that mismatches the reported count; 9 = multiple deployments, released primary data, statistical power, baseline systems on identical data.",
+     "overall": "5 = workshop-level measurement study with honest limitations but architectural under-specification; 9 = top-venue systems paper with verified storage semantics and scalable design analysis."
+    },
+    "findings": [
+     {
+      "id": "E1-01",
+      "severity": "major",
+      "issue": "Concurrency model for 13 agent sources sharing one SQLite file still never specified",
+      "relevant_text": "1{,}768 active facts from 13 distinct agent sources... Facts have been accumulating for 30 days.",
+      "concern": "Prior round's finding stands: journal mode, busy_timeout, and SQLITE_BUSY handling are unstated. Pair-scan completeness (24,907) and supersession-chain completeness (348 events) both depend on no lost or torn writes across 13 concurrent writers; the paper asserts counts without any instrumentation error bound.",
+      "strongest_rebuttal": "Single-machine local-first deployment with low write volume (1,768 facts/30 days) makes lock contention negligible; supersession links would surface inconsistencies.",
+      "why_rebuttal_insufficient": "Average rate does not bound burst concurrency, and no mechanism in the paper detects a write that never landed. The paper now gives verification SQL but no durability/isolation statement, so the counts remain assertions.",
+      "suggestions": "State journal mode (WAL?), busy_timeout, connection model; report any lock errors logged during the 30 days; add a write-ack vs row-count reconciliation.",
+      "status": "active"
+     },
+     {
+      "id": "E1-02",
+      "severity": "minor",
+      "issue": "Prior finding (3,980-char injection limit) no longer applicable — that framing was removed from this manuscript",
+      "relevant_text": "(no corresponding text in current version)",
+      "concern": "The 'architectural bottleneck' section and the 3,980-char constant do not appear in this revision; the finding is moot.",
+      "strongest_rebuttal": "Section removed.",
+      "why_rebuttal_insufficient": "N/A — resolved by removal.",
+      "suggestions": "None.",
+      "status": "fixed"
+     },
+     {
+      "id": "E1-03",
+      "severity": "minor",
+      "issue": "Prior numeric error (0.16 per memory per day) no longer present",
+      "relevant_text": "(no corresponding text in current version)",
+      "concern": "The erroneous per-day rate and Q-value inactivity section are absent from this revision.",
+      "strongest_rebuttal": "Removed.",
+      "why_rebuttal_insufficient": "N/A.",
+      "suggestions": "None.",
+      "status": "fixed"
+     },
+     {
+      "id": "E1-04",
+      "severity": "minor",
+      "issue": "Prior 30-vs-31-day inconsistency resolved; window now uniformly 30 days",
+      "relevant_text": "We analyze MemTether's production database as of 2026-10-11 ... Facts have been accumulating for 30 days.",
+      "concern": "Abstract, Measurement, and Supersession-Prediction sections all say 30 days consistently; the 12–15% vs 17.9% gate-table conflict is gone with the gate section.",
+      "strongest_rebuttal": "Fixed.",
+      "why_rebuttal_insufficient": "N/A.",
+      "suggestions": "None.",
+      "status": "fixed"
+     },
+     {
+      "id": "E1-05",
+      "severity": "major",
+      "issue": "Single-file SQLite crash/power-loss failure modes still unaddressed; production DB remains private so verification queries are decorative",
+      "relevant_text": "Production numbers are not directly reproducible (private data); synthetic results are reproducible via \\texttt{python counterfactual.py}.",
+      "concern": "The counterfactual and overwrite tables' production rows (23 contradictions, 1,420 overwrite facts) rest on one unreleased file. Multi-table writes (facts, fact_entities, supersessions, audit anchors) have unstated transaction scope; a torn write would corrupt exactly the chains being counted. The synthetic DB is a good partial fix but cannot validate production numbers, and no PRAGMA integrity_check result is reported.",
+      "strongest_rebuttal": "SQLite is ACID; MemTether wraps writes in transactions; the synthetic artifact plus Makefile demonstrates the pipeline end-to-end, and hashes are published for released files.",
+      "why_rebuttal_insufficient": "ACID holds only with stated synchronous/journal settings and correct transaction boundaries — neither asserted. Hashes cover only released files; the load-bearing production counts (11 flips, 348 events) have no verifiable anchor.",
+      "suggestions": "Add a durability paragraph (journal mode, synchronous, transaction scope per correct()/retire(), integrity_check output at snapshot time); release an anonymized production extract or signed count attestations.",
+      "status": "active"
+     },
+     {
+      "id": "E1-06",
+      "severity": "minor",
+      "issue": "Prior duplication finding resolved — no verbatim repeated sections in this revision",
+      "relevant_text": "(no duplicated paragraphs found in backward pass)",
+      "concern": "Backward scan found no duplicated paragraphs; assembly is clean.",
+      "strongest_rebuttal": "Fixed.",
+      "why_rebuttal_insufficient": "N/A.",
+      "suggestions": "None.",
+      "status": "fixed"
+     },
+     {
+      "id": "E1-07",
+      "severity": "major",
+      "issue": "The published verification SQL cannot reproduce the headline 24,907 pair count",
+      "relevant_text": "-- Cross-source pairs\nSELECT COUNT(*) FROM (\n  SELECT fe1.fact_uid AS a, fe2.fact_uid AS b ... GROUP BY fe1.fact_uid, fe2.fact_uid\n);",
+      "concern": "The query enumerates all active cross-source pairs sharing any entity, but the reported 24,907 is post nf≤30 filter (57 hub entities excluded). Running the printed query yields a strictly larger number, so the paper's own verification path contradicts Table 1 — a schema-level reproducibility break for the central measurement.",
+      "strongest_rebuttal": "The query is labeled as producing 'each reported count' loosely, and scan_contradictions.py with NF_MAX implements the filter; the SQL is illustrative.",
+      "why_rebuttal_insufficient": "It is presented under 'Verification Queries ... produce each reported count'. A reader executing it gets a different denominator and cannot reconcile 0.044% without discovering the undisclosed filter clause themselves.",
+      "suggestions": "Add the nf≤30 predicate (e.g., JOIN against a per-entity fact-count subquery) to the printed SQL, or state explicitly that the query yields the unfiltered count and report both numbers.",
+      "status": "active"
+     },
+     {
+      "id": "E1-08",
+      "severity": "minor",
+      "issue": "Scaling limits analyzed only via the nf≤30 cap; quadratic pair growth and hub exclusion are unquantified",
+      "relevant_text": "We exclude entities with $>30$ associated facts from pair enumeration to bound the $O(n_f^2)$ complexity.",
+      "concern": "The paper admits hubs are 'precisely where contradictions concentrate' yet gives no estimate of the excluded pair volume or hub-flip count, so both the scaling ceiling of the method and the size of the lower-bound gap are unknown as the store grows.",
+      "strongest_rebuttal": "The filter is deterministic, disclosed, and configurable via NF_MAX; an unfiltered scan script is released.",
+      "why_rebuttal_insufficient": "Configurability does not substitute for measurement: one unfiltered run reporting excluded-pair count and hub contradictions would bound the error the filter introduces.",
+      "suggestions": "Report pair count and detected flips with NF_MAX disabled (even if FP-heavy), and project pair-enumeration cost at 10x/100x facts.",
+      "status": "active"
+     },
+     {
+      "id": "E1-09",
+      "severity": "minor",
+      "issue": "Counterfactual replay and overwrite simulation assume complete, crash-consistent supersessions records; ordering relies on valid_from with no tie/clock-skew semantics",
+      "relevant_text": "We replay the 348 supersession events from the \\texttt{supersessions} table. For each event, the old fact is restored to \\texttt{active} status.",
+      "concern": "The 52%/61% causal-prevention claim assumes the supersessions table is complete and that valid_from reliably orders facts; timestamp granularity, ties, and cross-agent clock behavior are unspecified, and the filter's 'remove the older fact' rule inherits the same assumption.",
+      "strongest_rebuttal": "Single machine means one clock; supersession events are explicit correct() calls recorded transactionally; synthetic replay validates the method.",
+      "why_rebuttal_insufficient": "One clock helps, but valid_from is presumably agent-supplied metadata, not a database monotonic timestamp; same-day flips (dates shown are day-granularity) make 'older' ambiguous in exactly the volatile domains at issue.",
+      "suggestions": "State valid_from granularity and provenance, define tie-breaking, and report how many of the 11 flips share a valid_from date.",
+      "status": "active"
+     }
+    ],
+    "novelty_check": {
+     "claimed_firsts": [
+      "present the first systematic solution: Memory Supersession Prediction ... combined with a three-stage resolution pipeline",
+      "the first formulation of memory lifecycle prediction as a supervised learning problem",
+      "The first public desensitized multi-agent memory dataset with complete supersession chains",
+      "The 45.5% accuracy under Condition C1 represents a previously unquantified failure mode"
+     ],
+     "named_comparators": [
+      "Memory lifecycle/supersession prediction: no direct named prior located — MemStrata (temporal validity), TOKI (bitemporal conflict resolution) and PACMI (cascading invalidation) model validity/invalidation but not supervised supersession prediction; insufficient information to verify absence",
+      "Desensitized multi-agent memory dataset with supersession chains: no named public comparator; ConflictBank is claim-evidence pairs, not agent-memory lifecycles; insufficient information to verify",
+      "Contradictory-coexistence confusion: related to ConflictBank's conflict effects and 'Revoked but Still Authoritative' (revocation non-enforcement); the C1 quantification framing appears new but adjacent",
+      "Systematic solution claim: StateFuse (deterministic conflict-preserving multi-agent memory) and The Immutable Past (conflict resolution in mutable RAG) are very close prior systematic treatments"
+     ],
+     "verdict": "overstated for 'first systematic solution' (StateFuse/TOKI/PACMI are systematic conflict-handling architectures; the delta is supersession-as-forensics plus prediction); plausibly supported for the supervised supersession-prediction task formulation and the desensitized supersession-chain dataset, but with insufficient information to verify exhaustively; 'previously unquantified failure mode' is supported only weakly given ConflictBank's existence"
+    },
+    "meta_note": "I re-read the full manuscript and SECURITY.md, then ran forward and backward passes focused exclusively on my remit: storage schema, concurrency, scaling, single-file SQLite tradeoffs, and crash/power-loss failure modes. Reconciliation: E1-02/E1-03/E1-04/E1-06 are fixed by removal or unification in this revision; E1-01 (unspecified concurrency/journal model for 13 writers) and E1-05 (durability, torn multi-table writes, private production DB) remain active. New findings: the printed verification SQL omits the nf≤30 filter and therefore cannot reproduce the headline 24,907/0.044% (E1-07, major); scaling is handled only by capping hubs where contradictions concentrate, with the excluded mass unmeasured (E1-08); the causal counterfactual and the retrieval filter both lean on agent-supplied day-granularity valid_from ordering with no tie semantics (E1-09). I checked and passed: internal arithmetic of the counterfactual tables (2,116=1,768+348; 1,420=1,768−348; 122=102+20), checksum publication for released artifacts, honest fail-open disclosure in SECURITY.md, and explicit lower-bound framing of the filtered rate — these are genuine strengths. Honesty is the paper's best dimension; soundness and evidence are capped by the unverifiable production counts, unspecified storage semantics, and n=11 dependence for the headline harm claim. prompt_version=v3-referee"
+   },
+   "usage": {
+    "in": 25235,
+    "out": 4179,
+    "secs": 117.4
+   },
+   "raw_len": 13784,
+   "retried": true,
+   "z": 0.707
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "ok": true,
+   "data": {
+    "scores": {
+     "soundness": 5.0,
+     "novelty": 6.0,
+     "evidence": 5.0,
+     "writing": 4.0,
+     "honesty": 7.0,
+     "overall": 5.0
+    },
+    "findings": [
+     {
+      "id": "E2-12",
+      "severity": "critical",
+      "issue": "Reproducibility pivots to a different artifact repo than paper claims",
+      "relevant_text": "Code and evaluation artifact: https://github.com/lanbass869-cell/cac-artifact ... https://github.com/MemTether/MemTether",
+      "concern": "Paper cites lanbass869-cell/cac-artifact; E2-01 found pip install memtether unverifiable. Now there are two repos and `make scan && make classify` references neither PyPI install path nor v0.1.0a7. New user has no clear entry.",
+      "suggestions": "Pin single repo+commit SHA; document `pip install` exact line vs git clone precedence; add `make smoke` that exits non-zero with actionable message on missing deps."
+     },
+     {
+      "id": "E2-13",
+      "severity": "critical",
+      "issue": "scan_contradictions.py uses environment variable not surfaced to user",
+      "relevant_text": "an unfiltered scan is provided in scan_contradictions.py via the NF_MAX environment variable",
+      "concern": "NF_MAX is undocumented in README/--help; first-run user never discovers it. Silent behavior change between default (nf≤30) and unfiltered run breaks reproducibility of headline 0.044%.",
+      "suggestions": "Document NF_MAX in --help, README, and reproducibility commands; print its effective value on every run; default to same value paper reports."
+     },
+     {
+      "id": "E2-14",
+      "severity": "critical",
+      "issue": "Python 3.13 + free-tier GLM API combo will fail most first-run installs",
+      "relevant_text": "Environment: Python 3.13, SQLite 3.x, GLM-5.3-flash via local API (temperature=0), Intel CPU, 32GB RAM",
+      "concern": "GLM-5.3-flash via free-tier API is not 'local'; reviewers outside the author's network cannot reach it. Python 3.13 is recent and may break sentence-transformers/torch wheels. No fallback judge documented.",
+      "suggestions": "Provide offline judge (deterministic rubric) plus optional LLM judge; pin dependencies in requirements.txt with hashes; document fallback when API unreachable."
+     },
+     {
+      "id": "E2-15",
+      "severity": "major",
+      "issue": "Schema-joining SQL assumes fact_entities/facts tables; no DDL provided",
+      "relevant_text": "SELECT COUNT(*) FROM ( SELECT fe1.fact_uid AS a, fe2.fact_uid AS b FROM fact_entities fe1 ...)",
+      "concern": "Verification queries reference fact_entities, facts.status, facts.source, facts.valid_from without publishing schema. New user running these on fresh install gets 'no such table'. Reuses E2-02 schema gap.",
+      "suggestions": "Add docs/schema.sql to repo; ship fixtures/memory_fixtures.db; print schema version on startup so mismatches fail loudly."
+     },
+     {
+      "id": "E2-16",
+      "severity": "major",
+      "issue": "API ergonomics: correct()/retire() never defined in paper despite being central to resolution",
+      "relevant_text": "correct() requires an explicit user or agent action targeting the old UID; in these cases, a newer fact was written without explicitly superseding the older one",
+      "concern": "E2-03 flagged remember() undocumentation; correct()/retire() are equally load-bearing for the supersession claims yet have no signature, no rejection type, no example. SECURITY.md hints at retire semantics (status change, not delete) but paper does not.",
+      "suggestions": "Add Write/Retire Governance API subsection with correct()/retire() signatures, rejection types, and worked accepted/rejected examples mirroring E2-06."
+     },
+     {
+      "id": "E2-17",
+      "severity": "major",
+      "issue": "Detection pipeline stopword list and polarity word list are hidden in source",
+      "relevant_text": "adapted from MemTether's governance.py _polarity_by_entity() function ... stopword list, entity filter threshold, and classification rules are available in the reproducibility package",
+      "concern": "Reproducibility requires knowing exact polarity words (available/works/403/banned/etc.) and stopwords. New user cannot reproduce 11/198 classification without these lists, which are buried in governance.py.",
+      "suggestions": "Export polarity_words.txt and stopwords.txt at repo root with line counts; cite them in scan_contradictions.py docstring; add a unit test asserting list size matches paper."
+     },
+     {
+      "id": "E2-18",
+      "severity": "major",
+      "issue": "Examples incomplete: packy case study disconnects from systematic scan",
+      "relevant_text": "none of the 11 rule-classified contradictions from our systematic scan involve packy, making this a complementary case study rather than a direct validation",
+      "concern": "Headline 73pp downstream loss rests on packy, which is not in the 11. New user cannot reproduce 73pp from the 11 entities. The case study is hand-crafted contexts, not live retrieval.",
+      "suggestions": "Re-run the downstream experiment on the 11 rule-classified contradictions with the same 4-fact context construction; or clearly mark the 73pp as a single-entity illustration distinct from systematic findings."
+     },
+     {
+      "id": "E2-19",
+      "severity": "major",
+      "issue": "Third-party benchmark numbers cannot be reproduced from artifact alone",
+      "relevant_text": "On LoCoMo (1,986 questions via the MemEval harness), MemTether achieves token-F1 = 0.523, exceeding mem0's 0.344 ... On LongMemEval our EAF pipeline achieves 75.7%",
+      "concern": "Running MemEval+LoCoMo requires downloading 1,986 questions and a separate judge LLM. Paper provides no command for either. Same-hardware/same-judge claim is unverifiable without locked env spec.",
+      "suggestions": "Add `make thirdparty` that downloads LoCoMo/MemEval at pinned commit, prints env hashes, runs MemTether and a mem0 baseline, writes results.csv; specify judge model+version+temperature."
+     },
+     {
+      "id": "E2-20",
+      "severity": "major",
+      "issue": "Error messages: contradiction scan failures will be cryptic on malformed input",
+      "relevant_text": "entity-level polarity detection (adapted from MemTether's governance module): for each fact, extract (entity, polarity) pairs from clauses containing positive or negative status words",
+      "concern": "If predicates.py fails to extract any entity, the user gets 0 candidates with no warning. The 21,168 fact-entity links silently drop if extraction breaks. No `--verbose` mode described.",
+      "suggestions": "Add --verbose flag emitting extraction counts per source; raise on empty extraction with actionable message ('predicates.py found 0 entities in N facts — check language/predicates.txt'); print 198-candidate histogram to stderr."
+     },
+     {
+      "id": "E2-21",
+      "severity": "minor",
+      "issue": "SHA-256 hashes truncated to 16 hex chars risk collision for verification",
+      "relevant_text": "SHA-256 (first 16 hex chars) ... a05201b63020a4e1",
+      "concern": "16-hex truncation is ~2^64 space; not collision-resistant for archival verification. Reviewers using sha256sum get full hash mismatch.",
+      "suggestions": "Publish full 64-hex SHA-256; add a verify_hashes.sh that recomputes and diffs; document in README that the table shows the prefix for brevity."
+     },
+     {
+      "id": "E2-22",
+      "severity": "minor",
+      "issue": "Companion-paper cross-reference unresolved",
+      "relevant_text": "(cf. Theorem~1 of the companion paper on wrapper impossibility)",
+      "concern": "Companion paper not in bibliography; reviewer cannot locate it. Same issue as E2-08 (Related Work duplication introducing unresolved cross-refs).",
+      "suggestions": "Add companion paper to bibliography or remove the Theorem~1 cross-reference; consolidate with E2-08 fix."
+     },
+     {
+      "id": "E2-23",
+      "severity": "minor",
+      "issue": "Two-repo split (lanbass869-cell vs MemTether org) confuses provenance and trust",
+      "relevant_text": "https://github.com/lanbass869-cell/cac-artifact (public, with Makefile) ... https://github.com/MemTether/MemTether",
+      "concern": "Personal account vs org account split raises supply-chain concern for a paper about memory poisoning (SECURITY.md). No signed tags, no commit signing claim.",
+      "suggestions": "Move artifact to MemTether org or document the personal-account choice; sign tags; add a CITATION.cff mapping paper to commit."
+     }
+    ],
+    "meta_note": "This paper presents a measurement of cross-agent memory contradictions in a single production MemTether deployment, supported by a 53.6pp retrieval-filter A/B, 73pp downstream asymmetry between cross-agent vs self-correction contexts, and a supersession-prediction DistilBERT. Installability remains unverifiable (PyPI path, dual repos, free-tier API), and key APIs (remember/correct/retire, NF_MAX env var, polarity lists) are undocumented in the paper. Carried-over criticals E2-01–E2-04 plus new criticals E2-12–E2-14 keep the artifact below the 7+ threshold. prompt_version=usability-reviewer-v3",
+    "scores2": {
+     "soundness": 5,
+     "novelty": 6,
+     "evidence": 5,
+     "writing": 4,
+     "honesty": 7,
+     "overall": 5
+    }
+   },
+   "usage": {
+    "in": 23517,
+    "out": 2098,
+    "secs": 31.6
+   },
+   "raw_len": 8623,
+   "retried": true,
+   "z": 0.707
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "ValueError: no JSON object in response | retry: ValueError: no JSON object in response",
+   "raw": ""
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "central_claim": "Cross-agent contradictions in shared multi-agent memory are a real, measurable, and resolvable problem: they cause up to 73pp downstream accuracy loss in a production system, and MemTether's supersession plus deterministic contradiction-aware filtering resolves them without sacrificing retrieval quality (beating mem0 on LongMemEval/LoCoMo).",
+     "method_summary": "Scan a 30-day single-operator production SQLite memory DB for cross-source polarity clashes with deterministic entity-level rules, classify candidates into a 4-type taxonomy, resolve genuine flips via supersession and a post-retrieval filter, and validate detection on ConflictBank plus downstream impact with small-n LLM-judge experiments.",
+     "key_evidence": [
+      "0.044% cross-source contradiction rate (11/24,907 pairs), 77.8% of candidates are entity-collision false positives",
+      "73pp downstream loss on cross-agent contradictions (82%→9%, n=11) vs 0.7pp for self-corrections (n=300)",
+      "+53.6pp retrieval A/B filter result (43%→96%, n=28) and +36.4pp unified recovery (45.5%→81.8%, n=11)",
+      "Third-party benchmarks: LongMemEval EAF 75.7% vs mem0 60.2% (+15.5pp) but strict 62.6% vs 60.2% (+2.4pp); LoCoMo token-F1 0.523 vs 0.344",
+      "ConflictBank temporal detection F1=0.897 (precision 1.000) vs LLM F1=0.113 with 11,714× speedup; but F1=0.000 on semantic/misinformation conflicts"
+     ],
+     "kept_assumptions": "I accept that the production database is real and as described, that the 11 rule-classified flips are genuine (manual single-author verification), that supersession replay/counterfactuals are faithful, and that the third-party benchmark runs were executed as stated (same hardware/judge for LongMemEval)."
+    },
+    "scores": {
+     "soundness": 4.0,
+     "novelty": 4.0,
+     "evidence": 3.0,
+     "writing": 5.0,
+     "honesty": 6.0,
+     "overall": 4.0
+    },
+    "score_anchors": {
+     "soundness": "5 = internally consistent measurements with disclosed limitations but no same-condition competitor baseline; 9 = same-data comparisons against mem0/Zep/Letta plus multi-deployment contradiction rates",
+     "novelty": "5 = a new benchmark and task formulation on top of known supersession/conflict ideas (Zep, TOKI, MemStrata); 9 = the first measured cross-agent contradiction phenomenon with independent replication",
+     "evidence": "5 = n=11/n=28 case studies plus third-party benchmarks under a self-defined metric; 9 = statistically powered downstream studies with CIs, multiple deployments, and strict-metric parity with competitors",
+     "overall": "5 = honest measurement paper for a workshop; needs competitor parity runs and honest EAF framing before it can claim product-level wins over mem0/Zep/Letta (9 = top-venue system paper)"
+    },
+    "findings": [
+     {
+      "id": "E4-01",
+      "severity": "major",
+      "issue": "OLD (prior round): competitor claim 'remember everything, no admission control' asserted without measurement",
+      "relevant_text": "mem0, Zep, and Letta all encourage ``remember everything'' without admission control. (prior version)",
+      "concern": "Prior-round issue: unsupported behavioral claim about competitors.",
+      "strongest_rebuttal": "New version drops the write-governance framing entirely and pivots to contradictions.",
+      "why_rebuttal_insufficient": "The old claim is gone, but the same class of problem reappears in the new condition-mapping table (see E4-08).",
+      "suggestions": "n/a",
+      "status": "fixed (claim removed in revision; successor issue tracked as E4-08)"
+     },
+     {
+      "id": "E4-02",
+      "severity": "major",
+      "issue": "OLD: user identity undefined — one operator's agent fleet",
+      "relevant_text": "Zero external users: The production deployment has no external users; all agent sources are operated by the author.",
+      "concern": "Still the core product question: all 13 'agents' are one person's tooling, so 'cross-agent disagreement' may reflect one operator's inconsistent prompts, not a general multi-tenant phenomenon.",
+      "strongest_rebuttal": "The limitation is now explicitly disclosed in the Limitations section, and the benchmark/dataset are released.",
+      "why_rebuttal_insufficient": "Disclosure ≠ resolution. The switching pitch ('your multi-agent fleet will contradict itself') is untested on any deployment with genuinely independent agents.",
+      "suggestions": "Reframe target user as 'solo local-first operator with heterogeneous agents'; recruit one external deployment to test whether rates and the 73pp asymmetry replicate.",
+      "status": "deferred (disclosed but unresolved; superseded in part by E4-11)"
+     },
+     {
+      "id": "E4-03",
+      "severity": "minor",
+      "issue": "OLD: 3,980-char injection bottleneck as 'architectural'",
+      "relevant_text": "Injection limit per turn & 3,980 characters (prior version)",
+      "concern": "Configurable-constant framing issue from prior round.",
+      "strongest_rebuttal": "The entire injection-coverage thread is absent from this revision.",
+      "why_rebuttal_insufficient": "Resolved by removal.",
+      "suggestions": "n/a",
+      "status": "fixed (claim no longer present)"
+     },
+     {
+      "id": "E4-04",
+      "severity": "major",
+      "issue": "OLD: no switching reason — all proposed mechanisms net-negative",
+      "relevant_text": "A naive block-all-experience gate ... net $-268$ (prior version)",
+      "concern": "The prior paper showed its own framework made things worse.",
+      "strongest_rebuttal": "The revision now shows a working mechanism: the contradiction-aware filter (+53.6pp) and supersession (0.044%→0%), plus benchmark wins.",
+      "why_rebuttal_insufficient": "A switching reason now exists in principle, but it is built on an n=11/n=28 phenomenon at 0.044% frequency, a self-defined metric (E4-07), and unmeasured competitor baselines (E4-08).",
+      "suggestions": "See E4-07/E4-08/E4-09 for what must be fixed before the switching case is credible.",
+      "status": "deferred (mechanism now demonstrated, but competitive case still not honest — see new findings)"
+     },
+     {
+      "id": "E4-05",
+      "severity": "minor",
+      "issue": "OLD: buffer-pool analogy contradicted admission-control framing",
+      "relevant_text": "buffer pools implicitly admit pages ... Replacement policy: LRU/LFU/ARC (prior version)",
+      "concern": "Prior-round internal analogy conflict.",
+      "strongest_rebuttal": "Analogy removed from revision.",
+      "why_rebuttal_insufficient": "Resolved by removal.",
+      "suggestions": "n/a",
+      "status": "fixed (removed)"
+     },
+     {
+      "id": "E4-06",
+      "severity": "major",
+      "issue": "OLD: conflict-handling feature evaluated on zero real conflicts",
+      "relevant_text": "our production database contains zero uncorrected contradictions after 31 days (prior version)",
+      "concern": "Prior B1 gate had no real-world firing events.",
+      "strongest_rebuttal": "Revision finds 11 genuine flips and adds ConflictBank evaluation (F1=0.897/0.889 temporal), addressing 'evaluated only on synthetic data'.",
+      "why_rebuttal_insufficient": "11 events in 30 days still means the feature fires ~0.4 times/day in the only real deployment presented; the product-value question remains (E4-09).",
+      "suggestions": "n/a",
+      "status": "fixed in part (real events + third-party benchmark added); product-magnitude concern carried to E4-09"
+     },
+     {
+      "id": "E4-07",
+      "severity": "critical",
+      "issue": "Headline competitive win (+15.5pp over mem0) compares MemTether's self-defined EAF metric against mem0's strict metric; like-for-like gain is only +2.4pp",
+      "relevant_text": "MemTether with EAF (Evidence-Augmented Formulation) achieves 75.7% on LongMemEval, exceeding mem0's 60.2% by 15.5pp ... mem0 (v2.0.20) 60.2% Strict ... MemTether 62.6% [strict]",
+      "concern": "The abstract's only cross-system claim ('+15.5pp, same hardware, same judge') is metric-asymmetric: MemTether strict is 62.6% vs mem0 60.2%. EAF is the authors' own formulation; the paper's own Section 15 shows strict matching can undercount by 25.3pp, meaning mem0 under strict may also have ~10-20pp of hidden capability. This is the single load-bearing competitive number and it is not a like-for-like comparison.",
+      "strongest_rebuttal": "The table shows both strict and EAF scores transparently, and mem0 has no published EAF number, so strict-vs-EAF is the only available comparison of the full pipeline.",
+      "why_rebuttal_insufficient": "Transparency in a table does not justify an abstract-level '+15.5pp vs mem0' claim; the honest headline is '+2.4pp strict, +15.5pp under our own metric'. Worse, the metric-bias section directly undermines using strict for mem0 while using EAF for MemTether.",
+      "suggestions": "Re-run mem0 with the same EAF pipeline (only the memory layer differs) and report strict-vs-strict and EAF-vs-EAF; restate the abstract claim accordingly.",
+      "status": "active"
+     },
+     {
+      "id": "E4-08",
+      "severity": "major",
+      "issue": "Condition-mapping table assigns 'predicted accuracy' to mem0/Zep/Letta without running any of them; the mem0 and Zep characterizations are contestable",
+      "relevant_text": "mem0's update() overwrites the old embedding, so a post-update query receives only the new fact (Condition B). ... Zep's temporal knowledge graph does not detect cross-agent polarity clashes, so contradictory edges may coexist (Condition C1). Letta and LangMem have no supersession or filtering mechanism",
+      "concern": "This table is the paper's entire competitive positioning against named products, yet it is a thought experiment. Zep's temporal KG with valid_at/invalid_at edges is explicitly designed to supersede stale facts (closer to Condition B than C1), and mem0's update() path does remove stale facts — the paper's own overwrite simulation shows overwrite yields 0 production contradictions. The Limitations section itself admits 'No same-condition baseline comparison ... not against other contradiction-resolution systems (mem0, Zep, etc.) running on the same data.' The product claims contradict the paper's own disclosure.",
+      "strongest_rebuttal": "The mapping is explicitly labeled 'Predicted Accuracy', and Zep has no polarity-clash detection specifically, so C1 mispredictions are possible in Zep deployments.",
+      "why_rebuttal_insufficient": "Predicted-but-unmeasured competitor accuracy is marketing, not evidence; and the mem0 row contradicts the paper's own Table (overwrite → 0 contradictions in the production counterfactual).",
+      "suggestions": "Run mem0 and Zep on the same 11-entity and 28-entity benchmarks (feed them the same fact streams) and replace predicted numbers with measured ones; soften unverifiable rows.",
+      "status": "active"
+     },
+     {
+      "id": "E4-09",
+      "severity": "major",
+      "issue": "The paper's own data shows this is a 0.044% tail problem that mem0-style overwrite would eliminate — the strongest product argument favors the competitor",
+      "relevant_text": "Overwrite eliminates contradictions entirely (0/24,907 pairs) ... Our results suggest that cross-agent contradiction is a tail problem rather than a systemic problem",
+      "concern": "Who switches memory systems over 11 events/30 days, concentrated in API-key/tool-status churn, in a single-operator deployment? The counterfactual shows overwrite (mem0's model) yields ZERO production contradictions; the only retained advantage is provenance/audit trails, which the paper mentions in one clause. The product case reduces to 'supersession preserves history at the cost of a nonzero contradiction rate that overwrite doesn't have' — the opposite of the abstract's framing. Also note the internal contradiction: prod overwrite = 0 contradictions but synthetic overwrite = 13, so 'overwrites entirely' is falsified by the paper's own synthetic data.",
+      "strongest_rebuttal": "Provenance is load-bearing for audit, temporal queries, and poisoning forensics (SECURITY.md), and the 73pp loss is real when contradictions do coexist; the tail framing is explicitly honest.",
+      "why_rebuttal_insufficient": "Honesty about the tail is good, but the abstract leads with 73pp, not 0.044%; the product narrative inverts the evidence. The overwrite-eliminates result needs to be confronted head-on, not footnoted.",
+      "suggestions": "Lead with the true value proposition (audit/forensics + contradiction recovery when it occurs); reconcile the prod-vs-synthetic overwrite discrepancy; quantify the cost of losing provenance (e.g., temporal queries fail) to make the tradeoff concrete.",
+      "status": "active"
+     },
+     {
+      "id": "E4-10",
+      "severity": "major",
+      "issue": "The 11,714× speedup headline rests on an implausibly weak LLM baseline (F1=0.113) that contradicts the paper's own LLM result elsewhere (Kimi F1=0.583)",
+      "relevant_text": "outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\\times$ speedup ... a frontier LLM (Kimi-k2.6) achieves F1=0.583 (P=0.968, R=0.417)",
+      "concern": "Two LLM-detection baselines appear: F1=0.113 in the abstract vs F1=0.583 (P=0.968) in Section on learned classification. If a frontier LLM with a better prompt achieves 0.583, the 0.113 figure looks like a strawman (likely a different, weaker setup never reconciled). The 11,714× speedup is computed against the weak baseline, and the abstract's competitive claim about beating LLM detection is calibrated to the worst LLM number in the paper.",
+      "strongest_rebuttal": "The two numbers come from different tasks/subsets (0.113 on the n=2000 temporal evaluation; 0.583 on a 100-sample subset), and the Kimi result still shows the LLM misses 58% of conflicts.",
+      "why_rebuttal_insufficient": "If the setups differ, the paper must say so and report the LLM baseline per task consistently; an unexplained 5× discrepancy between two 'LLM detection' baselines in one paper undermines the headline speedup claim.",
+      "suggestions": "Report one consistent LLM baseline per benchmark with prompt and subset specified; recompute the speedup against the strongest LLM baseline; explain 0.113 vs 0.583 in the text.",
+      "status": "active"
+     },
+     {
+      "id": "E4-11",
+      "severity": "major",
+      "issue": "Target user remains uncharacterized and the evidence base is non-transferable: one operator, Chinese-dominant data, free-tier judge, non-replicable downstream experiments",
+      "relevant_text": "The LLM judge (GLM-5.3-flash) was accessed through a free-tier API pool, which may introduce unknown non-determinism and makes the downstream experiments non-replicable ... The production database is predominantly Chinese",
+      "concern": "For a product review: the user is implicitly 'a solo developer running multiple local agents with volatile config state' — but the paper never says this, and the polarity detector (status-word lists, identifier-like heuristics) is tuned to one Chinese production corpus and one domain (API keys, tool groups). A mem0/Zep enterprise user — the natural switcher — has English, multi-tenant, multi-user data where the detector's 77.8% false-positive rate and untested English behavior would likely be worse.",
+      "strongest_rebuttal": "The benchmark dataset (2,635 records) and ConflictBank evaluation are released; the limitations section is unusually thorough about every one of these points.",
+      "why_rebuttal_insufficient": "The dataset is still the same single deployment's data; no evidence exists that any second user's workload exhibits the phenomenon at a rate that justifies operational overhead.",
+      "suggestions": "State the target user explicitly in the intro; test the polarity detector on an English conflict corpus (ConflictBank is English and already used for detection F1 — extend it to the entity-polarity pipeline); get one external deployment.",
+      "status": "active"
+     },
+     {
+      "id": "E4-12",
+      "severity": "minor",
+      "issue": "Numeric inconsistencies across sections: abstract F1=0.897 (n=2000) vs Table specialization F1=0.889 (n=500) vs feature-ablation test split n=1,020; TF-IDF F1=0.986 vs 0.811",
+      "relevant_text": "achieves $F_1=0.897$ on ConflictBank (n=2000 ... vs.\\ F1 = 0.889 on temporal conflicts (500-sample subset, seed=42) ... ConflictBank test split ($n{=}1{,}020$) ... our TF-IDF achieves F1=0.986",
+      "concern": "Three different ConflictBank sample sizes (2000, 500, 1020) and three F1 values for essentially the same detector family appear without reconciliation; the 0.986 vs 0.811 gap is explained only implicitly (different subset/metric). Not load-bearing for the central claim, but for a paper whose pitch is measurement rigor, unreconciled headline numbers across sections erode trust — same failure class as the prior round's E1-03/E1-04.",
+      "strongest_rebuttal": "0.897 is the full-set number, 0.889 the per-category subset, 0.986 the binary subtask on 100 samples; all are legitimate and the artifact computes them.",
+      "why_rebuttal_insufficient": "Legitimate or not, the paper must state each denominator next to each number; currently a reader cannot tell which F1 is the product's detection quality.",
+      "suggestions": "One consolidated detection-results table with sample size, subset, and metric for every F1; align abstract to one canonical number.",
+      "status": "active"
+     }
+    ],
+    "novelty_check": {
+     "claimed_firsts": [
+      "\"presents the first systematic solution: Memory Supersession Prediction ... combined with a three-stage resolution pipeline\"",
+      "\"the first formulation of memory lifecycle prediction as a supervised learning problem\"",
+      "\"the first public desensitized benchmark for memory lifecycle prediction\" / \"The first public desensitized multi-agent memory dataset with complete supersession chains\"",
+      "\"the 45.5% accuracy under Condition C1 represents a previously unquantified failure mode\""
+     ],
+     "named_comparators": [
+      "Zep (arXiv:2501.13956): temporal knowledge graph with edge validity intervals — direct prior art for supersession-style staleness resolution in agent memory",
+      "TOKI (cited): bitemporal operator algebra for contradiction resolution — prior formalization of conflict resolution in agent memory",
+      "MemStrata (cited): bi-temporal validity maintenance eliminating stale-fact errors — prior staleness-resolution mechanism with benchmark results",
+      "StateFuse (cited by the paper itself): deterministic conflict-preserving memory for multi-agent systems — prior multi-agent conflict handling",
+      "The Immutable Past / PACMI (cited): conflict resolution and invalidation in mutable memory"
+     ],
+     "verdict": "\"first systematic solution\": overstated — the paper's own Related Work cites TOKI, MemStrata, StateFuse, and Immutable Past as prior conflict-resolution mechanisms in agent memory; what is new is the production measurement + downstream quantification, not the solution category. \"first formulation of memory lifecycle prediction as supervised learning\": plausible but insufficient information to verify no prior work predicts memory supersession (eviction-prediction literature in caches/DBs is analogous). \"first public desensitized multi-agent memory dataset with supersession chains\": insufficient information to verify against all 2025-2026 releases, but no known counterexample. \"previously unquantified failure mode (C1 45.5%)\": overstated as a novelty claim — the C1 experiment is n=11, single-operator, and stale-fact confusion has been quantified in prior staleness literature (MemStrata's stale-fact error rates)."
+    },
+    "meta_note": "As product reviewer I checked: does this solve a real problem better than mem0/zep/letta, for whom, and is the positioning honest? The problem is real but tiny in the only deployment shown (0.044%, 11 events/30 days, single operator's own agents), and the paper's own counterfactual shows mem0-style overwrite eliminates production contradictions entirely — the honest pitch is 'provenance/audit at the cost of a nonzero contradiction rate,' not the abstract's 73pp-loss framing. The switching case rests on (a) a +15.4pp benchmark win that collapses to +2.4pp under the strict metric both systems share (E4-07, critical), (b) a competitor-accuracy table that is pure prediction contradicted by the paper's own limitations disclosure (E4-08), and (c) a speedup against an unreconciled weak LLM baseline (E4-10). Strengths worth crediting: an unusually honest limitations section, released artifact and dataset, real third-party benchmark runs, and a genuinely informative metric-bias analysis — which ironically undermines the paper's own headline comparison. To be credible as a product, the paper needs same-metric, same-data runs of mem0 and Zep and an explicit target-user statement. Checked and passed: reproducibility mechanics (checksums, commands, Makefile) and the taxonomy's internal consistency — these are outside my focus and other reviewers' findings cover them; no additional issues found there. prompt_version=v3-referee"
+   },
+   "usage": {
+    "in": 26019,
+    "out": 6851,
+    "secs": 93.3
+   },
+   "raw_len": 20322,
+   "z": -1.414
+  }
+ ]
+}
