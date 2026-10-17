@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-When multiple AI agents share a memory store, cross-agent contradictions are associated with up to 73pp downstream accuracy loss in our production case study. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.897$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark (100 entities, 710 facts, ground truth by generation seed; details in Section~\ref{sec:methods}), outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\times$ speedup. Applied to production (26 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code and evaluation artifact: \url{https://github.com/lanbass869-cell/cac-artifact} (public, with Makefile)..
+When multiple AI agents share a memory store, cross-agent contradictions are associated with up to 73pp downstream accuracy loss in our production case study. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.897$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark (100 entities, 710 facts, ground truth by generation seed; details in Section~\ref{sec:methods}), outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\times$ speedup. Applied to production (30 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code and evaluation artifact: \url{https://github.com/lanbass869-cell/cac-artifact} (public, with Makefile).
 \end{abstract}
 
 \section{Introduction}
@@ -35,7 +35,7 @@ The Immutable Past~\cite{immutablepast} formalizes conflict resolution in mutabl
 \label{sec:measure}
 
 \subsection{Setup}
-We analyze MemTether's production database as of 2026-10-11: 1{,}768 active facts from 13 distinct agent sources, 7{,}289 indexed entities, and 21{,}168 fact--entity links. Facts have been accumulating for 26 days.
+We analyze MemTether's production database as of 2026-10-11 (snapshot for this analysis): 1\{,\}768 active facts from 13 distinct agent sources, 7{,}289 indexed entities, and 21{,}168 fact--entity links. Facts have been accumulating for 26 days.
 
 \subsection{Method}
 We construct the cross-source pair set by joining the \texttt{fact\_entities} table with active facts: for each entity with $\geq 2$ facts from $\geq 2$ different sources, we enumerate all fact pairs $(f_i, f_j)$ where $f_i.\text{source} \neq f_j.\text{source}$. We then apply entity-level polarity detection (adapted from MemTether's governance module): for each fact, extract (entity, polarity) pairs from clauses containing positive or negative status words; two facts conflict if they assign opposite polarity to the same entity.
@@ -540,7 +540,7 @@ The low contradiction rate is attributable to three mechanisms. First, supersess
 The 0.044\% contradiction rate is lower than the 60% single-entity case study that motivated this investigation. Three factors contribute:
 
 \begin{enumerate}
-\item \textbf{Supersession discipline.} 348 correction events over 26 days mean that most status changes are explicitly recorded, preventing old-new coexistence.
+\item \textbf{Supersession discipline.} 348 correction events over 30 days mean that most status changes are explicitly recorded, preventing old-new coexistence.
 \item \textbf{Entity volatility.} Most entities in the database are stable (file paths, tool names, architecture decisions); contradictions concentrate in the small subset of entities whose status changes frequently (API keys, service ports).
 \item \textbf{Detection false positives.} The 77.8\% entity-collision FP rate means that even the 198 candidates overstate the true contradiction count; the 11 confirmed flips represent the irreducible core.
 \end{enumerate}
