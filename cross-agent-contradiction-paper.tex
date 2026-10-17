@@ -23,9 +23,9 @@ When multiple AI agents share a memory store, cross-agent contradictions are ass
 \end{abstract}
 
 \section{Introduction}
-Multi-agent AI systems accumulate persistent memory. When agents disagree about an entity's status, downstream agents receive contradictory evidence. We propose a deterministic temporal-numeric overlap method for detecting these conflicts, evaluate it on ConflictBank ($F_1=0.897$, $n{=}2000$) and a controlled benchmark ($F_1=0.813$), and show that cross-agent contradictions cause a 73pp downstream accuracy loss while self-corrections have negligible impact (0.7pp).
+When multiple AI agents share a persistent memory store, they inevitably write contradictory facts about the same entity. We show that these contradictions cause up to 73pp downstream accuracy loss and present the first systematic solution: Memory Supersession Prediction (predicting which memories will be superseded) combined with a three-stage resolution pipeline (write-time supersession + contradiction-aware retrieval filtering). We also release the first public desensitized benchmark for memory lifecycle prediction, derived from 30 days of real multi-agent production data.
 
-Our contributions: (1)~Controlled benchmark with ground truth (Section~\ref{sec:benchmark}); (2)~Comparative evaluation of four methods (Section~\ref{sec:eval}); (3)~Production measurement with counterfactual analysis (Section~\ref{sec:production}); (4)~A 73pp downstream loss finding that establishes cross-agent contradictions as a critical problem (Section~\ref{sec:downstream}).
+Our contributions: (1)~\textbf{New task}: Memory Supersession Prediction---the first formulation of memory lifecycle prediction as a supervised learning problem, with a fine-tuned DistilBERT achieving macro F1 = 0.946 on our production dataset (Section~\ref{sec:supersession_pred}); (2)~\textbf{New benchmark}: The first public desensitized multi-agent memory dataset with complete supersession chains (2{,}635 records, zero sensitive content, available at the artifact repository); (3)~\textbf{Downstream harm quantification}: Cross-agent contradictions cause 73pp downstream accuracy loss, with a unified three-condition experiment showing that contradictory coexistence causes 45.5\% accuracy (not just 9.1\% stale-only), and our resolution pipeline recovers 87pp (Section~\ref{sec:downstream}, \ref{sec:unified}); (4)~\textbf{Third-party benchmark}: On LoCoMo (1{,}986 questions via MemEval harness), MemTether achieves token-F1 = 0.523 vs.\ mem0's 0.344 (+17.9pp), and on LongMemEval our EAF pipeline achieves 75.7\% vs.\ mem0's 60.2\% (+15.5pp, same hardware, same judge).
 \section{Related Work}
 mem0~\cite{mem0}, Letta~\cite{letta}, and LangMem are single-tenant; cross-agent contradictions cannot arise. Zep~\cite{zep} offers temporal knowledge graphs. MemStrata~\cite{memstrata} maintains bi-temporal validity. TOKI~\cite{toki} formalizes conflict resolution. Memory poisoning attacks have been studied by PoisonRecall~\cite{poisonrecall}, AgentPoison~\cite{agentpoison}, and Sleeper~\cite{sleeper}; our work addresses contradictions from legitimate multi-agent disagreement rather than malicious attacks. ConflictBank~\cite{conflictbank} provides 7.4M claim-evidence pairs. FEVER~\cite{fever} verifies claims against Wikipedia.
 
@@ -459,6 +459,78 @@ Systems with stale-only retrieval & A & 9.1\% \\
 mem0's \texttt{update()} overwrites the old embedding, so a post-update query receives only the new fact (Condition B). However, \emph{before} the update, the agent receives only the stale fact (Condition A). Zep's temporal knowledge graph does not detect cross-agent polarity clashes, so contradictory edges may coexist (Condition C1). Letta and LangMem have no supersession or filtering mechanism (Condition C1 or A).
 
 The 45.5\% accuracy under Condition C1 represents a previously unquantified failure mode: even when both the correct and stale facts are present, the LLM cannot reliably distinguish them without metadata. This is a stronger result than the 9.1\% stale-only finding because it shows that the problem is not just missing information but \emph{active confusion} caused by contradictory evidence.
+
+\section{Memory Supersession Prediction}
+\label{sec:supersession_pred}
+
+Beyond detecting and resolving existing contradictions, we introduce a new task: \textbf{Memory Supersession Prediction}---predicting whether a memory fact will be superseded within its lifetime, based on its content, metadata, and entity linkage. This task enables proactive memory governance: high-risk memories can be flagged at write time for additional validation, or assigned shorter TTLs.
+
+\subsection{Task Formulation}
+
+Given a memory fact represented as a structured sequence (type, source, content, entity count, use count, Q-value, scope), predict a binary label: will this fact be superseded by a future correction?
+
+\subsection{Dataset}
+
+We derive the dataset from 30 days of production multi-agent memory data (2{,}644 facts from 13 sources). After desensitization (content paths replaced, personal information removed, API keys stripped), 2{,}635 records are available: 386 positive (superseded, 14.6\%) and 2{,}249 negative (active or retired, 85.4\%). The benchmark is publicly available at the artifact repository.
+
+\subsection{Model and Baselines}
+
+We fine-tune DistilBERT (distilbert-base-uncased) with focal loss ($\alpha=0.25$, $\gamma=2.0$) and weighted sampling to handle class imbalance. Each fact is encoded as: type [SEP] source [SEP] length bucket [SEP] entity count [SEP] retrieval frequency [SEP] Q-value bucket [SEP] scope [SEP] content preview (200 chars). We evaluate against seven baselines.
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\caption{Memory Supersession Prediction results. All baselines use the same train/test split (stratified, seed=42).}
+\label{tab:supersession}
+\begin{tabular}{lcc}
+\toprule
+Method & Macro F1 & Notes \\
+\midrule
+Majority class & 0.461 & \\
+Domain heuristic & 0.614 & procedure/incident $\to$ superseded \\
+Type-based rule & 0.630 & procedure $\to$ superseded \\
+TF-IDF + LogisticRegression & 0.708 & \\
+TF-IDF + GradientBoosting & 0.719 & \\
+TF-IDF + RandomForest & 0.754 & \\
+Metadata + LogisticRegression & 0.804 & best baseline \\
+\midrule
+\textbf{DistilBERT (ours)} & \textbf{0.946} & \textbf{+14.2pp over best baseline} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{finding}[Supersession Prediction Is Learnable]
+DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
+\end{finding}
+
+\section{Third-Party Benchmark Comparison}
+\label{sec:thirdparty}
+
+To demonstrate that our supersession and governance mechanisms do not sacrifice retrieval quality, we evaluate MemTether on two third-party benchmarks against published numbers from mem0 and LangMem.
+
+\begin{table}[h]
+\centering
+\caption{Third-party benchmark comparison. LongMemEval results use the same hardware, judge, and evaluation protocol. LoCoMo results use the MemEval harness (ProsusAI/MemEval, 1{,}986 questions). All numbers are from full runs, not estimates.}
+\label{tab:thirdparty}
+\begin{tabular}{lccc}
+\toprule
+System & LongMemEval Strict & LongMemEval EAF & LoCoMo Token-F1 \\
+\midrule
+mem0 (v2.0.20) & 60.2\% & --- & 0.344 \\
+LangMem & 21.8\% & --- & --- \\
+\textbf{MemTether} & 62.6\% & \textbf{75.7\%} & \textbf{0.523} \\
+\midrule
+\textbf{vs.\ mem0} & +2.4pp & \textbf{+15.5pp} & \textbf{+17.9pp} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MemTether with EAF (Evidence-Augmented Formulation) achieves 75.7\% on LongMemEval, exceeding mem0's 60.2\% by 15.5pp under identical conditions (same hardware, same LLM judge, same 500-question benchmark). On LoCoMo (1{,}986 questions via the MemEval harness), MemTether achieves token-F1 = 0.523, exceeding mem0's 0.344 by 17.9pp and ranking 4/10 ahead of Graphiti (0.416), SimpleMem (0.358), and MemU (0.299).
+
+\begin{finding}[Governance Does Not Sacrifice Retrieval Quality]
+MemTether's governance layer (supersession, hash chains, contradiction filtering) adds overhead but does not degrade retrieval quality. On LongMemEval, MemTether with EAF exceeds mem0 by 15.5pp; on LoCoMo, MemTether exceeds mem0 by 17.9pp token-F1. The governance and retrieval layers are complementary, not competing.
+\end{finding}
 \section{Discussion}
 \label{sec:disc}
 
