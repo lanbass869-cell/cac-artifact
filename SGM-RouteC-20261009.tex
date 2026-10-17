@@ -21,7 +21,7 @@
 \maketitle
 
 \begin{abstract}
-We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export (complementary to concurrent memory-poisoning defenses such as PoisonRecall~\citep{poisonrecall}, AgentPoison~\citep{agentpoison}, Sleeper~\citep{sleeper}, and Securing LLM-Agent Memory~\citep{poisoning2}, which we discuss in Section~2), and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. We investigate the \^N\$ decay hypothesis across two benchmarks and find it is benchmark-dependent: LoCoMo shows significant decay (Pearson \ = -0.135\$, \ < 0.001\$, \ = 1{,}982\$) while LongMemEval-S shows no decay (\ = +0.008\$) when using ground-truth \texttt{answer\_session\_ids} rather than question-type proxies. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We additionally contribute a system-level proactive memory recall trigger (0.33\,ms, zero LLM dependency) that automatically injects relevant memory context when user messages reference known entities. We release the system as Apache-2.0 open source with 538 passing tests.
+We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export (complementary to concurrent memory-poisoning defenses such as PoisonRecall~\citep{poisonrecall}, AgentPoison~\citep{agentpoison}, Sleeper~\citep{sleeper}, and Securing LLM-Agent Memory~\citep{poisoning2}, which we discuss in Section~2), and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. We investigate the $r^N$ decay hypothesis across two benchmarks and find it is benchmark-dependent: LoCoMo shows significant decay (Pearson $r = -0.135$, $p < 0.001$, $n = 1{,}982$) while LongMemEval-S shows no decay ($r = +0.008$) when using ground-truth \texttt{answer\_session\_ids} rather than question-type proxies. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We additionally contribute a system-level proactive memory recall trigger (0.33\,ms, zero LLM dependency) that automatically injects relevant memory context when user messages reference known entities. We release the system as Apache-2.0 open source with 538 passing tests.
 \end{abstract}
 
 \section{Introduction}
@@ -41,8 +41,8 @@ We investigate the $r^N$ decay hypothesis: that multi-session retrieval accuracy
 
 Our contributions:
 \begin{itemize}
-\item We investigate the \^N\$ decay hypothesis across two benchmarks (LoCoMo and LongMemEval-S) and find it is benchmark-dependent: significant on LoCoMo (\ = -0.135\$, \ < 0.001\$) but absent on LongMemEval-S (\ = +0.008\$) when using ground-truth session counts.
-\item We design and deploy a production agent memory system with bi-temporal supersession, hash-chained audit, and file-level multi-client sharing in a single architecture (26~days, 31K+ recorded operations, 15~agents, 0~data loss).
+\item We investigate the $r^N$ decay hypothesis across two benchmarks (LoCoMo and LongMemEval-S) and find it is benchmark-dependent: significant on LoCoMo ($r = -0.135$, $p < 0.001$) but absent on LongMemEval-S ($r = +0.008$) when using ground-truth session counts.
+\item We design and deploy a production agent memory system with bi-temporal supersession, hash-chained audit, and file-level multi-client sharing in a single architecture (30~days, 31K+ recorded operations, 15~agents, 0~data loss).
 \item We prove four formal correctness properties of bi-temporal supersession: temporal gap freedom, no overlap, cycle freedom, and concurrency safety
 \item We design a dual-layer audit framework combining memory-layer hash chains with evaluation-layer disclosure checking (5 patterns, validated on 7 evaluation settings) showing that the hash chain detects 5 of 5 anchored anchored-row modification scenarios detected on 2{,}346 audit entries, with explicit discussion of the unanchored-tail limitation.
 \item We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL path, while achieving 84\% recall on Chinese synthetic data (vs 64\% for embedding), does not improve English-language benchmark accuracy.
@@ -199,7 +199,7 @@ CREATE TABLE supersessions (
 The \texttt{source} column records the writer identity for every write. A per-deployment \texttt{agents.json} registry defines valid sources; by default, unregistered sources trigger a warning rather than rejection (fail-open), though strict enforcement can be enabled per deployment. This design trades security for usability in the single-user local-first setting.
 
 \paragraph{Read tracking.}
-Read operations are tracked via the \texttt{use\_count} column on each fact row. Over 26~days of production, the cumulative sum of \texttt{use\_count} across active facts is 28{,}807. Combined with 2{,}346 write operations recorded in \texttt{audit\_log}, this yields the 31K+ total operations.
+Read operations are tracked via the \texttt{use\_count} column on each fact row. Over 30~days of production, the cumulative sum of \texttt{use\_count} across active facts is 28{,}807. Combined with 2{,}346 write operations recorded in \texttt{audit\_log}, this yields the 31K+ total operations.
 
 \subsection{Bi-Temporal Model}
 Each fact carries two independent time axes: \texttt{valid\_from}/\texttt{valid\_to} (when the fact was true in the real world) and \texttt{recorded\_at}/\texttt{invalidated\_at} (when the system learned or disbelieved it). When an agent corrects a fact, the old row is marked \texttt{superseded} with \texttt{valid\_to} set to the new fact's \texttt{valid\_from}, creating an immutable supersession chain. The full edit history of any memory is reconstructable by walking the chain.
@@ -336,7 +336,7 @@ For any supersession chain $C$ and any time $t$, $|\mathit{asOf}_{\mathit{valid}
 \begin{proof}[Proof sketch]
 If $f_i$ and $f_j$ are both returned ($i < j$), then $\mathit{vt}(f_i) = \mathit{vf}(f_{i+1}) \leq \mathit{vf}(f_j) \leq t$, contradicting $\mathit{vt}(f_i) > t$.
 \end{proof}
-\paragraph{Production caveat.} In the production database, 4 out of 347 supersession events (~1.2%) exhibit a brief stale-window overlap where the old fact's valid_to exceeds the new fact's valid_from. These arise from an earlier schema version that did not enforce the half-open interval convention. All 4 cases are legacy rows predating the schema migration; new writes via correct() enforce Theorem~\ref{thm:nooverlap} by construction.
+\paragraph{Production caveat.} In the production database, 4 out of 349 supersession events (~1.1%) exhibit a brief stale-window overlap where the old fact's valid_to exceeds the new fact's valid_from. These arise from an earlier schema version that did not enforce the half-open interval convention. All 4 cases are legacy rows predating the schema migration; new writes via correct() enforce Theorem~\ref{thm:nooverlap} by construction.
 
 \begin{theorem}[Cycle Freedom]
 \label{thm:cyclefree}
@@ -358,7 +358,7 @@ The conditional UPDATE (WHERE status=active) is atomic. If two concurrent calls 
 
 \paragraph{Crash recovery.} The \texttt{correct()} operation involves multiple writes (fact update, supersession edge insert, audit log append, anchor creation). These are executed within a single SQLite transaction, ensuring atomicity under crash. The database uses WAL (Write-Ahead Logging) journal mode with \texttt{PRAGMA synchronous=NORMAL}, providing crash-safe commits. After a power loss, WAL replay automatically restores the database to the last committed transaction. Hash chain anchors are written in the same transaction as the business writes they cover, preventing anchor--data divergence.
 
-\paragraph{Read-path scalability.} The \texttt{use\_count} column is incremented on every retrieval hit, which acquires a write lock under WAL mode. In our production deployment (31K operations over 26 days), the read-write ratio is 12:1, and single-writer contention has not been observed as a bottleneck at this scale. For higher-concurrency deployments, the \texttt{use\_count} increment can be batched asynchronously or moved to a separate counter table.
+\paragraph{Read-path scalability.} The \texttt{use\_count} column is incremented on every retrieval hit, which acquires a write lock under WAL mode. In our production deployment (31K operations over 30 days), the read-write ratio is 12:1, and single-writer contention has not been observed as a bottleneck at this scale. For higher-concurrency deployments, the \texttt{use\_count} increment can be batched asynchronously or moved to a separate counter table.
 
 \begin{corollary}[Temporal Consistency]
 \label{cor:consistency}
@@ -373,7 +373,26 @@ The above theorems rely on SQLite's transactional isolation for Theorem~\ref{the
 \section{Tamper-Detection Evaluation}
 \label{sec:tamper}
 
-We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15~sources, 26~days). After anchoring, we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run \texttt{verify\_chain()}.
+We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15~sources, 30~days). After anchoring, we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run \texttt{verify\_chain()}.
+
+\begin{table}[h]
+\centering
+\caption{Tamper-detection results.}
+\begin{tabular}{lcc}
+\toprule
+Scenario & Detected & Expected \\
+\midrule
+Content change (anchored) & \checkmark & \checkmark \\
+Timestamp change (anchored) & \checkmark & \checkmark \\
+Agent identity change (anchored) & \checkmark & \checkmark \\
+Entry deletion (anchored) & \checkmark & \checkmark \\
+Anchor tampering (anchored) & \checkmark & \checkmark \\
+Append-only entry (unanchored tail) & not anchored & N/A \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All five anchored-row modification scenarios are detected by chain recomputation, as expected for any correctly implemented hash chain. The unanchored tail (entries after the last anchor) is covered by the next anchoring pass; a crash in this window temporarily leaves entries unanchored, which we disclose as a limitation in Section~\ref{sec:repro}.
 
 
 
@@ -390,7 +409,7 @@ Recent work~\citep{admissibility} introduces the concept of \emph{retrieval admi
 
 \begin{table}[h]
 \centering
-\caption{Retrieval admissibility analysis on production data (1{,}699 active facts, 383 superseded facts, 26 days).}
+\caption{Retrieval admissibility analysis on production data (1{,}699 active facts, 383 superseded facts, 30 days). Snapshot as of 2026-10-11; the lifecycle analysis in Section~\ref{sec:lifecycle} uses a later snapshot with 1{,}936 active facts reflecting continued production operation.}
 \label{tab:admissibility}
 \begin{tabular}{llll}
 \toprule
@@ -399,7 +418,7 @@ Dimension & Measurement & Result & Status \\
 Superseded leakage & Superseded facts in search index & 0/383 & \checkmark \\
 Temporal validity & Expired but still active & 0/1{,}699 & \checkmark \\
 Source attribution & Facts with NULL source & 0/2{,}269 & \checkmark \\
-Stale window overlap & Overlapping supersession intervals & 4/347 & \checkmark \\
+Stale window overlap & Overlapping supersession intervals & 4/349 & \checkmark \\
 Index staleness & Index entries vs.{} active facts & 65 gap & $\times$ \\
 Privacy scope & Non-shared scope usage & 0\% private & $\times$ \\
 Tenant isolation & Non-default tenants & 1 (default) & $\times$ \\
@@ -407,7 +426,7 @@ Tenant isolation & Non-default tenants & 1 (default) & $\times$ \\
 \end{tabular}
 \end{table}
 
-Three dimensions pass: no superseded fact leaks into the search index, no expired fact remains active, and source attribution covers 100\% of records. Three dimensions reveal gaps: (1)~the vector index contains 65 more entries than active facts (3.8\% staleness from test artifacts and deleted records), (2)~all facts use shared or global scope with zero private-scope usage, meaning the privacy mechanism exists but is never exercised, and (3)~all records use the default tenant, meaning multi-tenant isolation is architecturally present but operationally unused. The stale window overlap (4 out of 347 supersessions where the old fact's \texttt{valid\_to} exceeds the new fact's \texttt{valid\_from}) creates brief periods where two contradictory facts are simultaneously admissible.
+Three dimensions pass: no superseded fact leaks into the search index, no expired fact remains active, and source attribution covers 100\% of records. Three dimensions reveal gaps: (1)~the vector index contains 65 more entries than active facts (3.8\% staleness from test artifacts and deleted records), (2)~all facts use shared or global scope with zero private-scope usage, meaning the privacy mechanism exists but is never exercised, and (3)~all records use the default tenant, meaning multi-tenant isolation is architecturally present but operationally unused. The stale window overlap (4 out of 349 supersessions where the old fact's \texttt{valid\_to} exceeds the new fact's \texttt{valid\_from}) creates brief periods where two contradictory facts are simultaneously admissible.
 
 These findings demonstrate that admissibility is not a binary property but a multi-dimensional spectrum: a system can excel on some dimensions (temporal validity, source attribution) while failing on others (privacy utilization, tenant isolation). We argue that admissibility auditing should be a standard component of agent memory system evaluation, complementary to accuracy benchmarks.
 
@@ -417,8 +436,7 @@ These findings demonstrate that admissibility is not a binary property but a mul
 
 
 \paragraph{Metric definitions.}
-``Superseded facts'' counts rows with \texttt{status='superseded'}; ``Retired facts'' counts \texttt{status='retired'}. 256 of 383 superseded rows (67\%) have a non-empty \texttt{valid\_to}; the remaining 127 date from an earlier schema version. ``Data loss'' = zero reported incidents in 26 days, ascertained by manual verification that the active fact count never decreased below expected levels and that no agent reported missing memories. This is a self-reported measure, not an automated monitoring result. ``Operations'' = sum of \texttt{audit\_log} entries (writes) plus acknowledged \texttt{use\_count} increments (reads).
-Supersession \\emph{events} (347, rows in the \\texttt{supersessions} edge table created by \\texttt{correct()}) and superseded \\emph{rows} (383, current \\texttt{status='superseded'}) are different units: some rows entered the superseded state through migration and backfill tooling rather than a \\texttt{correct()} event; the two counts are intentionally reported separately. 256 of 383 superseded rows (67\%) have a non-empty \\texttt{valid\_to}; the remaining 127 date from an earlier schema version.
+``Superseded facts'' counts rows with \texttt{status='superseded'}; ``Retired facts'' counts \texttt{status='retired'}. 256 of 383 superseded rows (67\%) have a non-empty \texttt{valid\_to}; the remaining 127 date from an earlier schema version. ``Data loss'' = zero reported incidents in 30 days, ascertained by manual verification that the active fact count never decreased below expected levels and that no agent reported missing memories. This is a self-reported measure, not an automated monitoring result. ``Operations'' = sum of \texttt{audit\_log} entries (writes) plus acknowledged \texttt{use\_count} increments (reads).
 
 
 \subsection{Memory Lifecycle Analysis}
@@ -449,7 +467,7 @@ The regex-based Chinese predicate extractor produces no (entity, attribute) pair
 \paragraph{English predicate extraction.} The regex-based extractor is Chinese-only; English data yields no (entity, attribute) pairs.
 \paragraph{Audit anchoring.} Rows after the last anchor are not covered.
 \paragraph{Single-machine scope.} MemTether is designed for multi-client deployment on a single machine.
-\paragraph{Production window.} 26~days is a bounded observation.
+\paragraph{Production window.} 30~days is a bounded observation.
 
 
 
@@ -519,7 +537,7 @@ python _dev/benchmarks/temporal_full.py
 
 The production database contains private operational data and is not publicly released; a synthetic data generator with matching schema is provided at \url{https://github.com/lanbass869-cell/cac-artifact} for reproducibility testing.
 \section{Conclusion}
-We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 26~days of production across 15~agents, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 538 passing tests.
+We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 30~days of production across 15~agents, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 538 passing tests.
 
 \begin{thebibliography}{50}
 

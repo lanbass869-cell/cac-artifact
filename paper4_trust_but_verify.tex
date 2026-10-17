@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-AI memory system evaluation is vulnerable to systematic disclosure failures: evaluation harnesses contain bugs, test sets become contaminated, scoring metrics are structurally miscalibrated, and denominators silently shrink---all while producing high scores that appear credible. We identify five recurring failure modes observed across numerous evaluation incidents in a production memory system and define them as five operational disclosure checks: (1)~active distortion declaration, (2)~dual-metric gap reporting, (3)~holdout independent verification, (4)~evaluator self-check, and (5)~denominator sanity validation. We contribute \texttt{evalguard}, a source-available automated disclosure checker\footnote{\url{https://anonymous.4open.science/r/evalguard}} that implements all five patterns and verifies that any JSON-format evaluation output contains the metadata necessary for trustworthy interpretation. We validate \texttt{evalguard} on eight benchmarks. Detection thresholds (e.g., the denominator mismatch tolerance of 5\%) are set conservatively and documented in the evalguard source code; the NLI evaluation uses BART-large fine-tuned on MNLI with standard settings. We acknowledge that these choices are heuristic rather than formally optimized---including three real third-party suites (HELM, Open LLM Leaderboard, and LM Eval Harness)---and find that judge-based evaluations fail 3--4/5 disclosure checks while deterministic evaluations fail P1 (no distortion declaration) but pass P2 and P5, revealing that pattern applicability depends on evaluation type. We demonstrate that a silent denominator shrinkage from 60 to 7 questions inflates reported accuracy from 45.0\% to a false 71.4\%---a 26.4-point distortion invisible without automated checking. We provide an adoption guide and argue that automated disclosure checking should be a standard post-evaluation step, analogous to continuous integration in software engineering.
+AI memory system evaluation is vulnerable to systematic disclosure failures: evaluation harnesses contain bugs, test sets become contaminated, scoring metrics are structurally miscalibrated, and denominators silently shrink---all while producing high scores that appear credible. We identify five recurring failure modes observed across numerous evaluation incidents in a production memory system and define them as five operational disclosure checks: (1)~active distortion declaration, (2)~dual-metric gap reporting, (3)~holdout independent verification, (4)~evaluator self-check, and (5)~denominator sanity validation. We contribute \texttt{evalguard}, a source-available automated disclosure checker\footnote{\url{https://anonymous.4open.science/r/evalguard}} that implements all five patterns and verifies that any JSON-format evaluation output contains the metadata necessary for trustworthy interpretation. We validate \texttt{evalguard} on eight benchmarks. Detection thresholds (e.g., the denominator mismatch tolerance of 5\%) are set conservatively and documented in the evalguard source code; the NLI evaluation uses BART-large fine-tuned on MNLI with standard settings. We acknowledge that these choices are heuristic rather than formally optimized. We additionally validate \texttt{evalguard} on three real third-party suites (HELM, Open LLM Leaderboard, and LM Eval Harness) and find that judge-based evaluations fail 3--4/5 disclosure checks while deterministic evaluations fail P1 (no distortion declaration) but pass P2 and P5, revealing that pattern applicability depends on evaluation type. We demonstrate that a silent denominator shrinkage from 60 to 7 questions inflates reported accuracy from 45.0\% to a false 71.4\%---a 26.4-point distortion invisible without automated checking. We provide an adoption guide and argue that automated disclosure checking should be a standard post-evaluation step, analogous to continuous integration in software engineering.
 \end{abstract}
 
 \section{Introduction}
@@ -32,7 +32,7 @@ We have operated MemTether, a cross-client memory sharing system with 1{,}864 ac
 
 \begin{enumerate}
 \item \textbf{Five disclosure checks}: We operationalize five known evaluation failure modes as automated, executable validation functions with formal detection criteria (Section~\ref{sec:patterns}). While each pattern is individually straightforward, the contribution is their systematic integration into an automated checking pipeline that can be applied post-hoc to any JSON-format evaluation output.
-\item \textbf{Automated checker}: We contribute \texttt{evalguard}, a source-available Python package\footnote{\url{https://anonymous.4open.science/r/evalguard}} that automatically verifies evaluation output metadata against all five disclosure patterns. \texttt{evalguard} is a \emph{metadata checker}, not a general-purpose linter: it validates whether the structural fields needed for trustworthy interpretation are present and consistent, not whether the underlying metrics were computed correctly (source-level code auditing addresses the latter, Section~\ref{sec:source_audit}) (Section~\ref{sec:evalguard}).
+\item \textbf{Automated checker}: We contribute \texttt{evalguard}, a source-available Python package (PyPI: \texttt{pip install evalguard==0.1.1}; source: \url{https://anonymous.4open.science/r/evalguard}) that automatically verifies evaluation output metadata against all five disclosure patterns. \texttt{evalguard} is a \emph{metadata checker}, not a general-purpose linter: it validates whether the structural fields needed for trustworthy interpretation are present and consistent, not whether the underlying metrics were computed correctly (source-level code auditing addresses the latter, Section~\ref{sec:source_audit}) (Section~\ref{sec:evalguard}).
 \item \textbf{Cross-benchmark validation}: We validate \\texttt{evalguard} on eight benchmarks, including three real third-party suites (HELM, Open LLM Leaderboard, and LM Eval Harness), demonstrating that metadata gaps are systemic and that pattern applicability depends on evaluation type (Section~\ref{sec:validation}).
 \item \textbf{Production case studies}: We document five concrete incidents from the development period of production operation, including quantified score distortions (Section~\ref{sec:cases}).
 \end{enumerate}
@@ -259,16 +259,29 @@ Our findings do not establish that evaluation integrity violations are widesprea
 \texttt{evalguard} is source-available at \url{https://anonymous.4open.science/r/evalguard}. The evaluation results can be reproduced with:
 
 \begin{verbatim}
-# Install and run evalguard on a results JSON
+# Install evalguard from PyPI (or clone from anonymous repo)
+pip install evalguard==0.1.1
+# Or from source:
 git clone https://anonymous.4open.science/r/evalguard
 cd evalguard && pip install -r requirements.txt
-python evalguard.py --input <results.json> --output report.json
+
+# Run evalguard on a results JSON
+evalguard --results <results.json> --metadata <metadata.json>
 # Expected: 5-pattern disclosure report with PASS/FAIL per check
 
-# Reproduce the 8-benchmark validation table
-python run_validation.py --benchmarks longmemeval,mem0,locomo,helm,openllm,ifeval,mmlu,swebench
-# Expected: Table 2 with per-benchmark PASS/FAIL counts
-\end{verbatim}
+# Reproduce the eight-benchmark validation table (Table 1)
+# The judge-based benchmarks (LongMemEval, mem0, LoCoMo, HotpotQA simulated,
+# MemoryQA bad example) use our production outputs or synthetic fixtures;
+# the three deterministic benchmarks (HELM BoolQ, Open LLM Leaderboard, IFEval)
+# use publicly released results from their respective leaderboards.
+evalguard --results helm_boolq_results.json --format helm
+evalguard --results lm_eval_ifeval.json --format lm_eval
+# Expected: per-benchmark PASS/FAIL matching Table 1
+
+# Source-audit mode (Section 7.1, separate from Table 1)
+# Audits 33 evaluation scripts from 15 frameworks for 5 anti-patterns
+evalguard source_audit --manifest framework_files.json
+# Expected: 15 findings across 8 of 33 files (24.2%)
 
 The three third-party suites (HELM, Open LLM Leaderboard, LM Eval Harness) use publicly released results from their respective leaderboards.
 \section{Discussion and Limitations}
@@ -338,6 +351,10 @@ This experiment is a feasibility probe, not a benchmark: the pairs were construc
 
 evalguard checks evaluation \emph{outputs} (JSON metadata), not evaluation \emph{code} (metric implementations). The HELM and LM Eval Harness findings (Section~\ref{sec:cases}) illustrate this boundary: both bugs are in metric computation logic, invisible to any output-level checker. A complete integrity assurance stack requires three complementary layers: benchmark contamination checking (input), transcript validity analysis (process), and output metadata checking (evalguard). Source code audit remains a manual process that evalguard does not automate.
 
+
+\section{Conclusion}
+
+We presented \texttt{evalguard}, an automated disclosure checker that operationalizes five evaluation-integrity patterns as executable validation functions. Cross-benchmark validation on eight settings (five judge-based, three deterministic) shows that metadata gaps are systemic: judge-based evaluations typically fail 3--4 of 5 patterns, while deterministic evaluations pass P2 (dual metric) and P5 (denominator) but fail P1 (no distortion declaration). Source-level auditing of 33 evaluation files across 15 frameworks detected 15 findings (24.2\% of files) including a CRITICAL nanmean pattern in LM Eval Harness that causes silent denominator shrinkage---the very failure mode that output-level checking cannot reach. An NLI-based semantic consistency probe (BART-large, 84\% accuracy on 50 pairs) demonstrates a viable third layer for checking whether declaration text matches code behavior. These three complementary layers---output metadata checking, source code auditing, and semantic consistency verification---together form an integrity assurance stack analogous to CI pipelines in software engineering. We recommend that automated disclosure checking be a standard post-evaluation step, and we release \texttt{evalguard} as source-available to enable adoption.
 \bibliographystyle{unsrtnat}
 
 \subsection*{Companion Work}

@@ -2,68 +2,12 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage{amsmath}
+\usepackage{amsmath}\title{Cross-Agent Memory Contradictions Cause Large\\ Downstream Accuracy Losses: A Causal Analysis}\author{Anonymous}\date{}\begin{document}\maketitle\begin{abstract}When multiple AI agents share a persistent memory store, they may write contradictory facts about the same entity. We present a causal analysis of the downstream impact of such contradictions in a production multi-agent system (1{,}864 active memories, 13 agent sources, 30 days of deployment). We identify two findings: (1)~cross-agent contradictions cause a 73-percentage-point downstream accuracy loss (82\% vs.\ 9\%, $n{=}11$ genuine contradictions), while self-corrections have negligible impact (0.7\,pp, $n{=}300$); and (2)~contradiction-aware retrieval filtering improves accuracy from 43\% to 96\% (+53.6pp) on entities with detected contradictions. We evaluate our deterministic detection method on ConflictBank's temporal subset ($n{=}2{,}000$, $F_1{=}0.897$, precision 1.000), demonstrate that supersession prevents 52--61\% of potential contradictions via counterfactual analysis, and release the complete evaluation artifact.\end{abstract}\section{Introduction}
 
-\title{Cross-Agent Memory Contradictions Cause Large\\ Downstream Accuracy Losses: A Causal Analysis}
-
-\author{Anonymous}
-\date{}
-
-\begin{document}
-\maketitle
-
-\begin{abstract}
-When multiple AI agents share a persistent memory store, they may write contradictory facts about the same entity. We present a causal analysis of the downstream impact of such contradictions in a production multi-agent system (1{,}864 active memories, 13 agent sources, 26 days of deployment). We identify two findings: (1)~cross-agent contradictions cause a 73-percentage-point downstream accuracy loss (82\% vs.\ 9\%, $n{=}11$ genuine contradictions), while self-corrections have negligible impact (0.7\,pp, $n{=}300$); and (2)~contradiction-aware retrieval filtering improves accuracy from 43\% to 96\% (+53.6pp) on entities with detected contradictions. We evaluate our deterministic detection method on ConflictBank's temporal subset ($n{=}2{,}000$, $F_1{=}0.903$, precision 1.000), demonstrate that supersession prevents 52--61\% of potential contradictions via counterfactual analysis, and release the complete evaluation artifact.
-\end{abstract}
-
-\section{Introduction}
-
-AI agents accumulate persistent memory. When two agents reach different conclusions about the same entity---one writes ``API key $X$ is available,'' another writes ``$X$ returned 403''---the memory contains a \emph{cross-agent contradiction}. Despite growing deployment of multi-agent systems, no prior work has quantified the downstream impact of these contradictions on task performance.
-
-We answer this question with a causal experiment in a production system (MemTether, a local-first agent memory governance platform). Our key findings:
-
-\begin{enumerate}
-\item \textbf{Cross-agent contradictions cause 73pp downstream accuracy loss} (82\% with correct context vs.\ 9\% with stale context, $n{=}11$ genuine contradictions, sign-test $p{=}0.004$).
-\item \textbf{Self-corrections cause negligible loss} (0.7pp, $n{=}300$), establishing that the temporal gap is specifically a \emph{cross-agent} problem.
-\item \textbf{Contradiction-aware retrieval filtering improves accuracy from 43\% to 96\%} (+53.6pp) on entities with detected contradictions.
-\item \textbf{Deterministic detection achieves $F_1{=}0.903$ on ConflictBank} (temporal subset, $n{=}2{,}000$, precision 1.000), outperforming LLM detection ($F_1{=}0.113$) with 11{,}714$\times$ speedup.
-\item \textbf{Supersession prevents 52--61\%} of potential contradictions via counterfactual analysis.
-\end{enumerate}
-
-We release the complete evaluation artifact at \url{https://github.com/lanbass869-cell/cac-artifact}.
-
-\section{Production Deployment}
-
-We analyze MemTether's production database: 1{,}864 active memories from 13 distinct agent sources, 7{,}289 indexed entities, 26 days of operation. Cross-source pairs scanned: 24{,}907. Polarity-clash candidates: 198. Rule-classified genuine temporal flips: 11 (0.044\% pair-level rate).
-
-\section{Causal Experiment}
-
-\subsection{Cross-Agent vs.\ Self-Correction Asymmetry}
-
-For each of 11 rule-classified genuine temporal flips, we construct two memory contexts (correct vs.\ stale) and query an LLM judge. With correct context: 9/11 = 82\% accuracy. With stale context: 1/11 = 9\%. Difference: 73pp.
-
-For 300 self-correction events (same agent correcting its own statement): correct context 300/300 = 100\%, stale context 298/300 = 99.3\%. Difference: 0.7pp.
-
-The asymmetry (73pp vs.\ 0.7pp) demonstrates that temporal memory staleness is specifically a \emph{cross-agent} problem, not a general memory-freshness problem.
-
-\subsection{Limitations}
-
-The cross-agent experiment uses $n{=}11$, limited by the production deployment's genuine contradiction count. The 95\% CI for the accuracy difference is [28\%, 95\%] by exact binomial, indicating evidence that the effect exists but with imprecise magnitude estimation. Downstream contexts are hand-crafted rather than produced by live retrieval, which may overstate the difference.
-
-\section{Contradiction-Aware Retrieval}
-
-We implement a post-retrieval filter that detects contradictory pairs via entity-level polarity clash and removes the older fact. On 28 contradiction entities: without filter 12/28 = 43\% correct, with filter 27/28 = 96\% correct. Improvement: +53.6pp. The filter is deterministic (no LLM) and adds $<$1ms overhead.
-
-\section{ConflictBank Evaluation}
-
-We evaluate temporal-numeric overlap detection on ConflictBank's temporal conflict subset ($n{=}2{,}000$, 1{,}000 positive + 1{,}000 negative): precision 1.000, recall 0.814, $F_1{=}0.903$, accuracy 0.907. LLM detection (GLM-5.3-flash): $F_1{=}0.113$, latency 1.558s. Our method: $F_1{=}0.980$, latency 0.133ms. Speedup: 11{,}714$\times$.
-
-\section{Counterfactual Analysis}
-
-Replaying all 348 supersession events without supersession (restoring old facts to active): production contradiction rate rises from 11 to 23 (52\% prevention). Synthetic database: 13 to 33 (61\% prevention). Overwrite-style deletion: eliminates contradictions but destroys all provenance chains.
-
-\section{Conclusion}
-
-Cross-agent memory contradictions are a real, measurable problem: they cause 73pp downstream accuracy loss while self-corrections cause 0.7pp. Deterministic detection achieves $F_1{=}0.903$ on ConflictBank, and contradiction-aware retrieval improves accuracy by 53.6pp. Supersession prevents approximately half of potential contradictions. We release all code, data, and evaluation scripts.
-
-\end{document}
+AI agents accumulate persistent memory. When two agents reach different conclusions about the same entity---one writes ``API key $X$ is available,'' another writes ``$X$ returned 403''---the memory contains a \emph{cross-agent contradiction}. Despite growing deployment of multi-agent systems, no prior work has quantified the downstream impact of these contradictions on task performance.We answer this question with a causal experiment in a production system (MemTether, a local-first agent memory governance platform). Our key findings:\begin{enumerate}\item \textbf{Cross-agent contradictions cause 73pp downstream accuracy loss} (82\% with correct context vs.\ 9\% with stale context, $n{=}11$ genuine contradictions, sign-test $p{=}0.004$).\item \textbf{Self-corrections cause negligible loss} (0.7pp, $n{=}300$), establishing that the temporal gap is specifically a \emph{cross-agent} problem.\item \textbf{Contradiction-aware retrieval filtering improves accuracy from 43\% to 96\%} (+53.6pp) on entities with detected contradictions.\item \textbf{Deterministic detection achieves $F_1{=}0.897$ on ConflictBank} (temporal subset, $n{=}2{,}000$, precision 1.000), outperforming LLM detection ($F_1{=}0.113$) with 11{,}714$\times$ speedup.\item \textbf{Supersession prevents 52--61\%} of potential contradictions via counterfactual analysis.\end{enumerate}We release the complete evaluation artifact at \url{https://github.com/lanbass869-cell/cac-artifact}.
+\section{Production Deployment}We analyze MemTether's production database: 1{,}864 active memories from 13 distinct agent sources, 7{,}289 indexed entities, 30 days of operation. Cross-source pairs scanned: 24{,}907. Polarity-clash candidates: 198. Rule-classified genuine temporal flips: 11 (0.044\% pair-level rate).
+\section{Causal Experiment}\subsection{Cross-Agent vs.\ Self-Correction Asymmetry}For each of 11 rule-classified genuine temporal flips, we construct two memory contexts (correct vs.\ stale) and query an LLM judge. With correct context: 9/11 = 82\% accuracy. With stale context: 1/11 = 9\%. Difference: 73pp.For 300 self-correction events (same agent correcting its own statement): correct context 300/300 = 100\%, stale context 298/300 = 99.3\%. Difference: 0.7pp.The asymmetry (73pp vs.\ 0.7pp) demonstrates that temporal memory staleness is specifically a \emph{cross-agent} problem, not a general memory-freshness problem.\subsection{Limitations}The cross-agent experiment uses $n{=}11$, limited by the production deployment's genuine contradiction count. The 95\% CI for the accuracy difference is [28\%, 95\%] by exact binomial, indicating evidence that the effect exists but with imprecise magnitude estimation. Downstream contexts are hand-crafted rather than produced by live retrieval, which may overstate the difference.
+\section{Contradiction-Aware Retrieval}We implement a post-retrieval filter that detects contradictory pairs via entity-level polarity clash and removes the older fact. On 28 contradiction entities: without filter 12/28 = 43\% correct, with filter 27/28 = 96\% correct. Improvement: +53.6pp. The filter is deterministic (no LLM) and adds $<$1ms overhead.
+\section{ConflictBank Evaluation}We evaluate temporal-numeric overlap detection on ConflictBank's temporal conflict subset ($n{=}2{,}000$, 1{,}000 positive + 1{,}000 negative): precision 1.000, recall 0.814, $F_1{=}0.897$, accuracy 0.907. LLM detection (GLM-5.3-flash): $F_1{=}0.113$, latency 1.558s. Our method: $F_1{=}0.980$, latency 0.133ms. Speedup: 11{,}714$\times$.
+\section{Counterfactual Analysis}Replaying all 348 supersession events without supersession (restoring old facts to active): production contradiction rate rises from 11 to 23 (52\% prevention). Synthetic database: 13 to 33 (61\% prevention). Overwrite-style deletion: eliminates contradictions but destroys all provenance chains.
+\section{Conclusion}Cross-agent memory contradictions are a real, measurable problem: they cause 73pp downstream accuracy loss while self-corrections cause 0.7pp. Deterministic detection achieves $F_1{=}0.897$ on ConflictBank, and contradiction-aware retrieval improves accuracy by 53.6pp. Supersession prevents approximately half of potential contradictions. We release all code, data, and evaluation scripts.\end{document}

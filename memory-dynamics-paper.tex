@@ -220,7 +220,7 @@ We note that other memory systems may have different coverage ratios depending o
 
 Of 349 corrections, 52 (14.9\%) are cross-agent (one agent correcting another agent's memory) and 284 (81.4\%) are self-corrections (an agent updating its own prior statement; 3.7\% have unresolvable source attribution).
 
-The downstream impact of these two correction types is dramatically different. In a controlled experiment (Section~\ref{sec:expanded}), stale cross-agent context caused answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), while stale self-correction context caused only 0.7\% divergence ($n{=}300$).
+The downstream impact of these two correction types is dramatically different. In a controlled experiment (Section~\ref{sec:expanded-dyn}), stale cross-agent context caused answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), while stale self-correction context caused only 0.7\% divergence ($n{=}300$).
 
 This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for approximately 99\% of the measurable downstream harm. The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
 
@@ -239,7 +239,6 @@ To validate the cross-agent harm asymmetry at scale, we expanded the downstream 
 
 Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering). Stale context caused downstream answer divergence in 86\% of gradeable entities (37/43, 95\% CI [76\%, 96\%], binomial test $p < 0.001$ against the null hypothesis of 50\% divergence).
 
-This confirms the 73pp finding from the original $n{=}11$ experiment and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
 This confirms the 73pp finding from our companion paper on cross-agent contradictions~\cite{cac} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
 \section{Discussion}
 \label{sec:discussion}

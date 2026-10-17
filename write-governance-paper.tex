@@ -36,7 +36,7 @@ We further demonstrate that fixing retrieval quality alone is insufficient: enti
 
 \section{Production Setting}
 
-A local-first agent memory system serves 15 AI clients through a shared SQLite database. During 31 days (2026-09-13 to 2026-10-14), the system recorded 2,378 writes, 316 retrieval write-backs, 349 corrections, and 200 retirements. At analysis time, 1,981 memories are active.
+A local-first agent memory system serves 15 AI clients through a shared SQLite database. During 30 days (2026-09-14 to 2026-10-14), the system recorded 2,378 writes, 316 retrieval write-backs, 349 corrections, and 200 retirements. At analysis time, 1,981 memories are active.
 
 \section{Write Waste Analysis}
 
@@ -73,6 +73,7 @@ Experience-type memories have the highest never-retrieved rate (14.6\%), while p
 Raw dead rate includes recently-written memories that have not yet had the opportunity to be retrieved. Restricting to memories $\geq 7$ days old: 153/1,651 = 9.3\% dead rate. The dead rate is stable across age groups, confirming this is not a recency artifact.
 
 \subsection{Power-Law Usage}
+\label{sec:powerlaw}
 
 \begin{table}[h]
 \centering
@@ -93,6 +94,7 @@ Top $N$ memories & \% of total & \% of all retrievals \\
 Retrieval usage follows a steep power law: 10 memories (0.5\%) account for 15\% of all retrievals. The median memory is retrieved fewer than 5 times in 30 days. This concentration means that a small set of ``hot'' memories carries most of the system's utility, while the long tail is effectively dead weight.
 
 \section{The Injection Bottleneck}
+\label{sec:injection}
 
 \begin{table}[h]
 \centering
@@ -287,7 +289,7 @@ As a complementary approach to retrospective admission control, we evaluate a de
 On a synthetic benchmark with guaranteed ground truth (10 entities, 3 attributes, 50 conflicting writes, 80 near-miss non-conflicts), the gate achieves 100\% recall and 100\% precision (zero false positives across all four near-miss types). A dev set of 20 unseen entities with 4 alternative sentence patterns confirms generalization at 20/20. On a real SQLite database with file I/O, the gate adds p50~=~0.037\,ms per call ($n{=}1000$).
 
 \begin{finding}[Write-Time Interception Is Feasible]
-A deterministic write-time gate adds negligible latency (p50 = 0.037\,ms) while achieving perfect precision on synthetic conflicts. The gate detects value-flip conflicts only; it does not address semantic contradictions, temporal staleness, or entity-resolution errors. The parser is Chinese-only. The benchmark is synthetic; real-world conflict density is expected to be lower (our production database contains zero uncorrected contradictions after 31 days of active supersession).
+A deterministic write-time gate adds negligible latency (p50 = 0.037\,ms) while achieving perfect precision on synthetic conflicts. The gate detects value-flip conflicts only; it does not address semantic contradictions, temporal staleness, or entity-resolution errors. The parser is Chinese-only. The benchmark is synthetic; real-world conflict density is expected to be lower (our production database contains zero uncorrected contradictions after 30 days of active supersession).
 \end{finding}
 
 \section{Discussion}
@@ -324,7 +326,6 @@ sqlite3 memory.db "SELECT SUM(LENGTH(content)) FROM facts
 
 \section{Related Work}
 
-Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
 Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. Our companion paper on entity-aware retrieval~\cite{aoc} quantifies the about-vs-mention retrieval failure. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
 \section{Conclusion}
 
