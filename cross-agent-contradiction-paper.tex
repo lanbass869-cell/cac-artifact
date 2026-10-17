@@ -19,13 +19,13 @@
 \maketitle
 
 \begin{abstract}
-When multiple AI agents share a memory store, they inevitably write contradictory facts about the same entity. We show that this problem causes up to 73pp downstream accuracy loss: an agent receiving stale (superseded) context answers correctly only 9\% of the time, versus 82\% with correct context ($n{=}11$ genuine contradictions, expanded to 86\% divergence across $n{=}43$ entities, $p<0.001$). This loss is not specific to our system: mem0, Zep, Letta, and LangMem all lack supersession chains and contradiction-aware filtering, making them equally vulnerable. We present a deterministic three-stage resolution pipeline: (1)~write-time supersession prevents old--new coexistence, (2)~contradiction-aware retrieval filtering removes stale facts at query time, and (3)~combined, the pipeline restores downstream accuracy from 9\% to 96\% (+87pp recovery). The contradiction detection component achieves $F_1=0.897$ on ConflictBank ($n{=}2000$) and $F_1=0.813$ on a controlled benchmark (100 entities), with 11{,}714$\times$ speedup over LLM-based detection. Applied to 30 days of production data (13 sources, 24{,}907 cross-source pairs), the pipeline identifies and resolves all 11 genuine temporal contradictions. Code and evaluation artifact: \url{https://github.com/lanbass869-cell/cac-artifact}.
+When multiple AI agents share a memory store, cross-agent contradictions are associated with up to 73pp downstream accuracy loss in our production case study. We propose a deterministic temporal-numeric overlap method that achieves $F_1=0.897$ on ConflictBank (n=2000, precision 1.000) and $F_1=0.813$ on a controlled benchmark (100 entities, 710 facts, ground truth by generation seed; details in Section~\ref{sec:methods}), outperforming LLM detection ($F_1=0.113$) on this specific temporal-conflict task with 11{,}714$\times$ speedup. Applied to production (26 days, 13 sources, 1{,}768 facts, 24{,}907 pairs), the method identifies 11 genuine temporal flips (0.044\%). Counterfactual analysis shows supersession prevents 52--61\% of contradictions. Code and evaluation artifact: \url{https://github.com/lanbass869-cell/cac-artifact} (public, with Makefile)..
 \end{abstract}
 
 \section{Introduction}
-When multiple AI agents share a persistent memory store, they inevitably write contradictory facts about the same entity---one agent records that a service is available while another records that it returned 403. The downstream impact of these contradictions has never been quantified. We show that cross-agent contradictions cause a 73pp downstream accuracy loss (an agent receiving stale context answers correctly only 9\% of the time), that this problem is universal to all multi-agent memory systems, and that a deterministic three-stage resolution pipeline (write-time supersession + contradiction-aware retrieval filtering) recovers 87pp of this loss.
+Multi-agent AI systems accumulate persistent memory. When agents disagree about an entity's status, downstream agents receive contradictory evidence. We propose a deterministic temporal-numeric overlap method for detecting these conflicts, evaluate it on ConflictBank ($F_1=0.897$, $n{=}2000$) and a controlled benchmark ($F_1=0.813$), and show that cross-agent contradictions cause a 73pp downstream accuracy loss while self-corrections have negligible impact (0.7pp).
 
-Our contributions: (1)~First quantification of downstream harm from cross-agent contradictions: 73pp accuracy loss ($n{=}11$ genuine contradictions, expanded to 86\% divergence at $n{=}43$, $p<0.001$); (2)~A deterministic detection method achieving $F_1=0.897$ on ConflictBank ($n{=}2000$) with 11{,}714$\times$ speedup over LLM detection; (3)~A three-stage resolution pipeline (supersession + contradiction-aware retrieval filter) that restores downstream accuracy from 9\% to 96\% (+87pp); (4)~Evidence that this problem is universal: mem0, Zep, Letta, and LangMem all lack the mechanisms to resolve it.
+Our contributions: (1)~Controlled benchmark with ground truth (Section~\ref{sec:benchmark}); (2)~Comparative evaluation of four methods (Section~\ref{sec:eval}); (3)~Production measurement with counterfactual analysis (Section~\ref{sec:production}); (4)~A 73pp downstream loss finding that establishes cross-agent contradictions as a critical problem (Section~\ref{sec:downstream}).
 \section{Related Work}
 mem0~\cite{mem0}, Letta~\cite{letta}, and LangMem are single-tenant; cross-agent contradictions cannot arise. Zep~\cite{zep} offers temporal knowledge graphs. MemStrata~\cite{memstrata} maintains bi-temporal validity. TOKI~\cite{toki} formalizes conflict resolution. Memory poisoning attacks have been studied by PoisonRecall~\cite{poisonrecall}, AgentPoison~\cite{agentpoison}, and Sleeper~\cite{sleeper}; our work addresses contradictions from legitimate multi-agent disagreement rather than malicious attacks. ConflictBank~\cite{conflictbank} provides 7.4M claim-evidence pairs. FEVER~\cite{fever} verifies claims against Wikipedia.
 
@@ -395,53 +395,6 @@ TF-IDF beats sentence embeddings by 11.5pp macro-F1 because contradictions are d
 
 We additionally fine-tuned DistilBERT (distilbert-base-uncased, 3 epochs, CPU-only) on the same ConflictBank split. The fine-tuned transformer achieves macro F1 = 0.690 (temporal 0.99, semantic 0.39, misinformation 0.52), which is 12.1pp below TF-IDF's 0.811 macro F1. This result reinforces the lexical-beats-semantic finding: even a fine-tuned transformer underperforms simple lexical features for temporal-numeric contradiction detection, likely because the task is defined by surface-level signals (year mismatches, numeric disagreements) rather than deep semantic understanding.
 
-
-\section{The Contradiction Lifecycle: A Three-Condition Analysis}
-\label{sec:lifecycle}
-
-The experiments above measure individual components of the contradiction resolution pipeline. This section unifies them into a three-condition comparison that quantifies the contribution of each stage.
-
-\subsection{Three-Condition Resolution Table}
-
-\begin{table}[h]
-\centering
-\caption{Downstream accuracy under three resolution conditions. Conditions A and B use the 11 genuine contradictions from Section~\ref{sec:downstream}; the filter row uses the 28 contradiction entities from Section~\ref{sec:retrieval}. All competitors lack both mechanisms.}
-\label{tab:lifecycle}
-\begin{tabular}{llcc}
-\toprule
-Condition & Mechanism & Accuracy & Recovery \\
-\midrule
-A: No resolution (stale context) & none & 9\% & --- \\
-B: Supersession only & write-time & 82\% & +73pp \\
-C: Supersession + filter & write-time + query-time & 96\% & +87pp \\
-\midrule
-mem0 (overwrite, no supersession) & none & $\sim$9\% & 0 \\
-Zep (no supersession, no filter) & none & $\sim$9\% & 0 \\
-Letta (no supersession, no filter) & none & $\sim$9\% & 0 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Condition A represents the status quo: a downstream agent queries the memory store, receives both the stale and the correct fact, and the LLM selects the wrong (older) answer 91\% of the time. Condition B shows that supersession chains alone recover 73pp by marking old facts as superseded so they do not coexist with new facts in retrieval results. Condition C shows that the contradiction-aware retrieval filter provides an additional 14pp recovery (82\%$\to$96\%) by detecting and removing contradictory pairs that supersession alone does not catch---specifically, cases where two agents wrote contradictory facts but neither has been formally superseded yet.
-
-\begin{finding}[Three-Stage Pipeline Recovers 87pp]
-The full resolution pipeline (supersession + contradiction-aware retrieval filter) recovers 87pp of the 91pp downstream accuracy loss caused by cross-agent contradictions. Supersession alone recovers 73pp (82\% accuracy); the retrieval filter adds 14pp on top (96\%). Systems without either mechanism (mem0, Zep, Letta, LangMem) remain at the 9\% baseline.
-\end{finding}
-
-\subsection{Generalizability to Other Memory Systems}
-
-The cross-agent contradiction problem is not specific to MemTether. It arises whenever multiple agents write to a shared memory store---a scenario that applies to every multi-agent framework:
-
-\begin{itemize}
-\item \textbf{mem0}: \texttt{update()} overwrites the old embedding in-place. The old value is irrecoverable, so a downstream agent querying after an update receives only the new fact. However, \emph{before} the update, the agent receives the old (stale) fact with no indication that a correction exists. The 73pp loss applies to the pre-update window.
-\item \textbf{Zep}: temporal knowledge graph edges track validity but do not detect cross-agent polarity clashes. A downstream agent may receive both a valid and an invalidated edge.
-\item \textbf{Letta}: hierarchical memory tiers (core/archival) have no cross-tier conflict detection. A stale fact in archival memory can coexist with a corrected fact in core memory.
-\item \textbf{LangMem}: integrates memory into LangGraph without supersession or contradiction detection. Contradictory facts coexist until manually resolved.
-\end{itemize}
-
-\begin{finding}[The Problem Is Universal]
-Cross-agent contradiction is a structural consequence of shared memory, not an implementation bug. Any system that allows multiple agents to write facts about the same entity will accumulate contradictions. The 73pp downstream loss applies to all of them; the difference is whether the system provides mechanisms to detect and resolve the contradictions.
-\end{finding}
 \section{Discussion}
 \label{sec:disc}
 
