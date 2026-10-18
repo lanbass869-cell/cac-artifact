@@ -382,6 +382,7 @@ When comparing two systems on the same benchmark, the strict--judge gap may diff
 \textbf{Selective prediction and refusal.} Geifman and El-Yaniv~\citep{geifman2017selective} formalized selective classification. Kamath et~al.~\citep{kamath2020selective} studied selective QA under domain shift. Ji et~al.~\citep{ji2023hallucination} surveyed hallucination in NLG.
 
 \section{Limitations}
+\label{sec:limitations}
 \begin{enumerate}
 \item \textbf{Evaluation run variance}: LongMemEval was evaluated at three time points (September 27, October 2, and October 5, 2026). Overall strict matching varied from 43.2\% to 62.6\% (reflecting deliberate system improvements between runs, not measurement noise) (mean 55.1\%, SD 10.4\%), while judge scores varied from 53.0\% to 63.7\% (mean 57.5\%, SD 5.6\%). This variance reflects system-side changes across evaluation dates (index updates, code changes) rather than judge instability, as strict matching is deterministic given identical retrieval output. Judge-side variability was separately assessed via cross-model validation (Section~\ref{sec:limitations}).
 \item \textbf{Judge model robustness}: All judge scores were cross-validated with GPT-6 (OpenAI) on the LongMemEval benchmark (470 of 500 questions; 30 prose-type excluded). Cross-model agreement was 96.6\% (454/470), with GPT-5.6 scoring 48.5\% vs.\ DeepSeek-V4-Flash scoring 48.5\%. This confirms that judge scores are robust across model families and not an artifact of using a specific LLM as judge.

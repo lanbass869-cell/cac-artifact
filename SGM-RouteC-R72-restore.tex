@@ -83,7 +83,7 @@ In practice, we fit a two-factor model $P(\text{correct}) = a \cdot r^N$, where 
 
 \subsection{Empirical Validation}
 
-We validate Eq.~\ref{eq:rn} on the LongMemEval benchmark using per-question results from 500 questions. For each question, we count the number of sessions containing answer-relevant facts ($N$, from the dataset's \texttt{answer\_session\_ids} field) and measure strict matching accuracy.
+Figure~\ref{fig:rn} visualizes the fitted curve. We validate Eq.~\ref{eq:rn} on the LongMemEval benchmark using per-question results from 500 questions. For each question, we count the number of sessions containing answer-relevant facts ($N$, from the dataset's \texttt{answer\_session\_ids} field) and measure strict matching accuracy.
 
 \begin{figure}[t]
 \centering
@@ -262,7 +262,7 @@ LangMem returned NOT\_FOUND for 79.2\% of questions, indicating a structural bot
 \section{Retrieval Admissibility Analysis}
 \label{sec:admissibility}
 
-Recent work~\citep{admissibility} introduces the concept of \emph{retrieval admissibility}: verifying that retrieved memories are appropriate for the current query context, beyond merely being semantically relevant. We apply this framework to our production database and identify seven admissibility dimensions:
+Recent work~\citep{admissibility} introduces the concept of \emph{retrieval admissibility}: verifying that retrieved memories are appropriate for the current query context, beyond merely being semantically relevant. Table~\ref{tab:admissibility} summarizes the analysis. We apply this framework to our production database and identify seven admissibility dimensions:
 
 \begin{table}[h]
 \centering
@@ -363,6 +363,8 @@ We evaluated under two matching criteria: (1)~\textbf{strict matching} (LongMemE
 
 \subsection{Results}
 
+Table~\ref{tab:supersession} compares DistilBERT against seven baselines on the same stratified split.
+
 \begin{table}[h]
 \centering
 \caption{Oracle ceiling diagnostic: 75 multi-session questions with gold evidence.}
@@ -404,7 +406,7 @@ Given a memory fact represented as a structured sequence (type, source, content,
 
 \subsection{Dataset}
 
-We derive the dataset from 30 days of production multi-agent memory data (2{,}644 facts from 13 sources). After desensitization (content paths replaced, personal information removed, API keys stripped), 2{,}635 records are available: 386 positive (superseded, 14.6\%) and 2{,}249 negative (active or retired, 85.4\%). The benchmark is publicly available at the artifact repository.
+We derive the dataset from 30 days of production multi-agent memory data (2{,}644 facts from 13 sources). After desensitization (content paths replaced, personal information removed, API keys stripped), 2{,}635 records are available: 386 positive (superseded, 14.6\%) and 2{,}249 negative (active or retired, 85.4\%). The benchmark is publicly available at the artifact repository. The supersession prediction benchmark was extracted at the 30-day snapshot; the production deployment metrics elsewhere in this paper (26 days) reflect an earlier snapshot. Both datasets are drawn from the same production system at different times.
 
 \subsection{Model and Baselines}
 
@@ -464,7 +466,7 @@ MemTether's EAF pipeline achieves 82.0\% under LLM-as-judge scoring on a 50-ques
 \section{Third-Party Benchmark Comparison}
 \label{sec:thirdparty}
 
-To demonstrate that our supersession and governance mechanisms do not sacrifice retrieval quality, we evaluate MemTether on two third-party benchmarks against published numbers from mem0 and LangMem.
+Table~\ref{tab:thirdparty} summarizes the comparison. To demonstrate that our supersession and governance mechanisms do not sacrifice retrieval quality, we evaluate MemTether on two third-party benchmarks against published numbers from mem0 and LangMem.
 
 \begin{table}[h]
 \centering
@@ -524,7 +526,7 @@ All results in this paper were generated with MemTether v0.1.0a80.post2 (commit 
 
 \subsection{Cross-System Comparison Protocols}
 
-Table~\ref{tab:headtohead} reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
+The cross-system comparison reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
 
 \subsection{B1 Gate Reproduction}
 
@@ -532,7 +534,7 @@ The B1 gate was evaluated on a synthetic injection benchmark: 50 contradictory w
 
 \subsection{r\textsuperscript{N} Fit Reproduction}
 
-The r\textsuperscript{N} decay fit (Figure~\ref{fig:rn-fit}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
+The r\textsuperscript{N} decay fit (Figure~\ref{fig:rn}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
 
 \subsection{Tamper-Detection Reproduction}
 

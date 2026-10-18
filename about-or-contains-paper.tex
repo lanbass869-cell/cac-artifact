@@ -50,7 +50,7 @@ The baseline hybrid retriever (embedding + FTS5 + RRF fusion) shows the top-3 re
 
 \subsection{Ground Truth}
 
-We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must be the primary topic of the fact, determined by manual inspection of each fact content. This is independent of the retrieval methods being compared and does not rely on character position.
+Table~\ref{tab:baseline} shows the baseline precision. We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must be the primary topic of the fact, determined by manual inspection of each fact content. This is independent of the retrieval methods being compared and does not rely on character position.
 
 \begin{table}[h]
 \centering
@@ -81,7 +81,7 @@ Precision varies from 0\% (hubguard, supersession) to 80\% (CAC). The variation 
 
 \subsection{Cause 1: Popularity-Based Ranking}
 
-When the entity index contains facts linked to the query entity, the baseline ranks them by \texttt{use\_count} (retrieval frequency). This surfaces high-traffic facts regardless of relevance.
+Table~\ref{tab:popularity} shows a sample. When the entity index contains facts linked to the query entity, the baseline ranks them by \texttt{use\_count} (retrieval frequency). This surfaces high-traffic facts regardless of relevance.
 
 \begin{table}[h]
 \centering
@@ -104,7 +104,7 @@ Zero of the top-5 facts are about packy. All are mention-only: packy appears in 
 
 \subsection{Cause 2: Regex-Based Entity Extraction}
 
-Entity extraction uses regex patterns for Chinese syntax (\texttt{X的Y}, \texttt{X支持Y}) and first-phrase heuristics. This misses 41.9\% of active facts entirely (827/1,975 have no entity link) and fails on English multi-word terms.
+Table~\ref{tab:coverage} summarizes the extraction coverage. Entity extraction uses regex patterns for Chinese syntax (\texttt{X的Y}, \texttt{X支持Y}) and first-phrase heuristics. This misses 41.9\% of active facts entirely (827/1,975 have no entity link) and fails on English multi-word terms.
 
 \begin{table}[h]
 \centering
@@ -160,6 +160,8 @@ Entity-first retrieval is high-precision but low-recall: it fails completely whe
 This guarantees no regression: when entity extraction works, we get high precision; when it fails, we fall back to the baseline.
 
 \section{Evaluation}
+
+Table~\ref{tab:results} presents the main comparison.
 
 \begin{table}[h]
 \centering

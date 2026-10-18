@@ -42,6 +42,8 @@ A local-first agent memory system serves 15 AI clients through a shared SQLite d
 
 \subsection{Dead Memories}
 
+Table~\ref{tab:dead} breaks down never-retrieved memories by type and source.
+
 \begin{table}[h]
 \centering
 \caption{Never-retrieved memories by type and source.}
@@ -75,6 +77,8 @@ Raw dead rate includes recently-written memories that have not yet had the oppor
 \subsection{Power-Law Usage}
 \label{sec:powerlaw}
 
+Table~\ref{tab:powerlaw} shows the concentration of retrieval across memories.
+
 \begin{table}[h]
 \centering
 \caption{Retrieval concentration (power law).}
@@ -95,6 +99,8 @@ Retrieval usage follows a steep power law: 10 memories (0.5\%) account for 15\% 
 
 \section{The Injection Bottleneck}
 \label{sec:injection}
+
+Table~\ref{tab:injection} summarizes the injection analysis.
 
 \begin{table}[h]
 \centering
@@ -122,7 +128,7 @@ The injection coverage ratio (0.48\%) is three orders of magnitude below 100\%. 
 
 \section{Retrieval Quality Is Not the Binding Constraint}
 
-To test whether better retrieval would reduce waste, we evaluated entity-aware ranking on a 10-query benchmark with manually labeled ground truth (100 query-result pairs, each fact labeled ABOUT or NOT-ABOUT by manual inspection).
+Table~\ref{tab:retrieval} compares the two approaches. To test whether better retrieval would reduce waste, we evaluated entity-aware ranking on a 10-query benchmark with manually labeled ground truth (100 query-result pairs, each fact labeled ABOUT or NOT-ABOUT by manual inspection).
 
 \begin{table}[h]
 \centering
@@ -172,7 +178,7 @@ Experience-type memories have a 14.6\% dead rate, 1.5$\times$ the system average
 
 \subsection{Waste by Source}
 
-WorkBuddy (the primary IDE-integrated client) accounts for 100 of 189 dead memories (52.9\%), despite writing only 28\% of total memories. Codex accounts for 43 dead (22.7\%) from 54\% of writes. WorkBuddy\_ai accounts for 38 dead (20.1\%) from 13\% of writes.
+Table~\ref{tab:source_waste} breaks down write waste by client source. WorkBuddy (the primary IDE-integrated client) accounts for 100 of 189 dead memories (52.9\%), despite writing only 28\% of total memories. Codex accounts for 43 dead (22.7\%) from 54\% of writes. WorkBuddy\_ai accounts for 38 dead (20.1\%) from 13\% of writes.
 
 \begin{table}[h]
 \centering
@@ -205,7 +211,7 @@ Dead memories average 535 characters vs.\ 415 for retrieved memories (Mann-Whitn
 
 \subsection{Retrospective Gate Evaluation}
 
-We simulate three admission gates retrospectively on the production write log:
+Table~\ref{tab:gates} shows the simulation results. We simulate three admission gates retrospectively on the production write log:
 
 \begin{table}[h]
 \centering
@@ -259,7 +265,7 @@ This finding reinforces the case for admission control: if the system cannot lea
 
 The injection bottleneck has a direct analogue in database systems: the buffer pool. A DBMS cannot fit the entire database in memory and must carefully select which pages to cache. Similarly, an agent memory system cannot fit all memories in the context window and must select which memories to inject.
 
-However, the two systems differ in a critical way. Database buffer pools benefit from decades of research into page replacement algorithms (LRU, LFU, ARC, etc.) that exploit temporal and spatial locality in access patterns. Agent memory retrieval has no such established theory: the patterns of memory access in multi-agent systems are not well-characterized, and our power-law finding (Section~\ref{sec:powerlaw}) suggests that a small set of ``hot'' memories carries most of the utility while the long tail is effectively dead weight.
+Table~\ref{tab:analogy} summarizes the analogy. However, the two systems differ in a critical way. Database buffer pools benefit from decades of research into page replacement algorithms (LRU, LFU, ARC, etc.) that exploit temporal and spatial locality in access patterns. Agent memory retrieval has no such established theory: the patterns of memory access in multi-agent systems are not well-characterized, and our power-law finding (Section~\ref{sec:powerlaw}) suggests that a small set of ``hot'' memories carries most of the utility while the long tail is effectively dead weight.
 
 \begin{table}[h]
 \centering

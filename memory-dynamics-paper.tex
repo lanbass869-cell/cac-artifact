@@ -55,6 +55,8 @@ When an agent corrects a previously stored fact, the \texttt{correct()} operatio
 
 \subsection{Production Environment}
 
+Table~\ref{tab:deployment} summarizes the production environment.
+
 Our study covers a single-machine production deployment from 2026-09-13 to 2026-10-14 (32 days, truncated to 30 for analysis). The system serves 15 distinct AI client sources through a shared \texttt{memory.db} file. Each client connects via MCP (Model Context Protocol) and writes memories with source attribution. The deployment runs on a single Windows machine (Intel CPU, 32\,GB RAM) with SQLite in WAL mode for concurrent read-write access.
 
 \begin{table}[h]
@@ -120,7 +122,7 @@ Decision & 413 & 34 & 8.2\% \\
 \label{fig:type-correction}
 \end{figure}
 
-The 11$\times$ difference between procedural and decision correction rates has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
+Figure~\ref{fig:type-correction} and Table~\ref{tab:type-correction} show the 11$\times$ difference between procedural and decision correction rates; this has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
 
 
 \subsection{Survival Analysis}
@@ -135,7 +137,7 @@ We apply Kaplan--Meier survival analysis to quantify memory lifetime, treating c
 \label{fig:km}
 \end{figure}
 
-Procedural memories have a median survival time of 2.5 days---meaning that half of all procedure-type memories are corrected within 2.5 days of creation. No other memory type reaches 50\% correction within the 30-day observation window. This confirms that the 91.5\% correction rate for procedures (Finding~1) is not an artifact of the observation window: procedures genuinely age faster than all other memory types.
+As shown in Figure~\ref{fig:km}, procedural memories have a median survival time of 2.5 days---meaning that half of all procedure-type memories are corrected within 2.5 days of creation. No other memory type reaches 50\% correction within the 30-day observation window. This confirms that the 91.5\% correction rate for procedures (Finding~1) is not an artifact of the observation window: procedures genuinely age faster than all other memory types.
 
 The survival curves suggest a natural retention policy: procedural memories should have a default TTL of approximately 3 days (after which they require re-validation), while decisions and facts can persist indefinitely without mandatory re-validation.
 
@@ -163,7 +165,7 @@ Entity-level temporal flip (filtered) & 0.044\% & 1,857$\times$ \\
 \label{fig:entity-resolution}
 \end{figure}
 
-We sampled 2,000 fact pairs between codex and workbuddy agents that share at least one entity. Of these, 81.7\% exhibit opposite polarity on the shared entity (fact-pair level). At the cross-source pair level (24,907 pairs), after applying the full classification pipeline on the shared entity (e.g., one agent writes ``grok is available'' while another writes ``grok is 403''). However, after applying the full classification pipeline (identifier filtering, temporal validation, multi-clash scoring), only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044\%).
+Table~\ref{tab:clash-rate} and Figure~\ref{fig:entity-resolution} summarize the analysis. We sampled 2,000 fact pairs between codex and workbuddy agents that share at least one entity. Of these, 81.7\% exhibit opposite polarity on the shared entity (fact-pair level). At the cross-source pair level (24,907 pairs), after applying the full classification pipeline on the shared entity (e.g., one agent writes ``grok is available'' while another writes ``grok is 403''). However, after applying the full classification pipeline (identifier filtering, temporal validation, multi-clash scoring), only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044\%).
 
 The 1,857$\times$ reduction between raw clash rate and genuine contradiction rate quantifies the entity-resolution challenge in shared agent memory: most apparent contradictions are artifacts of entity-name collision (two facts mention the same word but discuss different aspects), not genuine disagreements about the same fact. Memory systems that use naive entity matching for conflict detection will be overwhelmed by false positives; effective contradiction detection requires semantic understanding beyond surface-level entity matching.
 
@@ -195,7 +197,7 @@ Total & 349 & 100\% \\
 \label{fig:daily-corrections}
 \end{figure}
 
-The 269 corrections on 2026-09-27 were triggered by a system-mediated \texttt{nrem\_consolidation} process (262 of 269 corrections), not by organic agent-driven corrections. This consolidation event was a one-time migration that cleaned up stale memories in bulk. Excluding this event, the organic correction rate is 2.7 corrections per day over 30 days.
+Table~\ref{tab:clustering} and Figure~\ref{fig:daily-corrections} show the distribution. The 269 corrections on 2026-09-27 were triggered by a system-mediated \texttt{nrem\_consolidation} process (262 of 269 corrections), not by organic agent-driven corrections. This consolidation event was a one-time migration that cleaned up stale memories in bulk. Excluding this event, the organic correction rate is 2.7 corrections per day over 30 days.
 
 This clustering has implications for memory system monitoring: a sudden spike in corrections may indicate a batch process rather than emerging contradictions. Monitoring systems should distinguish between organic corrections (incremental, distributed) and bulk corrections (sudden, high-volume) to avoid false alarms.
 
@@ -204,7 +206,7 @@ This clustering has implications for memory system monitoring: a sudden spike in
 
 The total content of 1,957 active memories is 833,488 characters (mean 426 chars/memory). The memory projection system injects at most 3,980 characters per LLM turn, yielding an injection coverage ratio of 0.48\%. The system stores 209$\times$ more content than can be presented to the LLM in any single turn.
 
-This is analogous to the database buffer pool problem: just as a DBMS cannot fit the entire database in memory and must carefully select which pages to cache, a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject. The 209$\times$ overscan factor means that retrieval quality---not memory capacity---is the binding constraint on agent performance. Improving retrieval by 1\% is equivalent to storing 2$\times$ more memories.
+Figure~\ref{fig:coverage} illustrates the coverage gap. This is analogous to the database buffer pool problem: just as a DBMS cannot fit the entire database in memory and must carefully select which pages to cache, a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject. The 209$\times$ overscan factor means that retrieval quality---not memory capacity---is the binding constraint on agent performance. Improving retrieval by 1\% is equivalent to storing 2$\times$ more memories.
 
 \begin{figure}[h]
 \centering
@@ -222,7 +224,7 @@ Of 349 corrections, 52 (14.9\%) are cross-agent (one agent correcting another ag
 
 The downstream impact of these two correction types is dramatically different. In a controlled experiment (Section~\ref{sec:expanded-dyn}), stale cross-agent context caused answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), while stale self-correction context caused only 0.7\% divergence ($n{=}300$).
 
-This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for approximately 99\% of the measurable downstream harm. The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
+Figure~\ref{fig:asymmetry} contrasts the two types. This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for approximately 99\% of the measurable downstream harm. The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
 
 \begin{figure}[h]
 \centering

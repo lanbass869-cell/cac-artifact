@@ -42,6 +42,8 @@ We construct the cross-source pair set by joining the \texttt{fact\_entities} ta
 
 \subsection{Results}
 
+Table~\ref{tab:unified} reports the unified three-condition accuracy.
+
 \begin{table}[h]
 \centering
 \caption{Cross-source contradiction scan results.}
@@ -229,6 +231,10 @@ SELECT COUNT(*) FROM (
 \label{sec:causal}
 
 \subsection{Counterfactual: What If Supersession Did Not Exist?}
+
+Table~\ref{tab:counterfactual} summarizes the counterfactual analysis.
+
+
 To quantify the causal effect of supersession on the contradiction rate, we reconstruct a counterfactual scenario: what if all 348 supersession events had not been applied, leaving both the old and new facts active?
 
 We replay the 348 supersession events from the \texttt{supersessions} table. For each event, the old fact is restored to \texttt{active} status. We then re-run the contradiction scan on this counterfactual database.
@@ -257,6 +263,10 @@ Supersession prevented & \multicolumn{2}{l}{12 (52\%) prod / 20 (61\%) synthetic
 Without supersession, the synthetic database shows a 61\% increase in contradictions (13 to 33), while the production counterfactual shows 12 additional pairs (109\% increase). Supersession is causally responsible for preventing approximately half to two-thirds of potential cross-agent contradictions.
 
 \subsection{Comparison with Overwrite-Style Stores}
+
+Table~\ref{tab:overwrite} compares production and synthetic results.
+
+
 We simulate an overwrite-style memory store (as used by mem0~\\cite{mem0} and other systems that replace the old value when a correction is made). In this model, supersession replaces the old fact with the new one, but the old fact is \emph{deleted} rather than retained as superseded. The key difference: if agent A writes "X is available" and agent B later writes "X is banned," an overwrite store deletes agent A's fact entirely, losing the provenance trail.
 
 We replay all 348 supersession events in overwrite mode and re-scan:
@@ -288,6 +298,10 @@ Without supersession, the cross-agent contradiction rate would increase from 11 
 \label{sec:eval}
 
 \subsection{Method Specialization: Temporal-Only Detection}
+
+Table~\ref{tab:specialization} breaks down F1 by conflict type.
+
+
 \label{sec:specialization}
 
 To characterize the scope of our detection method, we evaluate the temporal-numeric overlap detector on all three ConflictBank conflict categories, not just temporal conflicts:
@@ -327,6 +341,10 @@ When retrieval returns contradictory results, our post-retrieval filter:
 This is a \emph{post-retrieval} intervention: it does not modify the retrieval algorithm itself, but filters the output before passing to the LLM. The filter is deterministic (no LLM calls) and adds $<1$\,ms overhead.
 
 \subsection{A/B Test}
+
+Table~\ref{tab:ab} shows the A/B comparison.
+
+
 
 \begin{table}[h]
 \centering
@@ -374,7 +392,7 @@ To validate the cross-agent harm asymmetry at scale, we expanded the downstream 
 \subsection{Learned Contradiction Classification}
 \label{sec:learned}
 
-We evaluate four feature representations for a learned contradiction classifier on the ConflictBank test split ($n{=}1{,}020$).
+Table~\ref{tab:feature-ablation} shows the F1 for each representation. We evaluate four feature representations for a learned contradiction classifier on the ConflictBank test split ($n{=}1{,}020$).
 
 \begin{table}[h]
 \centering
@@ -417,6 +435,8 @@ Ground truth is the correct answer, verified by manual inspection in the origina
 
 \subsection{Results}
 
+Table~\ref{tab:supersession} compares DistilBERT against seven baselines.
+
 \begin{table}[h]
 \centering
 \caption{Unified three-condition downstream accuracy (same 11 entities, same LLM, same protocol).}
@@ -439,7 +459,7 @@ When both contradictory facts are present (Condition C1), the LLM answers correc
 
 \subsection{Implications for Other Memory Systems}
 
-The three conditions map directly to real-world memory system architectures:
+Table~\ref{tab:mapping} maps the three experimental conditions to real-world memory system architectures:
 
 \begin{table}[h]
 \centering
@@ -508,7 +528,7 @@ DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceed
 \section{Third-Party Benchmark Comparison}
 \label{sec:thirdparty}
 
-To demonstrate that our supersession and governance mechanisms do not sacrifice retrieval quality, we evaluate MemTether on two third-party benchmarks against published numbers from mem0 and LangMem.
+Table~\ref{tab:thirdparty} summarizes the comparison. To demonstrate that our supersession and governance mechanisms do not sacrifice retrieval quality, we evaluate MemTether on two third-party benchmarks against published numbers from mem0 and LangMem.
 
 \begin{table}[h]
 \centering
@@ -565,6 +585,7 @@ Our results suggest that cross-agent contradiction is a \emph{tail problem} rath
 
 \subsection{Cross-Agent vs.\ Self-Correction: A Critical Asymmetry}
 
+Table~\ref{tab:asymmetry} summarizes the asymmetry. 
 We distinguish two types of supersession events: \emph{cross-agent contradictions} (two different agents write contradictory facts) and \emph{self-corrections} (one agent corrects its own earlier statement). We evaluate downstream impact separately for each type.
 
 \paragraph{Cross-agent contradictions ($n{=}11$).} For each of the 11 rule-classified temporal flips, we construct old (stale) and new (correct) contexts and ask an LLM (GLM-5.3-flash) about the entity's status. Results: new context 9/11 = 82\% correct, old context 1/11 = 9\% correct.
@@ -663,6 +684,10 @@ The underlying system (MemTether) is installable via \texttt{pip install memteth
 All experiments are reproducible from the public artifact at \url{https://github.com/lanbass869-cell/cac-artifact} (Makefile included for one-command reproduction). The underlying system (MemTether) is Apache-2.0 open source at \url{https://github.com/MemTether/MemTether}. Below we list the exact commands and SHA-256 hashes for each data file.
 
 \subsection{Data Files}
+
+Table~\ref{tab:hashes} lists the artifact files with their SHA-256 hashes.
+
+
 
 \begin{table}[h]
 \centering
