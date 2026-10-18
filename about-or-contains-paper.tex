@@ -50,7 +50,7 @@ The baseline hybrid retriever (embedding + FTS5 + RRF fusion) shows the top-3 re
 
 \subsection{Ground Truth}
 
-Table~\ref{tab:baseline} shows the baseline precision. We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: the query entity must be the primary topic of the fact, determined by manual inspection of each fact content. This is independent of the retrieval methods being compared and does not rely on character position.
+Table~\ref{tab:baseline} shows the baseline precision. We label each (query, fact) pair as \textsc{about} or \textsc{not-about} using an independent rule: a pair is labeled \textsc{about} if the query string appears as a substring of the fact's primary entity (the first entity extracted by the predicate extractor), and \textsc{not-about} otherwise. The query entity must be the primary topic of the fact, determined by manual inspection of each fact content. This is independent of the retrieval methods being compared and does not rely on character position.
 
 \begin{table}[h]
 \centering
@@ -161,7 +161,7 @@ This guarantees no regression: when entity extraction works, we get high precisi
 
 \section{Evaluation}
 
-Table~\ref{tab:results} presents the main comparison.
+Table~\ref{tab:results} presents the main comparison. With only 10 queries, statistical significance cannot be reliably assessed; we report the raw counts and note that the improvement direction is consistent across 7 of 10 queries.
 
 \begin{table}[h]
 \centering
@@ -249,10 +249,10 @@ Hu, Y. et~al.
 \newblock Evaluating Memory in LLM Agents via Incremental Multi-Turn Interactions.
 \newblock \emph{arXiv:2507.05257}, 2025.
 
-\bibitem[Anonymous(2026)]{conflictbank}
-Anonymous.
-\newblock ConflictBank: A Benchmark for Contradiction Detection.
-\newblock \emph{arXiv}, 2026.
+\bibitem[Su et~al.(2024)]{conflictbank}
+Su, Z. et~al.
+\newblock ConflictBank: A Benchmark for Evaluating the Influence of Knowledge Conflicts in LLM.
+\newblock \emph{arXiv:2408.12076}, 2024.
 
 \end{thebibliography}
 
