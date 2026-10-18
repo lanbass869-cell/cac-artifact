@@ -518,6 +518,30 @@ python scripts/run_full_benchmark.py --systems memtether,mem0
 python _dev/benchmarks/temporal_full.py
 # Output: _dev/benchmarks/results/temporal_accuracy_results.json
 \end{verbatim}
+\subsection{Version Pinning and Reproducibility Details}
+
+All results in this paper were generated with MemTether v0.1.0a80.post2 (commit \texttt{d1c0f99}, PyPI). The exact pytest summary is: \texttt{534 passed, 4 skipped} (538 total collected). SECURITY.md notes that the package is in alpha status; we recommend pinning to this specific version for reproduction.
+
+\subsection{Cross-System Comparison Protocols}
+
+Table~\ref{tab:headtohead} reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
+
+\subsection{B1 Gate Reproduction}
+
+The B1 gate was evaluated on a synthetic injection benchmark: 50 contradictory writes mixed with 50 non-contradictory writes. The generator script (\texttt{scripts/generate\_b1\_benchmark.py}) uses a fixed seed (42) and produces deterministic ground truth. After the gate processes the benchmark, the verdict-replay script (\texttt{scripts/replay\_b1\_verdicts.py}) asserts 50/50 recall and 50/50 precision.
+
+\subsection{r\textsuperscript{N} Fit Reproduction}
+
+The r\textsuperscript{N} decay fit (Figure~\ref{fig:rn-fit}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
+
+\subsection{Tamper-Detection Reproduction}
+
+The tamper-detection experiment was run using \texttt{examples/audit\_chain\_demo.py} against a copy of the production database (2{,}346 audit entries). The script creates 6 tamper scenarios (5 anchored + 1 unanchored), applies each, and verifies the chain. Output: 5/5 anchored scenarios detected, 1/1 unanchored not detected (expected).
+
+\subsection{Production Data Note}
+
+The production database contains private operational data and is not publicly released. A synthetic data generator with matching schema is provided at the artifact repository. SQL queries for all reported counts are included in the Reproducibility section above; they can be verified against the synthetic database.
+
 
 The production database contains private operational data and is not publicly released; a synthetic data generator with matching schema is provided at \url{https://github.com/lanbass869-cell/cac-artifact} for reproducibility testing.
 
