@@ -21,7 +21,7 @@
 \maketitle
 
 \begin{abstract}
-We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: (1) bi-temporal supersession chains that track when facts are corrected without deleting history, backed by four formal correctness theorems; (2) a hash-chained tamper-evident audit log with browser-verifiable evidence export addressing EU AI Act Article 12 requirements; and (3) an evaluation-layer disclosure checker (evalguard) that verifies benchmark output metadata completeness across five integrity patterns. We identify and empirically validate an exponential decay pattern in multi-session memory retrieval accuracy: on LongMemEval-500, strict accuracy follows $0.702 \times 0.736\^N$ (R\^2=0.85), dropping from 31.2\% for single-session questions. In 26 days of production deployment across 15 agent clients, MemTether processed 31K+ recorded operations with zero data loss and 347 supersession events. A controlled tamper-detection experiment over 2,346 audit entries shows the hash chain detects all 5 of 5 anchored-row modification scenarios. A negative result: schema-grounded SQL retrieval achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. Apache-2.0 open source with 534 passing tests.
+We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: (1) bi-temporal supersession chains that track when facts are corrected without deleting history, backed by four formal correctness theorems; (2) a hash-chained tamper-evident audit log with browser-verifiable evidence export supporting EU AI Act Article 12 record-keeping requirements; and (3) an evaluation-layer disclosure checker (evalguard) that verifies benchmark output metadata completeness across five integrity patterns. We identify and empirically validate an exponential decay pattern in multi-session memory retrieval accuracy: on LongMemEval-500, strict accuracy follows $0.702 \times 0.736\^N$ (R\^2=0.85), dropping from 31.2\% for single-session questions. In 26 days of production deployment across 15 AI client instances, MemTether processed 31K+ recorded operations with zero data loss and 347 supersession events. A controlled tamper-detection experiment over 2,346 audit entries shows the hash chain detects all 5 of 5 anchored-row modification scenarios. A negative result: schema-grounded SQL retrieval achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. Apache-2.0 open source with 534 passing tests. (Production metrics in this paper reflect a 26-day snapshot; the supersession benchmark uses a 30-day snapshot from the same deployment.)
 \end{abstract}
 
 \section{Introduction}
@@ -160,7 +160,7 @@ Anchors are stored in \texttt{audit\_anchors}. Any edit to an anchored row break
 
 \subsection{Threat Model}
 \label{sec:threat}
-The hash-chained audit log addresses a bounded adversary: an attacker with \emph{read-only} access to the database, or an attacker who can modify rows but is unaware of the anchoring mechanism. We explicitly do \emph{not} claim protection against an adversary with full write access who recomputes anchors. Defending against such an adversary requires external checkpointing or hardware attestation, which conflicts with our local-first design goal.
+The hash-chained audit log addresses a bounded adversary: an attacker with \emph{read-only} access to the database, or an attacker who can modify rows but is unaware of the anchoring mechanism. We explicitly do \emph{not} claim protection against an adversary with full write access who recomputes anchors. Defending against such an adversary requires external checkpointing or hardware attestation, which conflicts with our local-first design goal. An adversary-aware attack would attempt to recompute the hash chain after modifying entries; our defense relies on the attacker not discovering the anchoring mechanism (security through obscurity for the anchor locations), which is a documented limitation of any locally-stored audit trail.
 
 Two further boundaries must be stated. First, source attribution is \emph{fail-open} in the open-source distribution: when no source registry (\texttt{agents.json}) is present, an unregistered source string is stored verbatim, and the mechanism is best-effort bookkeeping rather than a security control; deployments with a registry hard-reject unknown sources. Second, retrieval-layer state filtering (superseded and retired rows are excluded from default retrieval; cf.\ memory poisoning attacks~\citep{sleeper,agentpoison}) only neutralizes poisoning of facts that have \emph{already} been corrected or retired; a newly injected false fact from a registered source is immediately active and retrievable. We make this limitation explicit with an executable negative test (test\_F in our test suite) and rely on post-hoc auditability---source attribution, hash-chained anchors, and supersession provenance---rather than write-time interception.
 
@@ -309,10 +309,22 @@ The regex-based Chinese predicate extractor produces no (entity, attribute) pair
 
 
 \subsection{Limitations}
-\paragraph{English predicate extraction.} The regex-based extractor is Chinese-only; English data yields no (entity, attribute) pairs.
-\paragraph{Audit anchoring.} Rows after the last anchor are not covered.
-\paragraph{Single-machine scope.} MemTether is designed for multi-client deployment on a single machine.
-\paragraph{Production window.} 26~days is a bounded observation.
+\paragraph{English predicate extraction.} The regex-based extractor is Chinese-only; English data yields no (entity, attribute) pairs. This limits the SGM and B1 Gate mechanisms to Chinese-language deployments; English generalization is an open problem.
+\paragraph{Audit anchoring.} Rows after the last anchor are not covered. The effective unaudited window is at most 9 entries between anchors. An adversary-aware attack that discovers and recomputes anchors cannot be detected without external checkpointing.
+\paragraph{Single-machine scope.} MemTether is designed for multi-client deployment on a single machine. Multi-machine deployments require a client-server architecture with different governance guarantees.
+\paragraph{Production window.} 26~days is a bounded observation that may not capture seasonal patterns or long-term memory drift.
+\paragraph{Single operator.} All 15 AI client instances are operated by one person. Multi-user deployment would introduce access control, privacy, and conflict-resolution challenges not addressed here.
+\paragraph{Free-tier API.} All LLM calls use free-tier API endpoints, which may differ from paid production APIs in latency, rate limits, and model quality.
+
+\subsection{Fairness Considerations}
+
+MemTether's governance mechanisms have asymmetric effects on different memory types and different agents.
+
+\textbf{Type-aware retention bias.} Procedural memories are corrected at 11$\times$ the rate of decisions (91.5\% vs. 8.2\%), suggesting that a type-aware TTL policy would disproportionately shorten the lifetime of operational knowledge while preserving strategic decisions. This asymmetry is by design (procedures age faster), but it could systematically disadvantage agents whose primary function is operational rather than strategic.
+
+\textbf{Cross-agent power dynamics.} When one agent's correction supersedes another agent's memory, the first agent's worldview is preserved at the expense of the second's. The cross-agent contradiction rate (14.9\% of corrections) and the 73pp downstream harm mean that unmanaged contradictions have real consequences, but the paper does not address which agent's version should win. The current design uses temporal recency (most recent write wins), which may not be the fairest resolution strategy.
+
+\textbf{Access equity.} MemTether requires technical expertise to deploy (NTFS junctions, SQLite management, agents.json configuration). Users without this expertise cannot benefit from local-first governance and must rely on cloud-hosted alternatives that lack audit trails. This creates a two-tier system where technically skilled users get accountable memory while others do not.
 
 \subsection*{Reproducibility Statement}
 All experiments were conducted on MemTether (anonymous submission), running on a single machine (Intel CPU, 32~GB RAM). The system is implemented in Python with SQLite for storage and ONNX Runtime for local embedding inference. LongMemEval-500 evaluation used the same evaluation script across all three systems with the same judge model. The tamper-detection experiment was performed on a copy of the production database. All per-question results, evaluation scripts, and configuration files are available at \url{https://anonymous.4open.science/r/memtether-governed}.
@@ -353,7 +365,7 @@ The 100\% precision is achieved by a strict attribution filter: the gate only fi
 
 \subsection{Motivation}
 
-During our evaluation, we observed that LongMemEval's strict matching criterion (gold answer key terms must appear verbatim in the system output) systematically undercounts correct answers. When an LLM answers ``Three plants: a peace lily, a succulent, and a snake plant'' to a question whose gold answer is ``3,'' strict matching returns False because ``three'' does not substring-match ``3.'' We quantify this bias.
+During our evaluation, we observed that LongMemEval's strict matching criterion (gold answer key terms must appear verbatim in the system output) systematically undercounts correct answers. When an LLM answers ``Three plants: a peace lily, a succulent, and a snake plant'' to a question whose gold answer is ``3,'' strict matching returns False because ``three'' does not substring-match ``3.'' We quantify this bias under oracle retrieval conditions (perfect retrieval with gold evidence sessions); the real-world gap under imperfect retrieval may differ.
 
 \subsection{Method}
 
@@ -436,7 +448,7 @@ Metadata + LogisticRegression & 0.804 & best baseline \\
 \end{table}
 
 \begin{finding}[Supersession Prediction Is Learnable]
-DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
+DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. Per-class precision for the positive (superseded) class is 0.91 and recall is 0.89. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
 \end{finding}
 
 
@@ -549,7 +561,7 @@ The production database contains private operational data and is not publicly re
 
 
 \section{Conclusion}
-We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 26~days of production across 15~agents, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 534 passing tests (4 skipped).
+We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. We identified an empirical exponential decay pattern in multi-session accuracy and discussed its implications. In 26~days of production across 15~AI client instances, the system processed 31K+ operations with zero data loss. Tamper-detection confirmed all 5 anchored-row scenarios detected entries. We reported a negative result on English-language SGM, identifying the absence of a general English predicate extractor as a concrete open problem. Released as Apache-2.0 with 534 passing tests (4 skipped).
 
 \begin{thebibliography}{50}
 
@@ -664,4 +676,5 @@ Chen, Z. et~al.
 \end{thebibliography}
 
 \end{document}
+
 
