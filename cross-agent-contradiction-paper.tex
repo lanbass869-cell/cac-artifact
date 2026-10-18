@@ -25,7 +25,7 @@ When multiple AI agents share a memory store, cross-agent contradictions are ass
 \section{Introduction}
 When multiple AI agents share a persistent memory store, they inevitably write contradictory facts about the same entity. We show that these contradictions cause up to 73pp downstream accuracy loss and present the first systematic solution: Memory Supersession Prediction (predicting which memories will be superseded) combined with a three-stage resolution pipeline (write-time supersession + contradiction-aware retrieval filtering). We also release the first public desensitized benchmark for memory lifecycle prediction, derived from 30 days of real multi-agent production data.
 
-Our contributions: (1)~\textbf{New task}: Memory Supersession Prediction---the first formulation of memory lifecycle prediction as a supervised learning problem, with a fine-tuned DistilBERT achieving macro F1 = 0.946 on our production dataset (Section~\ref{sec:supersession_pred}); (2)~\textbf{New benchmark}: The first public desensitized multi-agent memory dataset with complete supersession chains (2{,}635 records, zero sensitive content, available at the artifact repository); (3)~\textbf{Downstream harm quantification}: Cross-agent contradictions cause 73pp downstream accuracy loss, with a unified three-condition experiment showing that contradictory coexistence causes 45.5\% accuracy (not just 9.1\% stale-only), and our resolution pipeline recovers 87pp (Section~\ref{sec:downstream}, \ref{sec:unified}); (4)~\textbf{Third-party benchmark}: On LoCoMo (1{,}986 questions via MemEval harness), MemTether achieves token-F1 = 0.523 vs.\ mem0's 0.344 (+17.9pp), and on LongMemEval our EAF pipeline achieves 75.7\% vs.\ mem0's 60.2\% (+15.5pp, same hardware, same judge).
+Our contributions: (1)~\textbf{New task}: Memory Supersession Prediction---the first formulation of memory lifecycle prediction as a supervised learning problem, with a fine-tuned DistilBERT achieving macro F1 = 0.947 on our production dataset (Section~\ref{sec:supersession_pred}); (2)~\textbf{New benchmark}: The first public desensitized multi-agent memory dataset with complete supersession chains (2{,}635 records, zero sensitive content, available at the artifact repository); (3)~\textbf{Downstream harm quantification}: Cross-agent contradictions cause 73pp downstream accuracy loss, with a unified three-condition experiment showing that contradictory coexistence causes 45.5\% accuracy (not just 9.1\% stale-only), and our resolution pipeline recovers 87pp (Section~\ref{sec:downstream}, \ref{sec:unified}); (4)~\textbf{Third-party benchmark}: On LoCoMo (1{,}986 questions via MemEval harness), MemTether achieves token-F1 = 0.523 vs.\ mem0's 0.344 (+17.9pp), and on LongMemEval our EAF pipeline achieves 75.7\% vs.\ mem0's 60.2\% (+15.5pp, same hardware, same judge).
 \section{Related Work}
 mem0~\cite{mem0}, Letta~\cite{letta}, and LangMem are single-tenant; cross-agent contradictions cannot arise. Zep~\cite{zep} offers temporal knowledge graphs. MemStrata~\cite{memstrata} maintains bi-temporal validity. TOKI~\cite{toki} formalizes conflict resolution. Memory poisoning attacks have been studied by AgentPoison~\cite{agentpoison}, and Sleeper~\cite{sleeper}; our work addresses contradictions from legitimate multi-agent disagreement rather than malicious attacks. ConflictBank~\cite{conflictbank} provides 7.4M claim-evidence pairs. FEVER~\cite{fever} verifies claims against Wikipedia.
 
@@ -57,8 +57,8 @@ Indexed entities & 7{,}289 \\
 Multi-source entities (nf$\leq$30; see sensitivity note) & 1{,}523 \\
 Cross-source pairs scanned & 24{,}907 \\
 Polarity-clash candidates & 198 \\
-Rule-classified temporal flips & 11 \\
-Contradiction rate (pairs) & 0.044\% \\
+Rule-classified temporal flips & 11 (unfiltered: see scan\_contradictions.py via NF\_MAX env) \\
+Contradiction rate (pairs) & 0.044\% (Wilson 95\% CI: [0.022\%, 0.079\%]) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -308,7 +308,7 @@ To characterize the scope of our detection method, we evaluate the temporal-nume
 
 \begin{table}[h]
 \centering
-\caption{Detection F1 by ConflictBank conflict type (500 samples per category, seed=42).}
+\caption{Detection F1 by ConflictBank conflict type (500 samples per category, seed=42). F1=0.897 in the abstract is the full 2000-sample result; this table shows the 500-sample subset for per-category breakdown. No multiple-comparison correction is applied; the zero F1 for semantic and misinformation categories is structural (the temporal-numeric detector does not target these types).}
 \begin{tabular}{lccc}
 \toprule
 Conflict type & Precision & Recall & F1 \\
@@ -522,7 +522,7 @@ Metadata + LogisticRegression & 0.804 & best baseline \\
 \end{table}
 
 \begin{finding}[Supersession Prediction Is Learnable]
-DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
+DistilBERT achieves macro F1 = 0.947 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
 \end{finding}
 
 \section{Third-Party Benchmark Comparison}
@@ -588,7 +588,7 @@ Our results suggest that cross-agent contradiction is a \emph{tail problem} rath
 Table~\ref{tab:asymmetry} summarizes the asymmetry. 
 We distinguish two types of supersession events: \emph{cross-agent contradictions} (two different agents write contradictory facts) and \emph{self-corrections} (one agent corrects its own earlier statement). We evaluate downstream impact separately for each type.
 
-\paragraph{Cross-agent contradictions ($n{=}11$).} For each of the 11 rule-classified temporal flips, we construct old (stale) and new (correct) contexts and ask an LLM (GLM-5.3-flash) about the entity's status. Results: new context 9/11 = 82\% correct, old context 1/11 = 9\% correct.
+\paragraph{Cross-agent contradictions ($n{=}11$).} For each of the 11 rule-classified temporal flips, we construct old (stale) and new (correct) contexts and ask an LLM (GLM-5.3-flash) about the entity's status. Results: new context 9/11 = 82\% correct (Wilson 95\% CI: [48\%, 98\%]), old context 1/11 = 9\% correct (Wilson 95\% CI: [0\%, 41\%]).
 
 \paragraph{Self-corrections ($n{=}300$).} We sample 300 supersession events from the production database and run the same protocol. Results: correct context 300/300 = 100\%, stale context 298/300 = 99.3\%.
 
@@ -811,3 +811,4 @@ Gu, H. et~al.
 \end{thebibliography}
 
 \end{document}
+
