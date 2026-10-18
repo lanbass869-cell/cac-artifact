@@ -122,13 +122,13 @@ Decision & 413 & 34 & 8.2\% \\
 \label{fig:type-correction}
 \end{figure}
 
-Figure~\ref{fig:type-correction} and Table~\ref{tab:type-correction} show the 11$\times$ difference between procedural and decision correction rates; this has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
+Figure~\ref{fig:type-correction} and Table~\ref{tab:type-correction} show the 11$\times$ difference between procedural and decision correction rates is statistically significant (chi-squared test on 118/129 vs. 34/413 corrected: p < 0.001); this has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
 
 
 \subsection{Survival Analysis}
 \label{sec:survival}
 
-We apply Kaplan--Meier survival analysis to quantify memory lifetime, treating correction (supersession) as the event of interest and treating still-active memories as right-censored observations ($n{=}2{,}309$ total: 349 events, 1{,}960 censored).
+We apply Kaplan--Meier survival analysis to quantify memory lifetime, treating correction (supersession) as the event of interest and treating still-active memories as right-censored observations (we note that retirement-based censoring may be informative, as retired memories are likely correlated with correction risk) ($n{=}2{,}309$ total: 349 events, 1{,}960 censored).
 
 \begin{figure}[h]
 \centering
@@ -139,7 +139,7 @@ We apply Kaplan--Meier survival analysis to quantify memory lifetime, treating c
 
 As shown in Figure~\ref{fig:km}, procedural memories have a median survival time of 2.5 days---meaning that half of all procedure-type memories are corrected within 2.5 days of creation. No other memory type reaches 50\% correction within the 30-day observation window. This confirms that the 91.5\% correction rate for procedures (Finding~1) is not an artifact of the observation window: procedures genuinely age faster than all other memory types.
 
-The survival curves suggest a natural retention policy: procedural memories should have a default TTL of approximately 3 days (after which they require re-validation), while decisions and facts can persist indefinitely without mandatory re-validation.
+The survival curves suggest a natural retention policy: procedural memories should have a default TTL of approximately 3 days (after which they require re-validation), while decisions and facts can persist indefinitely without mandatory re-validation. We note this is a hypothesis derived from observed survival times, not a validated recommendation; testing its effect on retrieval quality is future work.
 
 \subsection{Finding 2: The Entity-Resolution Gap}
 \label{sec:entity-resolution}
@@ -241,7 +241,7 @@ To validate the cross-agent harm asymmetry at scale, we expanded the downstream 
 
 Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering). Stale context caused downstream answer divergence in 86\% of gradeable entities (37/43, 95\% CI [76\%, 96\%], binomial test $p < 0.001$ against the null hypothesis of 50\% divergence).
 
-This confirms the 73pp finding from our companion paper on cross-agent contradictions~\cite{cac} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
+Findings 2 and 5 are reported in full detail in our companion paper on cross-agent contradictions; here we present them as part of the 30-day longitudinal snapshot. This confirms the 73pp finding from our companion paper on cross-agent contradictions~\cite{cac} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
 \section{Discussion}
 \label{sec:discussion}
 
@@ -362,3 +362,4 @@ Anonymous.
 \newblock \emph{arXiv}, 2026.
 \end{thebibliography}
 \end{document}
+
