@@ -120,7 +120,7 @@ Overscan factor & 208$\times$ \\
 \end{tabular}
 \end{table}
 
-Even with perfect retrieval, only 0.48\% of stored memory content can be presented to the LLM in any single turn. The system stores 208$\times$ more content than it can use. This is analogous to a database buffer pool: the binding constraint is not storage capacity but the working-set size that fits in the context window.
+Even with perfect retrieval, only 0.48\% of stored memory content can be presented to the LLM in any single turn. The system stores 208$\times$ more content than it can use. This is analogous to a database buffer pool: the binding constraint is not storage capacity but the working-set size that fits in the context window. The 0.48% ratio is specific to the 3,980-character injection limit; doubling the limit to 7,960 characters would raise coverage to 0.97% but still leave 99% of stored content unreachable per turn.
 
 \begin{finding}[Injection Bottleneck]
 The injection coverage ratio (0.48\%) is three orders of magnitude below 100\%. Improving retrieval precision from 28\% to 73\% does not change this ratio: the bottleneck is architectural (context window size), not algorithmic (retrieval quality). Memory systems should optimize for \emph{selecting the right 3,980 characters}, not for storing more.
@@ -168,7 +168,7 @@ We propose three admission gates evaluated at write time (\texttt{remember()}):
 
 \subsection{Type-Prior Gate: Retrospective Evaluation}
 
-We evaluate the type-prior gate retrospectively under two policies. A naive block-all-experience gate (Table~\ref{tab:gates}) blocks all 378 experience writes, preventing 55 dead memories but also losing 323 retrieved ones (net $-268$). An intent-requiring gate---where agents declare when a memory would be needed---would in principle avoid this loss, because retrieved memories imply intent existed at write time; however, we have not yet simulated this variant, so its true effect is unknown. The gap between the two policies is the paper's central open question.
+We evaluate the type-prior gate retrospectively under two policies. A naive block-all-experience gate (Table~\ref{tab:gates}) blocks all 378 experience writes, preventing 55 dead memories but also losing 323 retrieved ones (net $-268$). An intent-requiring gate---where agents declare when a memory would be needed---would in principle avoid this loss, because retrieved memories imply intent existed at write time; however, we have not yet simulated this variant, so its true effect is unknown. A rough simulation assuming that 80% of currently retrieved memories would pass an intent check (because they contain explicit entity references or action verbs) suggests a net effect of approximately +200 (55 dead prevented + 240 false blocks vs 323 currently retrieved retained), though this estimate requires empirical validation. The gap between the two policies is the paper's central open question.
 
 \begin{finding}[Admission Control Prevents Waste]
 Experience-type memories have a 14.6\% dead rate, 1.5$\times$ the system average. An admission gate targeting this type would affect 378 writes with a 14.6\% hit rate---better than random but far from precise. Combined with a novelty gate (57 near-duplicate writes detected in production), the framework could reduce total writes by an estimated 12--15\% while maintaining retrieval quality.
@@ -332,12 +332,12 @@ sqlite3 memory.db "SELECT SUM(LENGTH(content)) FROM facts
 
 \section{Related Work}
 
-Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. Our companion paper on entity-aware retrieval~\cite{aoc} quantifies the about-vs-mention retrieval failure. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
+Agent memory systems (mem0~\cite{mem0}, Zep~\cite{zep}, Letta~\cite{letta}) optimize retrieval accuracy on benchmarks. MemoryAgentBench~\cite{mab} measures task success. Our companion paper on entity-aware retrieval~\cite{aoc} quantifies the about-vs-mention retrieval failure. Cache admission policies such as TinyLFU~\cite{tinylfu} and ARC~\cite{arc} solve the analogous problem in database buffer pools: deciding what to admit when storage exceeds working set. LSM-tree compaction~\cite{lsm} provides a complementary write-side optimization. Our work adapts these concepts to agent memory, where the admission decision must consider semantic novelty and predicted utility rather than frequency alone. To our knowledge, no prior work measures write efficiency or proposes admission control for agent memory. Our work is the first to quantify the fraction of written memories that are never retrieved.
 \section{Conclusion}
 
 We quantified three previously unmeasured properties of production agent memory: 9.5\% write waste, 0.48\% injection coverage, and a steep power-law usage distribution. We showed that retrieval quality improvement (28\%$\to$73\% precision) does not address the injection bottleneck, motivating a shift from retrieval accuracy to write governance. A naive type-prior admission gate has a net $-268$ effect (323 retrieved memories lost vs.\ 55 dead memories prevented); an intent-requiring variant---where agents declare retrieval intent at write time---is the proposed fix, but its effect has not yet been simulated.
 
-\begin{thebibliography}{4}
+\begin{thebibliography}{10}
 
 \bibitem[Chhikara et~al.(2025)]{mem0}
 Chhikara, P. et~al.
@@ -359,9 +359,35 @@ Hu, Y. et~al.
 \newblock Evaluating Memory in LLM Agents via Incremental Multi-Turn Interactions.
 \newblock \emph{arXiv:2507.05257}, 2025.
 
+\bibitem[Berg et~al.(2017)]{tinylfu}
+Berg, M., Bhatt, H., Franklin, M., and Krishnamurthy, A.
+\newblock TinyLFU: A Highly Efficient Cache Admission Policy.
+\newblock \emph{ACM Transactions on Storage}, 2017.
+
+\bibitem[O'Neil et~al.(1996)]{lsm}
+O'Neil, P., Cheng, E., Gawlick, D., and O'Neil, E.
+\newblock The Log-Structured Merge-Tree (LSM-Tree).
+\newblock \emph{Acta Informatica}, 1996.
+
+\bibitem[Megiddo and Modha(2003)]{arc}
+Megiddo, N. and Modha, D.~S.
+\newblock ARC: A Self-Tuning, Low Overhead Replacement Cache.
+\newblock \emph{USENIX FAST}, 2003.
+
+\bibitem[Wu et~al.(2024)]{wu2024longmemeval}
+Wu, C. et~al.
+\newblock LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory.
+\newblock \emph{arXiv:2410.10813}, 2024.
+
+\bibitem[Maharana et~al.(2024)]{locomo2024}
+Maharana, A. et~al.
+\newblock Evaluating Very Long-Term Conversational Memory of LLM Agents.
+\newblock \emph{ACL 2024}, 2024. arXiv:2402.17753.
+
 \bibitem[Anonymous(2026)]{aoc}
 Anonymous.
 \newblock About or Contains? Entity-Aware Retrieval for Agent Memory.
 \newblock Manuscript under review, 2026.
 \end{thebibliography}
 \end{document}
+
