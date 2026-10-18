@@ -49,18 +49,18 @@ AI agents that interact with users over extended periods accumulate contextual k
 
 \begin{enumerate}
 \item \textbf{Temporal correctness.} When an agent corrects a previously stored fact, the old value must be tracked as superseded with explicit validity boundaries, not silently deleted or retained. MemStrata~\cite{memstrata} pioneered bi-temporal ledgers; our contribution is the integration of bi-temporal supersession with hash-chained audit and multi-client file-level sharing in a single open-source system.
-\item \textbf{Tamper-evident auditability.} For compliance (EU AI Act Art.~12~\cite{euaiact}), debugging, and trust, memory operations should be verifiable. No prior agent memory system provides a hash-chained audit log with self-contained evidence export in the memory layer.
+\item \textbf{Tamper-evident auditability.} For compliance (EU AI Act Art.~12~\cite{euaiact}), debugging, and trust, memory operations should be verifiable. Among the systems surveyed in Section~\ref{sec:related}, none combines a hash-chained audit log with self-contained browser-verifiable evidence export in the memory layer.
 \item \textbf{Multi-client deployment.} Multiple AI clients on the same machine should share memory without cloud synchronization. MemTether achieves this through NTFS junctions (Windows) or symbolic links (macOS/Linux) pointing to a single physical SQLite database.
 \end{enumerate}
 
-We present MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. In 30~days of production across 15~agents, the system processed 31K+ operations with zero data loss. We additionally identify an empirical exponential decay pattern in multi-session accuracy ($r^N$ barrier) and quantify the downstream impact of cross-agent memory contradictions.
+We present MemTether, a local-first agent memory system that addresses all three requirements simultaneously. The system has been in continuous production for 30~days, during which 15~agent clients wrote 2,346 audit entries and accumulated 31K+ read operations with zero data loss. Beyond the core system, we identify an empirical exponential decay pattern in multi-session accuracy and quantify the downstream impact of cross-agent memory contradictions.
 
 Our contributions:
 \begin{enumerate}
 \item \textbf{Formal model} of bi-temporal supersession with four proven correctness properties (gap freedom, no overlap, cycle freedom, concurrency safety).
 \item \textbf{Hash-chained tamper-evident audit log} with browser-verifiable evidence export, validated on 2{,}346 production audit entries (5/5 anchored-row scenarios detected).
 \item \textbf{Causal quantification} of cross-agent memory contradictions: 73pp downstream accuracy loss, with a 1{,}857$\times$ entity-resolution gap between raw polarity clash and genuine contradiction.
-\item \textbf{Memory Supersession Prediction}: first formulation of memory lifecycle as supervised learning (DistilBERT, macro F1=0.947).
+\item \textbf{Memory Supersession Prediction}: a supervised-learning formulation of memory lifecycle prediction (DistilBERT, macro F1=0.947).
 \item \textbf{Comprehensive evaluation} on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), ConflictBank (F1=0.897), and a 30-day production deployment study.
 \end{enumerate}
 
@@ -144,6 +144,17 @@ To test robustness against noise, we introduce 300+ distractor facts unrelated t
 
 
 
+
+\subsection{Q-Value Learning}
+Each fact carries a Q-value (REAL, default 0.5) intended to rank memories by learned usefulness. Memories that are corrected or retired receive a negative reward; retrieved memories receive a positive reward. However, 74\% of active memories retain the default Q-value after 30 days, indicating that the learning mechanism fires too infrequently to differentiate memory quality. The primary cause is architectural: positive reward requires an explicit retrieval event, but the injection bottleneck (Finding 4) means most memories are never retrieved and thus never receive positive feedback. We retain the mechanism for future use but do not claim it as a contribution.
+
+\subsection{Write-Time Conflict Interception (B1 Gate)}
+
+MemTether implements a deterministic write-time conflict interception gate (B1) that parses each incoming remember() call for attribute--value assertions of the form entity attr is value (Chinese copula construction), then compares against all active facts linked to the same entity via the fact\_entities index.
+
+On a synthetic benchmark with guaranteed ground truth (10 entities, 3 attributes, 50 conflicting writes, 80 near-miss non-conflicts), the gate achieves 100\% recall and 100\% precision (zero false positives across all four near-miss types: Type A redundant writes, Type B new entities, Type C exact duplicates, Type D copula-free patterns). A dev set of 20 unseen entities with 4 alternative sentence patterns confirms generalization at 20/20. On a real SQLite database with file I/O, the gate adds p50 = 0.037\,ms per call (n=1,000).
+
+The gate detects value-flip conflicts only; it does not address semantic contradictions, temporal staleness, or entity-resolution errors. The parser is Chinese-only. The benchmark is synthetic; real-world conflict density is expected to be lower (our production database contains zero uncorrected contradictions after 30 days of active supersession).
 
 \section{Formal Properties of Bi-Temporal Supersession}
 \label{sec:formal}
@@ -266,7 +277,7 @@ The asymmetry arises because self-corrections typically update details within th
 \subsection{Method Specialization: Temporal-Only Detection}
 \label{sec:specialization}
 
-To characterize the scope of our detection method, we evaluate the temporal-numeric overlap detector on all three ConflictBank conflict categories, not just temporal conflicts:
+Table~\ref{tab:specialization} breaks down detection F1 by conflict type. To characterize the scope of our detection method, we evaluate the temporal-numeric overlap detector on all three ConflictBank conflict categories, not just temporal conflicts:
 
 \begin{table}[h]
 \centering
@@ -332,7 +343,7 @@ Decision & 413 & 34 & 8.2\% \\
 
 \noindent\textbf{Data scope note.} This paper uses three overlapping production datasets: (1)~the full fact table (2,590 typed records; Table~\ref{tab:type-correction}), (2)~the 30-day survival cohort (2,309 records: 349 correction events + 1,960 right-censored; Figure~\ref{fig:km}), and (3)~the desensitized supersession benchmark (2,635 records: 386 positive + 2,249 negative; Table~\ref{tab:supersession}). The three scopes differ because the fact table includes records without a type label (excluded from Dataset~1), the survival cohort is restricted to the 30-day observation window, and the benchmark includes retired records that fall outside the active-fact retrieval set.
 
-The 11$\times$ difference between procedural and decision correction rates has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
+Figure~\ref{fig:type-correction} shows the 11$\times$ difference between procedural and decision correction rates has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
 
 
 \subsection{Survival Analysis}
@@ -347,7 +358,7 @@ We apply Kaplan--Meier survival analysis to quantify memory lifetime, treating c
 \label{fig:km}
 \end{figure}
 
-Procedural memories have a median survival time of 2.5 days---meaning that half of all procedure-type memories are corrected within 2.5 days of creation. No other memory type reaches 50\% correction within the 30-day observation window. This confirms that the 91.5\% correction rate for procedures (Finding~1) is not an artifact of the observation window: procedures genuinely age faster than all other memory types.
+As shown in Figure~\ref{fig:km}, procedural memories have a median survival time of 2.5 days---meaning that half of all procedure-type memories are corrected within 2.5 days of creation. No other memory type reaches 50\% correction within the 30-day observation window. This confirms that the 91.5\% correction rate for procedures (Finding~1) is not an artifact of the observation window: procedures genuinely age faster than all other memory types.
 
 The survival curves suggest a natural retention policy: procedural memories should have a default TTL of approximately 3 days (after which they require re-validation), while decisions and facts can persist indefinitely without mandatory re-validation.
 
@@ -375,9 +386,9 @@ Entity-level temporal flip (filtered) & 0.044\% & 1,857$\times$ \\
 \label{fig:entity-resolution}
 \end{figure}
 
-We sampled 2,000 fact pairs between codex and workbuddy agents that share at least one entity. Of these, 81.7\% exhibit opposite polarity on the shared entity (fact-pair level). At the cross-source pair level (24,907 pairs), after applying the full classification pipeline on the shared entity (e.g., one agent writes ``grok is available'' while another writes ``grok is 403''). However, after applying the full classification pipeline (identifier filtering, temporal validation, multi-clash scoring), only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044\%).
+Table~\ref{tab:clash-rate} summarizes both levels. We sampled 2,000 fact pairs between codex and workbuddy agents that share at least one entity. Of these, 81.7\% exhibit opposite polarity on the shared entity (fact-pair level). At the cross-source pair level (24,907 pairs), after applying the full classification pipeline on the shared entity (e.g., one agent writes ``grok is available'' while another writes ``grok is 403''). However, after applying the full classification pipeline (identifier filtering, temporal validation, multi-clash scoring), only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044\%).
 
-The 1,857$\times$ reduction between raw clash rate and genuine contradiction rate quantifies the entity-resolution challenge in shared agent memory: most apparent contradictions are artifacts of entity-name collision (two facts mention the same word but discuss different aspects), not genuine disagreements about the same fact. Memory systems that use naive entity matching for conflict detection will be overwhelmed by false positives; effective contradiction detection requires semantic understanding beyond surface-level entity matching.
+Figure~\ref{fig:entity-resolution} visualizes the 1,857$\times$ reduction between raw clash rate and genuine contradiction rate. This gap quantifies the entity-resolution challenge in shared agent memory: most apparent contradictions are artifacts of entity-name collision (two facts mention the same word but discuss different aspects), not genuine disagreements about the same fact. Memory systems that use naive entity matching for conflict detection will be overwhelmed by false positives; effective contradiction detection requires semantic understanding beyond surface-level entity matching.
 
 \subsection{Finding 3: Correction Events Cluster}
 \label{sec:clustering}
@@ -407,7 +418,7 @@ Total & 349 & 100\% \\
 \label{fig:daily-corrections}
 \end{figure}
 
-The 269 corrections on 2026-09-27 were triggered by a system-mediated \texttt{nrem\_consolidation} process (262 of 269 corrections), not by organic agent-driven corrections. This consolidation event was a one-time migration that cleaned up stale memories in bulk. Excluding this event, the organic correction rate is 2.7 corrections per day over 30 days.
+Table~\ref{tab:clustering} and Figure~\ref{fig:daily-corrections} show the correction distribution. The 269 corrections on 2026-09-27 were triggered by a system-mediated \texttt{nrem\_consolidation} process (262 of 269 corrections), not by organic agent-driven corrections. This consolidation event was a one-time migration that cleaned up stale memories in bulk. Excluding this event, the organic correction rate is 2.7 corrections per day over 30 days.
 
 This clustering has implications for memory system monitoring: a sudden spike in corrections may indicate a batch process rather than emerging contradictions. Monitoring systems should distinguish between organic corrections (incremental, distributed) and bulk corrections (sudden, high-volume) to avoid false alarms.
 
@@ -416,7 +427,7 @@ This clustering has implications for memory system monitoring: a sudden spike in
 
 The total content of 1,957 active memories is 833,488 characters (mean 426 chars/memory). The memory projection system injects at most 3,980 characters per LLM turn, yielding an injection coverage ratio of 0.48\%. The system stores 209$\times$ more content than can be presented to the LLM in any single turn.
 
-This is analogous to the database buffer pool problem: just as a DBMS cannot fit the entire database in memory and must carefully select which pages to cache, a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject. The 209$\times$ overscan factor means that retrieval quality---not memory capacity---is the binding constraint on agent performance. Improving retrieval by 1\% is equivalent to storing 2$\times$ more memories.
+Figure~\ref{fig:coverage} illustrates this coverage gap. This is analogous to the database buffer pool problem: just as a DBMS cannot fit the entire database in memory and must carefully select which pages to cache, a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject. The 209$\times$ overscan factor means that retrieval quality---not memory capacity---is the binding constraint on agent performance. Improving retrieval by 1\% is equivalent to storing 2$\times$ more memories.
 
 \begin{figure}[h]
 \centering
@@ -434,9 +445,9 @@ Of 349 corrections, 52 (14.9\%) are cross-agent (one agent correcting another ag
 
 The downstream impact of these two correction types is dramatically different. In a controlled experiment (Section~\ref{sec:expanded-dyn}), stale cross-agent context caused answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), while stale self-correction context caused only 0.7\% divergence ($n{=}300$).
 
-Note on metrics: the 73pp figure (Section~\ref{sec:asymmetry}, Table~\ref{tab:asymmetry}) measures the accuracy drop from correct to stale context within a single LLM QA protocol ({=}11$); the 86\% figure measures the rate at which stale context causes a \emph{different} answer compared to correct context on the expanded {=}43$ cohort. Both support the same conclusion (cross-agent staleness is the dominant failure mode) but they measure different aspects: absolute accuracy loss vs.\ answer divergence rate.
+Note on metrics: the 73pp figure (Section~\ref{sec:asymmetry}, Table~\ref{tab:asymmetry}) measures the accuracy drop from correct to stale context within a single LLM QA protocol ($n{=}11$); the 86\% figure measures the rate at which stale context causes a \emph{different} answer compared to correct context on the expanded $n{=}43$ cohort. Both support the same conclusion (cross-agent staleness is the dominant failure mode) but they measure different aspects: absolute accuracy loss vs.\ answer divergence rate.
 
-This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for approximately 99\% of the measurable downstream harm. The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
+Figure~\ref{fig:asymmetry} contrasts the two types. This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for the overwhelming majority of the measurable downstream harm (86\% divergence rate for cross-agent vs. 0.7\% for self-corrections). The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
 
 \begin{figure}[h]
 \centering
@@ -505,6 +516,8 @@ DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceed
 
 
 \section{Evaluation Summary}
+
+We evaluate MemTether on four public benchmarks and one production deployment. LongMemEval~\cite{wu2024longmemeval} is run on the oracle 500-question subset with both strict matching and LLM-as-judge scoring. The full EAF pipeline (ECO+SSI+AFN) achieves 62.4\% strict and 68.8\% judge overall; on the multi-session subset, judge accuracy reaches 79.7\% (106/133), exceeding mem0's multi-session judge 52.4\% by 27.3pp (multi-session number measured from our own runs of mem0 v2.0.20; the published 60.2\% is the overall judge score). LoCoMo~\cite{locomo} measures multi-hop reasoning across 10 long conversations: MemTether achieves 0.523 token-F1 vs mem0's 0.344. ConflictBank~\cite{conflictbank} tests contradiction detection: the temporal-numeric overlap detector achieves F1=0.897 (full 2000-sample evaluation). The supersession prediction task is described in Section~\ref{sec:supersession_pred}. Tamper detection is described in Section~\ref{sec:tamper}.
 \label{sec:judge}
 
 \begin{table}[h]
@@ -516,7 +529,7 @@ Benchmark & Metric & Score & Comparison \\
 \midrule
 LongMemEval (strict) & strict matching & 62.4\% & --- \\
 LongMemEval (judge) & LLM-as-judge & 68.8\% & mem0: 60.2\% \\
-LongMemEval (multi-session) & judge & 79.7\% & mem0: 60.2\% \\
+LongMemEval (multi-session) & judge & 79.7\% & mem0: 52.4\% \\
 LoCoMo & token-F1 & 0.523 & mem0: 0.344 \\
 ConflictBank & F1 & 0.897 & LLM: 0.113 \\
 Supersession Prediction & macro F1 & 0.947 & best baseline: 0.804 \\
@@ -532,7 +545,7 @@ Cross-agent harm & downstream loss & 73pp & self-corr: 0.7pp \\
 
 \subsection{The $r^N$ Barrier: Mathematical Bound on Multi-Session Retrieval}
 
-When the answer to a question is distributed across $N$ sessions and each fact is retrieved with probability $r$, the probability of retrieving all $N$ facts is $r^N$. For $N=10$ and $r=0.9$, this yields $r^N = 0.35$ --- a mathematical upper bound that no embedding-based retrieval system can overcome. We validated this experimentally on LongMemEval (Pearson $r = -0.135$, $p < 0.001$ on LoCoMo).
+When the answer to a question is distributed across $N$ sessions and each fact is retrieved with probability $r$, the probability of retrieving all $N$ facts is $r^N$. For $N=10$ and $r=0.9$, this yields $r^N = 0.35$ --- a mathematical upper bound that no embedding-based retrieval system can overcome. We validated this experimentally on LongMemEval: the fitted exponential decay model has a base rate of $r = 0.736$, while the linear Pearson correlation between session count and accuracy is $r = -0.135$ ($p < 0.001$ on LoCoMo), reflecting the monotonic but non-exponential nature of the aggregate trend.
 
 \subsection{Evaluation Metric Bias: Strict Matching Undercounts}
 
@@ -563,6 +576,16 @@ Of the 349 corrections in our production deployment, cross-agent contradictions 
 
 We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. In 30~days of production across 15~agents, the system processed 31K+ operations with zero data loss. We identified an empirical exponential decay pattern in multi-session accuracy and quantified the downstream impact of cross-agent memory contradictions (73pp loss, specific to cross-agent conflicts). We evaluated on four public benchmarks and released the system as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a complete reproducibility artifact.
 
+
+
+\section*{Declaration of Competing Interest}
+The author declares no competing financial or personal interests that could have influenced this work.
+
+\section*{CRediT Authorship Contribution Statement}
+\textbf{[Author]}: Conceptualization, Methodology, Software, Investigation, Data Curation, Writing -- Original Draft, Writing -- Review \& Editing, Visualization.
+
+\section*{Data Availability}
+The production database contains private operational data and is not publicly released. A synthetic data generator, evaluation scripts, and benchmark datasets are available at \url{https://github.com/lanbass869-cell/cac-artifact}.
 \section{Reproducibility}
 \label{sec:repro}
 
@@ -602,15 +625,15 @@ All results in this paper were generated with MemTether v0.1.0a80.post2 (commit 
 
 \subsection{Cross-System Comparison Protocols}
 
-Table~1 reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
+Table~1 reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available. LangMem returned NOT\_FOUND for 79.2\% of questions, indicating a structural bottleneck in its extraction pipeline rather than a retrieval failure; we report this number for completeness rather than as a meaningful baseline.
 
 \subsection{B1 Gate Reproduction}
 
-The B1 gate was evaluated on a synthetic injection benchmark: 50 contradictory writes mixed with 50 non-contradictory writes. The generator script (\texttt{scripts/generate\_b1\_benchmark.py}) uses a fixed seed (42) and produces deterministic ground truth. After the gate processes the benchmark, the verdict-replay script (\texttt{scripts/replay\_b1\_verdicts.py}) asserts 50/50 recall and 50/50 precision.
+The B1 gate can be reproduced on a simplified synthetic injection benchmark: 50 contradictory writes mixed with 50 non-contradictory writes (the full benchmark reported in Section 3.10 uses 50 conflicting + 80 near-miss + 20 dev set entities). The generator script (\texttt{scripts/generate\_b1\_benchmark.py}) uses a fixed seed (42) and produces deterministic ground truth. After the gate processes the benchmark, the verdict-replay script (\texttt{scripts/replay\_b1\_verdicts.py}) asserts 50/50 recall and 50/50 precision.
 
 \subsection{r\textsuperscript{N} Fit Reproduction}
 
-The r\textsuperscript{N} decay fit (Section~\ref{sec:crosssys}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
+The r\textsuperscript{N} decay fit (Section~\ref{sec:crosssys}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters (base rate $r = 0.736$, initial accuracy $a = 0.702$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
 
 \subsection{Tamper-Detection Reproduction}
 
@@ -678,18 +701,18 @@ Lacasse, S., Hatier, J., and Baker, A.
 \newblock MOSS: Memory-Orchestrated Semantic System -- An Auditable Agentic Memory Architecture.
 \newblock \emph{arXiv:2607.04391}, 2026.
 
-\bibitem[TraceKit(2026)]{tracekit}
-Anonymous.
+\bibitem[Ghosh et~al.(2026)]{tracekit}
+Ghosh, B. et~al.
 \newblock TraceKit: Tamper-Evident Intent-Reasoning-Action Auditing for Autonomous Coding Agents.
 \newblock \emph{arXiv:2609.35659}, 2026.
 
-\bibitem[Janus(2026)]{janus}
-Anonymous.
+\bibitem[Arslan et~al.(2026)]{janus}
+Arslan, M. et~al.
 \newblock Janus: Evidence-Before-Effect Sagas and Offline-Verifiable Provenance for Agentic LLMs.
 \newblock \emph{arXiv:2609.38266}, 2026.
 
-\bibitem[MutMem(2026)]{mutmem}
-Anonymous.
+\bibitem[Saidi et~al.(2026)]{mutmem}
+Saidi, W. et~al.
 \newblock MutMem: Cryptographically Authorized Mutation in Persistent Agent Memory.
 \newblock \emph{arXiv:2608.02843}, 2026.
 
@@ -699,12 +722,12 @@ Lyu, L.
 \newblock \emph{GitHub}, 2026.
 
 
-\bibitem[AuditLME(2026)]{auditlme}
+\bibitem[Chanhnourack(2026)]{auditlme}
 Chanhnourack, C. J.
 \newblock Auditing Long-Term Memory Evaluation: Repeated Judging, Reader Variation, and Negative Controls.
 \newblock \emph{arXiv:2609.38021}, 2026.
 
-\bibitem[MemLeak(2026)]{memleak}
+\bibitem[Mudgal et~al.(2026)]{memleak}
 Mudgal, P. et~al.
 \newblock MemLeak: Cross-User Semantic Leakage in Multi-Tenant AI Agent Memory.
 \newblock \emph{arXiv:2610.04195}, 2026.
@@ -716,39 +739,50 @@ European Parliament and Council.
 
 
 
-\bibitem[Sleeper(2025)]{sleeper}
-Anonymous.
+\bibitem[Pulipaka et~al.(2025)]{sleeper}
+Pulipaka, S. et~al.
 \newblock Sleeper Memory Poisoning: Persistent Backdoors in LLM Agent Memory.
 \newblock \emph{arXiv:2605.15338}, 2025.
 
-\bibitem[MemSim(2024)]{memsim}
-Anonymous.
+\bibitem[Zhang et~al.(2024)]{memsim}
+Zhang, Z. et~al.
 \newblock MemSim: A Bayesian Simulator for Evaluating Memory Systems with Generated Data.
 \newblock \emph{arXiv:2409.20163}, 2024.
 
-\bibitem[AgentPoison(2024)]{agentpoison}
-Anonymous.
-\newblock AgentPoison: Red-Teaming Agent Memory via Poisoning.
-\newblock \emph{NeurIPS 2024}, 2024.
+\bibitem[Chen et~al.(2024)]{agentpoison}
+Chen, Z. et~al.
+\newblock AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases.
+\newblock \emph{NeurIPS 2024}, 2024. arXiv:2407.12784.
 
-\bibitem[MemOS(2025)]{memos}
+\bibitem[Li et~al.(2025)]{memos}
 Li, Z. et~al.
 \newblock MemOS: An Operating System for Memory-Augmented Generation (MAG) in Large Language Models.
 \newblock \emph{arXiv:2505.22101}, 2025.
 
-\bibitem[MemProbe(2026)]{memprobe}
-Anonymous.
+\bibitem[Ding et~al.(2026)]{memprobe}
+Ding, J. et~al.
 \newblock Probing Stability-Plasticity Tradeoffs in Agent Memory through Cognitive Experimental Paradigms.
 \newblock \emph{arXiv:2609.30558}, 2026.
 
-\bibitem[MemoryLACE(2026)]{memorylace}
-Anonymous.
+\bibitem[Yacoubi et~al.(2026)]{memorylace}
+Yacoubi, M. et~al.
 \newblock MemoryLACE: Memory Lifecycle-Aware Consolidation and Evidence Retrieval.
 \newblock \emph{arXiv:2609.03201}, 2026.
+
+\bibitem[Su et~al.(2024)]{conflictbank}
+Su, Z. et~al.
+\newblock ConflictBank: A Benchmark for Evaluating the Influence of Knowledge Conflicts in LLM.
+\newblock \emph{arXiv:2408.12076}, 2024.
+
+\bibitem[Maharana et~al.(2024)]{locomo}
+Maharana, A. et~al.
+\newblock Evaluating Very Long-Term Conversational Memory of LLM Agents.
+\newblock \emph{ACL 2024}, 2024. arXiv:2402.17753.
 
 \end{thebibliography}
 
 \end{document}
+
 
 
 
