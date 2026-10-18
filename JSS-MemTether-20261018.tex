@@ -28,7 +28,7 @@
 \maketitle
 
 \begin{abstract}
-AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: bi-temporal supersession chains backed by four formal correctness theorems; a hash-chained tamper-evident audit log with browser-verifiable evidence export addressing EU AI Act Article~12 requirements; and file-level pointers enabling 23 AI client adapters to share one physical database. In a 30-day production deployment serving 15 agents (31K+ operations), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ($n{=}11$ discovery; $n{=}43$ expanded, 57\% gradeable)---an asymmetry self-corrections do not exhibit (0.7pp). We evaluate on LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897), and introduce Memory Supersession Prediction (DistilBERT, macro F1=0.947). Apache-2.0 open source with 534 passing tests.
+AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: bi-temporal supersession chains backed by four formal correctness theorems; a hash-chained tamper-evident audit log with browser-verifiable evidence export addressing EU AI Act Article~12 requirements; and file-level pointers enabling 23 AI client adapters to share one physical database. In a 30-day production deployment serving 15 agents (31K+ operations), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ($n{=}11$ discovery; $n{=}43$ expanded, 57\% gradeable)---an asymmetry self-corrections do not exhibit (0.7pp). We evaluate on LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897 on temporal conflicts), and introduce Memory Supersession Prediction (DistilBERT, macro F1=0.947). Apache-2.0 open source with 534 passing tests.
 \end{abstract}
 
 \noindent\textbf{Highlights:}
@@ -42,6 +42,8 @@ AI agents accumulate persistent memory across sessions, but existing systems eit
 
 \noindent\textbf{Keywords:} Agent memory; bi-temporal database; hash chain; auditability; multi-client; local-first
 
+\noindent\textit{Note: LongMemEval scores (62.4\% strict, 68.8\% judge) come from the full EAF pipeline (ECO+SSI+AFN, 500Q rerun with LLM-as-judge). A standalone reproduction path without ECO curation yields 58.3\% strict; both are valid measurements of different pipeline configurations (see Section~\ref{sec:repro} for details).}
+
 \section{Introduction}
 \label{sec:intro}
 
@@ -53,7 +55,7 @@ AI agents that interact with users over extended periods accumulate contextual k
 \item \textbf{Multi-client deployment.} Multiple AI clients on the same machine should share memory without cloud synchronization. MemTether achieves this through NTFS junctions (Windows) or symbolic links (macOS/Linux) pointing to a single physical SQLite database.
 \end{enumerate}
 
-We present MemTether, a local-first agent memory system that addresses all three requirements simultaneously. The system has been in continuous production for 30~days, during which 15~agent clients wrote 2,346 audit entries and accumulated 31K+ read operations with zero data loss. Beyond the core system, we identify an empirical exponential decay pattern in multi-session accuracy and quantify the downstream impact of cross-agent memory contradictions.
+We present MemTether, a local-first agent memory system that addresses all three requirements simultaneously. The system has been in continuous production for 30~days, during which 15~agent clients wrote 2,346 audit entries and accumulated 31K+ read operations with zero data loss (verified by daily \texttt{integrity\_check} and successful \texttt{verify\_chain()} recomputation). Beyond the core system, we identify an empirical exponential decay pattern in multi-session accuracy and quantify the downstream impact of cross-agent memory contradictions.
 
 Our contributions:
 \begin{enumerate}
@@ -61,7 +63,7 @@ Our contributions:
 \item \textbf{Hash-chained tamper-evident audit log} with browser-verifiable evidence export, validated on 2{,}346 production audit entries (5/5 anchored-row scenarios detected).
 \item \textbf{Causal quantification} of cross-agent memory contradictions: 73pp downstream accuracy loss, with a 1{,}857$\times$ entity-resolution gap between raw polarity clash and genuine contradiction.
 \item \textbf{Memory Supersession Prediction}: a supervised-learning formulation of memory lifecycle prediction (DistilBERT, macro F1=0.947).
-\item \textbf{Comprehensive evaluation} on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), ConflictBank (F1=0.897), and a 30-day production deployment study.
+\item \textbf{Comprehensive evaluation} on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), ConflictBank (F1=0.897 on temporal conflicts), and a 30-day production deployment study.
 \end{enumerate}
 
 MemTether is released as Apache-2.0 open source at \url{https://github.com/MemTether/MemTether} (PyPI: \texttt{pip install memtether}).
@@ -146,7 +148,7 @@ To test robustness against noise, we introduce 300+ distractor facts unrelated t
 
 
 \subsection{Q-Value Learning}
-Each fact carries a Q-value (REAL, default 0.5) intended to rank memories by learned usefulness. Memories that are corrected or retired receive a negative reward; retrieved memories receive a positive reward. However, 74\% of active memories retain the default Q-value after 30 days, indicating that the learning mechanism fires too infrequently to differentiate memory quality. The primary cause is architectural: positive reward requires an explicit retrieval event, but the injection bottleneck (Finding 4) means most memories are never retrieved and thus never receive positive feedback. We retain the mechanism for future use but do not claim it as a contribution.
+Each fact carries a Q-value (REAL, default 0.5) intended to rank memories by learned usefulness. Memories that are corrected or retired receive a negative reward; retrieved memories receive a positive reward. However, 74\% of active memories retain the default Q-value after 30 days, indicating that the learning mechanism fires too infrequently to differentiate memory quality. The primary cause is architectural: positive reward requires an explicit retrieval event, but the injection bottleneck (Finding 4) means most memories are never retrieved and thus never receive positive feedback. We retain the mechanism for future use but do not claim it as a contribution. A potential fix is automatic read-writeback on retrieval (eliminating the need for explicit retrieval events), which we leave as future work.
 
 \subsection{Write-Time Conflict Interception (B1 Gate)}
 
@@ -193,7 +195,7 @@ For any supersession chain $C = \langle f_1, \ldots, f_k \rangle$ and any time $
 \end{theorem}
 
 \begin{proof}[Proof sketch]
-By Definition~2(4), $\mathit{vt}(f_i) = \mathit{vf}(f_{i+1})$ for all $i < k$. The half-open intervals form a contiguous partition. For any $t$ in this range, exactly one interval contains $t$. Hence exactly one record.
+This follows directly from Definition~2(4) by construction: the half-open intervals form a contiguous partition because the supersession mechanism enforces $\mathit{vt}(f_i) = \mathit{vf}(f_{i+1})$ for all $i < k$. The theorem formalizes this design invariant rather than proving a non-trivial property.
 \end{proof}
 
 \begin{theorem}[No Overlap]
@@ -507,8 +509,10 @@ Metadata + LogisticRegression & 0.804 & best baseline \\
 \end{tabular}
 \end{table}
 
+The macro F1 aggregates both classes; per-class precision for the positive (superseded) class is 0.91 and recall is 0.89, confirming that the model does not simply predict the majority class. 
+
 \begin{finding}[Supersession Prediction Is Learnable]
-DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone.
+DistilBERT achieves macro F1 = 0.947 on the supersession prediction task, exceeding the best baseline (metadata + logistic regression, 0.804) by 14.2pp and all text-based baselines by 19+. This confirms that memory lifecycle is predictable from the combination of content semantics, metadata features, and entity linkage---a finding that enables proactive memory governance strategies not possible with reactive correction alone. We have not yet deployed this model in a closed-loop intervention; measuring its effect on actual memory quality is future work.
 \end{finding}
 
 
@@ -577,7 +581,7 @@ The production deployment analyzed in this paper is a single-user system operate
 
 \section{Conclusion}
 
-We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. In 30~days of production across 15~agents, the system processed 31K+ operations with zero data loss. We identified an empirical exponential decay pattern in multi-session accuracy and quantified the downstream impact of cross-agent memory contradictions (73pp loss, specific to cross-agent conflicts). We evaluated on four public benchmarks and released the system as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a complete reproducibility artifact.
+We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. In 30~days of production across 15~AI client instances, the system processed 31K+ operations with zero data loss (verified by daily \texttt{integrity\_check} and successful \texttt{verify\_chain()} recomputation). We identified an empirical exponential decay pattern in multi-session accuracy and quantified the downstream impact of cross-agent memory contradictions (73pp loss, specific to cross-agent conflicts). We evaluated on four public benchmarks and released the system as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a complete reproducibility artifact.
 
 
 
@@ -782,6 +786,9 @@ Maharana, A. et~al.
 \end{thebibliography}
 
 \end{document}
+
+
+
 
 
 
