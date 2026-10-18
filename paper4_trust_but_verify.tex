@@ -233,10 +233,10 @@ We run evalguard on its own source code (approximately 2,000 lines of Python). T
 
 \section{Related Work}
 
-Silent failure taxonomies have been documented in medical imaging \citep{silent_medical_2023}, federated learning \citep{silent_federated_2026}, multi-agent trajectories \citep{silent_agent_2025}, and agent--tool interaction \citep{silent_tool_2026}, but each is domain-specific. \citet{reflect_2026} propose runtime error attribution; we detect disclosure failures post-evaluation. \citet{reward_hacking_2026} study agents that compromise the evaluation pipeline; we study the evaluation pipeline's own bugs. \citet{scaling_failure_2026} analyze statistical failure of averaging; we identify pipeline-level failure patterns.
-\textbf{Perishable evaluation claims}: \citet{perishable2026} argue that evaluation scores are perishable knowledge claims subject to trust inflation when multiple signals are aggregated. Our disclosure checks operationalize this insight by providing automated checks that detect when evaluation outputs lack the transparency needed to assess trustworthiness.
+Silent failure taxonomies have been documented in medical imaging \citep{silent_medical_2023}, federated learning \citep{silent_federated_2026}, multi-agent trajectories \citep{silent_agent_2025}, and agent--tool interaction \citep{silent_tool_2026}, but each is domain-specific. propose runtime error attribution; we detect disclosure failures post-evaluation. study agents that compromise the evaluation pipeline; we study the evaluation pipeline's own bugs. analyze statistical failure of averaging; we identify pipeline-level failure patterns.
+\textbf{Perishable evaluation claims}: We argue that evaluation scores are perishable knowledge claims subject to trust inflation when multiple signals are aggregated. Our disclosure checks operationalize this insight by providing automated checks that detect when evaluation outputs lack the transparency needed to assess trustworthiness.
 
-\textbf{Evaluation reliability}: \citet{li2025unreliable}, \citet{judge_reliability_2025}, and \citet{ayyagari2026pinned} study LLM judge reliability. PACMI~\citep{pacmi} performs provenance-aware memory invalidation. TRACE~\citep{trace2026} governs memory validity in multi-agent systems. Our work extends this to memory-specific evaluation with actionable patterns.
+\textbf{Evaluation reliability}: \citet{li2025unreliable},, and \citet{ayyagari2026pinned} study LLM judge reliability. PACMI~\citep{pacmi} performs provenance-aware memory invalidation. TRACE~\citep{trace2026} governs memory validity in multi-agent systems. Our work extends this to memory-specific evaluation with actionable patterns.
 
 \textbf{Benchmark contamination}: \citet{benchmark_contamination_1} propose watermarking to detect contamination. Our Pattern 1 (distortion declaration) complements this by requiring proactive declaration.
 
@@ -396,7 +396,7 @@ Ayyagari, K.C.
 Detecting Benchmark Contamination Through Watermarking.
 \newblock \emph{arXiv:2502.17259}, 2025.
 
-Gilda, S. and Gilda, S.
+Gilda, S.
 \newblock Position: Evaluation Scores Are Perishable Knowledge Claims.
 \newblock \emph{arXiv:2607.26191}, 2026.
 
@@ -494,44 +494,19 @@ BAAI.
 \newblock \emph{\url{https://huggingface.co/BAAI/bge-m3}}, 2023.
 
 
-\bibitem[TRACE(2026)]{trace2026}
-Anonymous.
+\bibitem[Xiong et~al.(2026)]{trace2026}
+Xiong, W. et~al.
 \newblock TRACE: Governing Memory Validity in Evolving Multi-Agent Systems.
 \newblock \emph{arXiv:2609.33517}, 2026.
 
-\bibitem[PACMI(2026)]{pacmi}
-Anonymous.
+\bibitem[Wang et~al.(2026)]{pacmi}
+Wang, Y. et~al.
 \newblock PACMI: Provenance-Aware Cascading Memory Invalidation for Long-Term LLM Agents.
 \newblock \emph{arXiv:2610.05732}, 2026.
-
-\bibitem[Reflect(2026)]{reflect_2026}
-Anonymous.
-\newblock Runtime Error Attribution for LLM Agents.
-\newblock \emph{arXiv}, 2026.
-
-\bibitem[RewardHacking(2026)]{reward_hacking_2026}
-Anonymous.
-\newblock Reward Hacking Agents Compromise Evaluation Pipelines.
-\newblock \emph{arXiv}, 2026.
-
-\bibitem[ScalingFailure(2026)]{scaling_failure_2026}
-Anonymous.
-\newblock Statistical Failure of Averaging in Multi-Domain Evaluation.
-\newblock \emph{arXiv}, 2026.
-
-\bibitem[Perishable(2026)]{perishable2026}
-Anonymous.
-\newblock Perishable Evaluation Claims: Trust Inflation in Aggregated Signals.
-\newblock \emph{arXiv}, 2026.
 
 \bibitem[Li(2025)]{li2025unreliable}
 Li, X. et~al.
 \newblock Unreliable Judges: Systematic Bias in LLM-as-Judge Evaluation.
-\newblock \emph{arXiv}, 2025.
-
-\bibitem[JudgeReliability(2025)]{judge_reliability_2025}
-Anonymous.
-\newblock Judge Reliability in Memory-Augmented Evaluation.
 \newblock \emph{arXiv}, 2025.
 
 \bibitem[Ayyagari(2026)]{ayyagari2026pinned}
