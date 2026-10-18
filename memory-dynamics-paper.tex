@@ -69,7 +69,7 @@ Metric & Value \\
 \midrule
 Study duration & 30 days \\
 Distinct client sources & 15 \\
-Total logged operations & 3,000 \\
+Total logged operations\footnote{Includes audit\_log entries (writes) and read tracking events; does not include raw \texttt{use\_count} increments which are tracked per-row. The unified system paper reports 31K+ total operations including 28,807 read operations (sum of use\_count) over the 30-day window.} & 3,000 \\
 Active memories & 1,957 \\
 Superseded memories\footnote{386 rows have status=superseded; 349 supersession edges connect them. The difference arises from multi-step chains where one edge supersedes a fact that was itself already superseded.} & 386 \\
 Retired memories & 200 \\
@@ -322,14 +322,14 @@ Wu, C. et~al.
 \newblock LongMemEval: Benchmarking Long-Term Memory in LLM Agents.
 \newblock \emph{arXiv:2410.10813}, 2024.
 
-\bibitem[LoCoMo(2024)]{locomo2024}
-Anonymous.
-\newblock LoCoMo: Benchmarking Long-Term Memory in LLM Agents.
-\newblock \emph{arXiv}, 2024.
+\bibitem[Maharana et~al.(2024)]{locomo2024}
+Maharana, A. et~al.
+\newblock Evaluating Very Long-Term Conversational Memory of LLM Agents.
+\newblock \emph{arXiv:2402.17753}, 2024.
 
 \bibitem[MemTether(2026)]{memtether}
 Anonymous.
-\newblock MemTether: Cross-Client AI Memory Hub.
+\newblock MemTether: A Local-First Governed Memory System for Multi-Client AI Agents.
 \newblock \emph{GitHub}, 2026. \url{https://github.com/MemTether/MemTether}
 
 \bibitem[Chhikara et~al.(2025)]{mem0}
