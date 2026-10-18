@@ -74,7 +74,7 @@ Memory-level provenance & -- & -- & \checkmark & -- & \checkmark \\
 
 The combination of all three capabilities---memory-level hash chaining, exportable evidence, and adjudication UI---is provided by no existing system. halo-record implements hash chaining at the runtime action layer but does not touch memory content.
 
-Recent tools have partially addressed adjacent problems: TradeMemory Protocol~\cite{trademem} implements SHA-256 chains for trading agents but is domain-specific. ZizkaDB~\cite{zizkadb} provides tamper-evident audit trails but focuses on decision logs rather than memory content. PACMI~\cite{pacmi} performs provenance-aware memory invalidation without cryptographic chaining. TRACE~\cite{trace2026} governs memory validity in multi-agent systems without hash chains. Memora~\cite{memora} provides supersession lineage without evidence export or adjudication UI. The combination of all three capabilities---memory-level hash chaining, browser-verifiable evidence export, and human adjudication UI---is provided by no existing system.
+Recent tools have partially addressed adjacent problems: PACMI~\cite{pacmi} performs provenance-aware memory invalidation without cryptographic chaining. TRACE~\cite{trace2026} governs memory validity in multi-agent systems without hash chains. The combination of all three capabilities---memory-level hash chaining, browser-verifiable evidence export, and human adjudication UI---is provided by no existing system.
 
 \section{System Design}
 
@@ -260,8 +260,7 @@ Liu, S. et~al.
 
 \bibitem[Margalit et~al.(2026)]{caura}
 Margalit, A. et~al.
-\newblock Caura: Governed Shared Memory for Multi-Agent Fleets.
-\newblock \emph{arXiv:2606.24535}, 2026.
+\newblock Governed Shared Memory for Multi-Agent LLM Systems. \newblock \emph{arXiv:2606.24535}, 2026.
 
 \bibitem[Laurie et~al.(2019)]{ct}
 Laurie, B., Langley, A., Kasper, E.
@@ -270,18 +269,15 @@ Laurie, B., Langley, A., Kasper, E.
 
 \bibitem[Chen et~al.(2026)]{mutmem}
 Chen, S. et~al.
-\newblock MutMem: Cryptographically Authorized Mutation for Persistent Agent Memory.
-\newblock \emph{arXiv:2608.02843}, 2026.
+\newblock MutMem: Cryptographically Authorized Mutation in Persistent Agent Memory. \newblock \emph{arXiv:2608.02843}, 2026.
 
 \bibitem[Chen et~al.(2026)]{beyondprovenance}
 Chen, J. et~al.
-\newblock Beyond Provenance: An Economic Governance Model for AI Memory.
-\newblock \emph{arXiv:2609.25521}, 2026.
+\newblock Beyond Provenance: The Economics and Governance of Personalized AI Memory. \newblock \emph{arXiv:2609.25521}, 2026.
 
 \bibitem[Sangaraju et~al.(2026)]{lineage}
 Sangaraju, V.~M. et~al.
-\newblock Lineage-Aware Memory Governance for Enterprise AI.
-\newblock \emph{arXiv:2610.07258}, 2026.
+\newblock Lineage-Aware Memory Governance: A Derivation-Gated Framework for Privacy-Preser. \newblock \emph{arXiv:2610.07258}, 2026.
 
 \bibitem[Tian et~al.(2026)]{aecg}
 Tian, A. et~al.
@@ -294,16 +290,6 @@ Yadav, N.
 \newblock \emph{arXiv:2606.26511}, 2026.
 
 
-\bibitem[Trademem(2026)]{trademem}
-Anonymous.
-\newblock TradeMemory Protocol: Tamper-Evident Audit Trail for AI Trading Agents.
-\newblock GitHub 1430 stars, 2026.
-
-\bibitem[ZizkaDB(2026)]{zizkadb}
-Anonymous.
-\newblock ZizkaDB: Tamper-Evident Audit Trail for AI Agents.
-\newblock GitHub 130 stars, 2026.
-
 \bibitem[Wang et~al.(2026)]{pacmi}
 Wang, Y. et~al.
 \newblock PACMI: Provenance-Aware Cascading Memory Invalidation for Long-Term LLM Agents.
@@ -314,10 +300,6 @@ Xiong, W. et~al.
 \newblock TRACE: Governing Memory Validity in Evolving Multi-Agent Systems.
 \newblock \emph{arXiv:2609.33517}, 2026.
 
-\bibitem[Memora(2026)]{memora}
-Anonymous.
-\newblock Memora: Persistent Collective Memory with Supersession Lineage.
-\newblock GitHub 739 stars, 2026.
 \bibitem[Anonymous(2026)]{routec}
 Anonymous.
 \newblock Local-First Governed Memory: Bi-Temporal Supersession, Hash-Chained Audit, and Evaluation-Layer Integrity for Multi-Client AI Agents.
