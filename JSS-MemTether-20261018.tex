@@ -572,6 +572,9 @@ Of the 349 corrections in our production deployment, cross-agent contradictions 
 \item \textbf{30-day window}: May not capture seasonal patterns or long-term drift.
 \end{itemize}
 
+\section*{Ethics Statement}
+The production deployment analyzed in this paper is a single-user system operated by the author; no third-party personal data was collected. Memory content contains operational metadata (software configurations, deployment procedures, development decisions) rather than personal or sensitive user data. All memory records were desensitized before inclusion in the public benchmark (content paths replaced, personal identifiers removed, API keys stripped). The system is designed to run entirely locally without cloud synchronization; no user data leaves the machine. The hash-chained audit log and bi-temporal supersession are intended to support compliance with EU AI Act Article 12 record-keeping requirements for AI systems; we claim no legal advice and recommend consulting the regulation directly for specific deployment contexts.
+
 \section{Conclusion}
 
 We presented MemTether, a local-first agent memory system that integrates bi-temporal supersession (with four proven correctness properties), hash-chained tamper-evident audit, and file-level multi-client deployment. In 30~days of production across 15~agents, the system processed 31K+ operations with zero data loss. We identified an empirical exponential decay pattern in multi-session accuracy and quantified the downstream impact of cross-agent memory contradictions (73pp loss, specific to cross-agent conflicts). We evaluated on four public benchmarks and released the system as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a complete reproducibility artifact.
