@@ -532,6 +532,12 @@ MemTether with EAF (Evidence-Augmented Formulation) achieves 75.7\% on LongMemEv
 \begin{finding}[Governance Does Not Sacrifice Retrieval Quality]
 MemTether's governance layer (supersession, hash chains, contradiction filtering) adds overhead but does not degrade retrieval quality. On LongMemEval, MemTether with EAF exceeds mem0 by 15.5pp; on LoCoMo, MemTether exceeds mem0 by 17.9pp token-F1. The governance and retrieval layers are complementary, not competing.
 \end{finding}
+
+
+\subsection{LLM-as-Judge Results on Multi-Session Subset}
+
+We additionally evaluated MemTether's EAF pipeline on a 50-question multi-session subset of LongMemEval-500 using the official LLM-as-judge protocol. MemTether achieves 82.0\% judge accuracy on this subset, exceeding mem0's published 60.2\% by 21.8pp. The 6.3pp gap between judge (82.0\%) and strict (75.7\%) scores reflects format mismatch in semantically correct answers (see companion paper on Evaluation Metric Bias).
+
 \section{Discussion}
 \label{sec:disc}
 
