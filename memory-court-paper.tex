@@ -19,7 +19,7 @@
 \maketitle
 
 \begin{abstract}
-AI agents accumulate persistent memory across sessions, but no existing system provides verifiable evidence that a stored memory was not tampered with, or a replayable record of how conflicting memories were adjudicated. We present Memory Court, a governance layer for agent memory that provides three capabilities: (1)~a SHA-256 hash-chained audit log that detects any post-hoc modification of memory records (tamper-evident by construction), (2)~a case-file command that reconstructs the full provenance of any memory---its write history, supersession chain, conflict adjudications, and Q-value learning trace---as a human-readable dossier, and (3)~a browser-verifiable evidence export (\texttt{evidence.zip}) that enables third-party auditors to verify the hash chain without installing any software, directly addressing EU AI Act Article~12 record-keeping requirements. We evaluate Memory Court on a production deployment (1{,}864 active memories, 13 agent sources, 26 days) and demonstrate: 14 integration tests covering 6 dimensions (hash chain verification, tamper detection, write-time conflict, evidence export, supersession adjudication, and end-to-end integration), a case study of cross-agent contradiction resolution (packy entity: 60\% contradiction rate resolved to 0\% via supersession adjudication), and a controlled tamper-detection experiment over 2{,}346 audit entries where the hash chain correctly detects all 5 of 5 anchored-row modification scenarios. We release the system as Apache-2.0 open source with an interactive Playground demonstrating the full court workflow in a browser.
+AI agents accumulate persistent memory across sessions, but no existing system provides verifiable evidence that a stored memory was not tampered with, or a replayable record of how conflicting memories were adjudicated. We present Memory Court, a governance layer for agent memory that provides three capabilities: (1)~a SHA-256 hash-chained audit log that detects any post-hoc modification of memory records (tamper-evident by construction), (2)~a case-file command that reconstructs the full provenance of any memory---its write history, supersession chain, conflict adjudications, and Q-value learning trace---as a human-readable dossier, and (3)~a browser-verifiable evidence export (\texttt{evidence.zip}) that enables third-party auditors to verify the hash chain without installing any software, contributing to EU AI Act Article~12 record-keeping requirements. We evaluate Memory Court on a production deployment (1{,}864 active memories, 13 agent sources, 26 days) and demonstrate: 14 integration tests covering 6 dimensions (hash chain verification, tamper detection, write-time conflict, evidence export, supersession adjudication, and end-to-end integration), a case study of cross-agent contradiction resolution (packy entity: 33\% contradiction rate resolved to 0\% via supersession adjudication), and a controlled tamper-detection experiment over 2{,}346 audit entries where the hash chain correctly detects all 5 of 5 anchored-row modification scenarios. We release the system as Apache-2.0 open source with an interactive Playground demonstrating the full court workflow in a browser.
 \end{abstract}
 
 \section{Introduction}
@@ -119,7 +119,7 @@ The \texttt{--export} flag produces a ZIP package containing:
 
 \subsection{Interactive Playground}
 
-A browser-based Playground (\url{https://memtether.github.io/MemTether/court/}) demonstrates the full workflow: write a memory, correct it, trigger a conflict, adjudicate via supersession, verify the hash chain, and export the evidence package. The Playground uses sql.js (SQLite compiled to WASM) and \texttt{crypto.subtle} (browser-native SHA-256), requiring zero backend infrastructure.
+A browser-based Playground (\url{https://memtether.github.io/MemTether/court/}) demonstrates the full workflow: write a memory, correct it, trigger a conflict, adjudicate via supersession, verify the hash chain, and export the evidence package. The Playground uses sql.js (SQLite compiled to WASM) and \texttt{crypto.subtle} (browser-native SHA-256), requiring zero backend infrastructure. The Playground is a demonstration artifact, not an evaluated component.
 
 \section{Evaluation}
 
@@ -165,9 +165,9 @@ All 14 tests pass. Five engineering-level gaps were identified (anchor tail cove
 
 \subsection{Case Study: Cross-Agent Contradiction Resolution}
 
-We present a case study from the production deployment. The \emph{packy} entity (an API proxy service) accumulated 24 memories from 4 agent sources over 18 days. At the time of audit, 15 memories were active and retrievable: 2 asserted ``available'' while 3 asserted ``banned'' or ``403'', yielding a 60\% contradiction rate. A downstream agent querying packy's status received contradictory evidence.
+We present a case study from the production deployment. The \emph{packy} entity (an API proxy service) accumulated 24 memories from 4 agent sources over 18 days. At the time of audit, 15 memories were active and retrievable: 2 asserted ``available'' while 3 asserted ``banned'' or ``403'', yielding a 33\% contradiction rate (5 of 15 active memories; Wilson 95\% CI: [12\%, 62\%]). A downstream agent querying packy's status received contradictory evidence.
 
-Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries, and the contradiction rate dropped to 0\%. The full adjudication record---who decided, when, based on what evidence, with hash-chain verification---is preserved in the audit log and exportable as an evidence package.
+This was one of 348 supersession events in the deployment. Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries, and the contradiction rate dropped to 0\%. The full adjudication record---who decided, when, based on what evidence, with hash-chain verification---is preserved in the audit log and exportable as an evidence package.
 
 \section{Discussion and Limitations}
 
@@ -306,3 +306,4 @@ Anonymous.
 \newblock Manuscript under review, 2026.
 \end{thebibliography}
 \end{document}
+
