@@ -21,7 +21,7 @@
 \maketitle
 
 \begin{abstract}
-We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export (complementary to concurrent memory-poisoning defenses such as PoisonRecall~\citep{poisonrecall}, which we discuss in Section~2), and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. On LongMemEval-500, strict accuracy follows $0.702 \times 0.736^N$ ($R^2 = 0.85$, log--log fit), dropping from 31.2\% for single-session questions to multi-session questions showing progressively lower accuracy. In 26~days of production deployment across 15~agent clients, MemTether processed 31K+ recorded operations with zero data loss and 347~supersession events. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We release the system as Apache-2.0 open source with 534 passing tests (4 skipped).
+We present MemTether, a local-first agent memory system with three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export, and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. We additionally contribute \texttt{evalguard}, an evaluation-layer disclosure checker that verifies benchmark output metadata completeness across five integrity patterns. MemTether stores memories as typed rows in a local SQLite database, maintains bi-temporal validity with supersession chains (four formal correctness theorems proven: gap freedom, no overlap, cycle freedom, concurrency safety), provides a hash-chained tamper-evident audit log with self-contained evidence export with local verification and an evaluation-layer disclosure checklist (evalguard) that verifies benchmark output metadata completeness across five integrity patterns, and enables multiple AI clients to share one physical database via file-level pointers. We identify and empirically validate the $r^N$ decay: an exponential decay in multi-session memory retrieval accuracy that affects all embedding-based systems. On LongMemEval-500, strict accuracy follows $0.702 \times 0.736^N$ ($R^2 = 0.85$, log--log fit), dropping from 31.2\% for single-session questions to multi-session questions showing progressively lower accuracy. In 26~days of production deployment across 15~agent clients, MemTether processed 31K+ recorded operations with zero data loss and 347~supersession events. A controlled tamper-detection experiment over 2{,}346 audit entries shows the hash chain detects post-anchor modifications of anchored entries (5 of 5 anchored-row scenarios), an expected property of any hash chain; the contribution is the integration of this integrity mechanism with self-contained evidence export with local verification in a production multi-client deployment, not the detection mechanism itself. We report contextual retrieval accuracy from three systems on the same benchmark (Section~\ref{sec:crosssys}) and a negative result: our schema-grounded SQL retrieval path achieves 84\% recall on Chinese synthetic data (vs 64\% for embedding) but does not improve English-language benchmark accuracy. We release the system as Apache-2.0 open source with 534 passing tests (4 skipped).
 \end{abstract}
 
 \section{Introduction}
@@ -628,8 +628,8 @@ Lyu, L.
 \newblock Court: Provenance-First Memory for AI Agents.
 \newblock \emph{GitHub}, 2026.
 
-\bibitem[Admissibility(2026)]{admissibility}
-Anonymous.
+\bibitem[Wang et~al.(2026)]{admissibility}
+Wang, Z. et~al.
 \newblock The Right Memory in the Wrong Context: Verifying Retrieval Admissibility in Long-Term Agent Memory.
 \newblock \emph{arXiv:2610.07309}, 2026.
 
@@ -649,11 +649,6 @@ European Parliament and Council.
 \newblock \emph{Official Journal of the European Union}, 2024.
 
 
-\bibitem[PoisonRecall(2025)]{poisonrecall}
-Anonymous.
-\newblock PoisonRecall: Attack Taxonomy and Defenses for LLM Agent Memory Systems.
-\newblock \emph{arXiv}, 2025.
-
 \bibitem[Pulipaka et~al.(2025)]{sleeper}
 Pulipaka, S. et~al.
 \newblock Sleeper Memory Poisoning: Persistent Backdoors in LLM Agent Memory.
@@ -664,10 +659,10 @@ Zhang, Z. et~al.
 \newblock MemSim: A Bayesian Simulator for Evaluating Memory Systems with Generated Data.
 \newblock \emph{arXiv:2409.20163}, 2024.
 
-\bibitem[AgentPoison(2024)]{agentpoison}
-Anonymous.
-\newblock AgentPoison: Red-Teaming Agent Memory via Poisoning.
-\newblock \emph{NeurIPS 2024}, 2024.
+\bibitem[Chen et~al.(2024)]{agentpoison}
+Chen, Z. et~al.
+\newblock AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases.
+\newblock \emph{NeurIPS 2024}, 2024. arXiv:2407.12784.
 
 \end{thebibliography}
 
