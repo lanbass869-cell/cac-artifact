@@ -27,7 +27,7 @@
 \maketitle
 
 \begin{abstract}
-AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, backed by four formal correctness theorems; (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export, addressing EU AI Act Article~12 record-keeping requirements; and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. In a 30-day production deployment serving 15 AI agents through a shared database (31K+ operations, 2{,}346 audit entries), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss---an asymmetry specific to cross-agent conflicts that self-corrections do not exhibit (0.7pp). We evaluate MemTether on four public benchmarks: LongMemEval (75.7\% strict, 82.0\% judge on multi-session subset), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897, 11{,}714$\times$ faster than LLM detection). We further introduce Memory Supersession Prediction, formalizing memory lifecycle as a supervised learning task with DistilBERT achieving macro F1=0.947. The system is released as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a reproducibility artifact.
+AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, backed by four formal correctness theorems; (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export, addressing EU AI Act Article~12 record-keeping requirements; and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. In a 30-day production deployment serving 15 AI agents through a shared database (31K+ operations, 2{,}346 audit entries), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ($n{=}11$ discovery; $n{=}43$ expanded cohort, 57\% gradeable)---an asymmetry specific to cross-agent conflicts that self-corrections do not exhibit (0.7pp). We evaluate MemTether on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge on full 500Q; multi-session judge 79.7\%), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897; deterministic detection is 11{,}714$\times$ faster than LLM detection on the two rule-classifiable categories). We further introduce Memory Supersession Prediction, formalizing memory lifecycle as a supervised learning task with DistilBERT achieving macro F1=0.947. The system is released as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a reproducibility artifact.
 \end{abstract}
 
 \section{Introduction}
@@ -49,7 +49,7 @@ Our contributions:
 \item \textbf{Hash-chained tamper-evident audit log} with browser-verifiable evidence export, validated on 2{,}346 production audit entries (5/5 anchored-row scenarios detected).
 \item \textbf{Causal quantification} of cross-agent memory contradictions: 73pp downstream accuracy loss, with a 1{,}857$\times$ entity-resolution gap between raw polarity clash and genuine contradiction.
 \item \textbf{Memory Supersession Prediction}: first formulation of memory lifecycle as supervised learning (DistilBERT, macro F1=0.947).
-\item \textbf{Comprehensive evaluation} on four public benchmarks: LongMemEval (75.7\% strict, 82.0\% judge), LoCoMo (0.523 token-F1), ConflictBank (F1=0.897), and a 30-day production deployment study.
+\item \textbf{Comprehensive evaluation} on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), ConflictBank (F1=0.897), and a 30-day production deployment study.
 \end{enumerate}
 
 MemTether is released as Apache-2.0 open source at \url{https://github.com/MemTether/MemTether} (PyPI: \texttt{pip install memtether}).
@@ -104,7 +104,7 @@ CREATE TABLE supersessions (
 The \texttt{source} column records the writer identity for every write. A per-deployment \texttt{agents.json} registry defines valid sources; by default, unregistered sources trigger a warning rather than rejection (fail-open), though strict enforcement can be enabled per deployment. This design trades security for usability in the single-user local-first setting.
 
 \paragraph{Read tracking.}
-Read operations are tracked via the \texttt{use\_count} column on each fact row. Over 26~days of production, the cumulative sum of \texttt{use\_count} across active facts is 28{,}807. Combined with 2{,}346 write operations recorded in \texttt{audit\_log}, this yields the 31K+ total operations.
+Read operations are tracked via the \texttt{use\_count} column on each fact row. Over the first 26 days of the 30-day production window, the cumulative sum of \texttt{use\_count} across active facts is 28{,}807. Combined with 2{,}346 write operations recorded in \texttt{audit\_log}, this yields the 31K+ total operations.
 
 \subsection{Bi-Temporal Model}
 Each fact carries two independent time axes: \texttt{valid\_from}/\texttt{valid\_to} (when the fact was true in the real world) and \texttt{recorded\_at}/\texttt{invalidated\_at} (when the system learned or disbelieved it). When an agent corrects a fact, the old row is marked \texttt{superseded} with \texttt{valid\_to} set to the new fact's \texttt{valid\_from}, creating an immutable supersession chain. The full edit history of any memory is reconstructable by walking the chain.
@@ -215,12 +215,7 @@ The above theorems rely on SQLite's transactional isolation for Theorem~\ref{the
 \section{Tamper-Detection Evaluation}
 \label{sec:tamper}
 
-We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15~sources, 26~days). After anchoring, we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run \texttt{verify\_chain()}.
-
-
-
-LangMem returned NOT\_FOUND for 79.2\% of questions, indicating a structural bottleneck in its extraction pipeline rather than a retrieval failure; we report this number for completeness rather than as a meaningful baseline. For highest reported retrieval accuracy on LongMemEval, we refer readers to Memanto~\citep{memanto} (89.8\%) and MemStrata~\citep{memstrata} (95\%), which we do not attempt to replicate. Our contribution is not retrieval accuracy but the governance and auditability layer. These are paper-reported numbers on heterogeneous protocols, cited as claims rather than reproduced results.
-
+We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15 sources, 30-day window). After anchoring, we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run \texttt{verify\_chain()}.
 
 
 
@@ -282,9 +277,6 @@ The detector achieves F1 = 0.889 on temporal conflicts (500-sample subset, seed=
 
 \section{Memory Court: Hash-Chained Audit}
 
-
-
-\section{Memory Dynamics in Production}
 
 \section{Findings}
 \label{sec:findings}
@@ -496,8 +488,8 @@ DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceed
 \toprule
 Benchmark & Metric & Score & Comparison \\
 \midrule
-LongMemEval (strict) & strict matching & 75.7\% & --- \\
-LongMemEval (judge) & LLM-as-judge & 82.0\% & mem0: 60.2\% \\
+LongMemEval (strict) & strict matching & 62.4\% & --- \\
+LongMemEval (judge) & LLM-as-judge & 68.8\% & mem0: 60.2\% \\
 LongMemEval (multi-session) & judge & 79.7\% & mem0: 60.2\% \\
 LoCoMo & token-F1 & 0.523 & mem0: 0.344 \\
 ConflictBank & F1 & 0.897 & LLM: 0.113 \\
@@ -564,7 +556,7 @@ python _dev/benchmarks/locomo_full_run.py --system memtether
 python examples/audit_chain_demo.py
 # Expected: chain verify PASS -> tamper -> chain verify FAIL
 
-# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%)
+# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%, standalone full-benchmark path)
 python scripts/run_full_benchmark.py --systems memtether,mem0
 # Output: results JSON with per-question records
 
@@ -595,11 +587,6 @@ The tamper-detection experiment was run using \texttt{examples/audit\_chain\_dem
 \subsection{Production Data Note}
 
 The production database contains private operational data and is not publicly released. A synthetic data generator with matching schema is provided at the artifact repository. SQL queries for all reported counts are included in the Reproducibility section above; they can be verified against the synthetic database.
-
-
-The production database contains private operational data and is not publicly released; a synthetic data generator with matching schema is provided at \url{https://github.com/lanbass869-cell/cac-artifact} for reproducibility testing.
-
-
 
 
 \begin{thebibliography}{50}
@@ -723,3 +710,5 @@ Anonymous.
 \end{thebibliography}
 
 \end{document}
+
+
