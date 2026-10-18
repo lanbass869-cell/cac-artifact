@@ -371,7 +371,7 @@ When comparing two systems on the same benchmark, the strict--judge gap may diff
 \section{Related Work}
 \textbf{Memory benchmarks and dual-track scoring.} LongMemEval~\citep{wu2024longmemeval} established the dominant benchmark for evaluating long-term memory, reporting both strict substring matching and LLM-as-judge scores. LongMemEval-V2~\citep{longmemevalv2} extends evaluation to web agent environments. LoCoMo~\citep{locomo2024} provides multi-session conversations for multi-hop reasoning. We evaluate on the first conversation (conv0) subset: 82 QA pairs across three categories (temporal, open-domain, single-hop) with deterministic gold answers suitable for strict matching. Categories 4 (adversarial) and 5 (multi-hop) require LLM-based evaluation and are excluded from the strict comparison. We evaluate on the first conversation (conv0) subset of 82 questions across three categories (temporal, open-domain, single-hop), as these are the categories with deterministic gold answers suitable for strict matching. EdgeMem~\citep{edgemem2025} performs a seven-system head-to-head comparison on LoCoMo. Fidelity Before Structure~\citep{fidelity2026} compares raw chunks vs.\ structured memory on LoCoMo.
 
-\textbf{Evaluation reliability and LLM-as-judge.} Zheng et~al.~\citep{zheng2023judge} demonstrated strong GPT-4-to-human agreement on MT-Bench. Gu et~al.~\citep{gu2024judgesurvey} surveyed judge methodologies. Li et~al.~\citep{li2025unreliable} showed LLMs cannot reliably judge factual consistency. Anatomy of Agentic Memory~\citep{anatomy2026} compares F1 and LLM-judge rankings across six systems. Ayyagari~\citep{ayyagari2026pinned} proposed pinned evaluation to reduce judge variance.
+\textbf{Evaluation reliability and LLM-as-judge.} Zheng et~al.~\citep{zheng2023judge} demonstrated strong GPT-4-to-human agreement on MT-Bench. Gu et~al.~\citep{gu2024judgesurvey} surveyed judge methodologies. Li et~al.~\citep{li2025unreliable} showed LLMs cannot reliably judge factual consistency. Anatomy of Agentic Memory~\citep{anatomy2026} compares F1 and LLM-judge rankings across six systems. Feuer et~al.~\citep{feuer2025noise} showed that design failures in LLM judge benchmarks silently undermine validity.
 
 \textbf{Benchmark auditing.} MMLU-Redux~\citep{mmluredux2024} manually audited MMLU questions. MemGuard~\citep{memguard2026} addresses admission-time verification. Our target is evaluation-time scoring methodology.
 
@@ -436,8 +436,7 @@ Anonymous.
 
 \bibitem[Yadav(2026)]{memstrata2026}
 Yadav, N.
-\newblock MemStrata: Bi-Temporal Ledger for Agent Memory.
-\newblock \emph{arXiv:2606.26511}, 2026.
+\newblock Temporal Validity in Retrieval Memory: Eliminating Stale-Fact Errors for AI Agen. \newblock \emph{arXiv:2606.26511}, 2026.
 
 
 Yadav, N.
@@ -461,8 +460,7 @@ J.~Li et~al.
 
 \bibitem[Gema et~al.(2024)]{mmluredux2024}
 Gema, A.~P. et~al.
-\newblock MMLU-Redux: Manually Audited MMLU.
-\newblock \emph{arXiv:2406.04127}, 2024.
+\newblock Are We Done with MMLU?. \newblock \emph{arXiv:2406.04127}, 2024.
 
 \bibitem[Simpson(1951)]{simpson1951}
 E.~H. Simpson.
@@ -475,47 +473,38 @@ Anon.
 \newblock \emph{RecSys}, 2022.
 \bibitem[Wang(2026)]{memguard2026}
 H.~Wang.
-\newblock MemGuard: Verifier Signals.
-\newblock \emph{arXiv:2608.21867}, 2026.
+\newblock MemGuard: Persisting Verifier Signals for LLM-Agent Memory Governance. \newblock \emph{arXiv:2608.21867}, 2026.
 \bibitem[Cui et~al.(2025)]{edgemem2025}
 Z.~Cui et~al.
-\newblock EdgeMem: Benchmarking Edge Memory Systems for Long-Term Agent Conversations.
-\newblock \emph{arXiv:2609.05553}, 2025.
+\newblock EdgeMem: LLM-Free Agent Memory Construction and Retrieval via Evidence-Preservin. \newblock \emph{arXiv:2609.05553}, 2025.
 
 \bibitem[Wang et~al.(2026)]{engram2026}
 Wang, L. et~al.
-\newblock Less Context, More Accuracy: Bi-Temporal Memory for LLM Agents.
-\newblock \emph{arXiv:2606.09900}, 2026.
+\newblock Less Context, More Accuracy: A Bi-Temporal Memory Engine for LLM Agents Where a . \newblock \emph{arXiv:2606.09900}, 2026.
 
 \bibitem[Margalit et~al.(2026)]{memclaw2026}
 Margalit, Y. et~al.
-\newblock Governed Shared Memory: Formalizing Fleet-Memory Primitives.
-\newblock \emph{arXiv:2606.24535}, 2026.
+\newblock Governed Shared Memory for Multi-Agent LLM Systems. \newblock \emph{arXiv:2606.24535}, 2026.
 
 \bibitem[Wen et~al.(2026)]{trace2026}
 M.~Wen et~al.
-\newblock TRACE: Temporal Memory Admission for Multi-Agent Systems.
-\newblock \emph{arXiv:2609.33517}, 2026.
+\newblock TRACE: Governing Memory Validity in Evolving Multi-Agent Systems. \newblock \emph{arXiv:2609.33517}, 2026.
 
 \bibitem[Ren et~al.(2026)]{gatemem2026}
 Ren, Z. et~al.
-\newblock GateMem: A Multi-Principal Governance Benchmark for Agent Memory.
-\newblock \emph{arXiv:2606.18829}, 2026.
+\newblock GateMem: Benchmarking Memory Governance in Multi-Principal Shared-Memory Agents. \newblock \emph{arXiv:2606.18829}, 2026.
 
 \bibitem[An et~al.(2026)]{fidelity2026}
 An, T. et~al.
-\newblock Fidelity Before Structure: Raw Chunks vs.\ Structured Memory.
-\newblock \emph{arXiv:2601.00821}, 2026.
+\newblock Fidelity Before Structure: Verbatim Chunks Beat Lossy Artifact Extraction in Lon. \newblock \emph{arXiv:2601.00821}, 2026.
 
 \bibitem[Li et~al.(2025)]{memos2025}
 Li, Z. et~al.
-\newblock MemOS: A Memory Operating System for LLM Agents.
-\newblock \emph{arXiv:2507.03724}, 2025.
+\newblock MemOS: A Memory OS for AI System. \newblock \emph{arXiv:2507.03724}, 2025.
 
 \bibitem[Hu et~al.(2026)]{evermemos2026}
 Hu, C. et~al.
-\newblock EverMemOS: Self-Organizing Memory Operating System.
-\newblock \emph{arXiv:2601.02163}, 2026.
+\newblock EverMemOS: A Self-Organizing Memory Operating System for Structured Long-Horizon. \newblock \emph{arXiv:2601.02163}, 2026.
 
 \bibitem[Kamath et~al.(2020)]{kamath2020selective}
 A.~Kamath, J.~Jia, and P.~Liang.
@@ -534,13 +523,12 @@ Z.~Ji et~al.
 
 \bibitem[Jiang et~al.(2026)]{anatomy2026}
 Jiang, D. et~al.
-\newblock Anatomy of Agentic Memory: A Systematic Evaluation.
-\newblock \emph{arXiv:2602.19320}, 2026.
+\newblock Anatomy of Agentic Memory: Taxonomy and Empirical Analysis of Evaluation and Sys. \newblock \emph{arXiv:2602.19320}, 2026.
 
-\bibitem[Ayyagari(2026)]{ayyagari2026pinned}
-Ayyagari, A. et~al.
-\newblock Pinned Evaluation: Reducing LLM Judge Variance.
-\newblock \emph{arXiv}, 2026.
+\bibitem[Feuer et~al.(2025)]{feuer2025noise}
+Feuer, B. et~al.
+\newblock When Judgment Becomes Noise: How Design Failures in LLM Judge Benchmarks Silently Undermine Validity.
+\newblock \emph{arXiv:2509.20293}, 2025.
 \bibitem[BGE(2023)]{bge2023}
 BAAI.
 \newblock BGE-M3: Embedding Model for Multi-lingual, Multi-functionality, Multi-granularity.

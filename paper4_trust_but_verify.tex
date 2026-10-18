@@ -236,7 +236,7 @@ We run evalguard on its own source code (approximately 2,000 lines of Python). T
 Silent failure taxonomies have been documented in medical imaging \citep{silent_medical_2023}, federated learning \citep{silent_federated_2026}, multi-agent trajectories \citep{silent_agent_2025}, and agent--tool interaction \citep{silent_tool_2026}, but each is domain-specific. propose runtime error attribution; we detect disclosure failures post-evaluation. study agents that compromise the evaluation pipeline; we study the evaluation pipeline's own bugs. analyze statistical failure of averaging; we identify pipeline-level failure patterns.
 \textbf{Perishable evaluation claims}: We argue that evaluation scores are perishable knowledge claims subject to trust inflation when multiple signals are aggregated. Our disclosure checks operationalize this insight by providing automated checks that detect when evaluation outputs lack the transparency needed to assess trustworthiness.
 
-\textbf{Evaluation reliability}: \citet{li2025unreliable},, and \citet{ayyagari2026pinned} study LLM judge reliability. PACMI~\citep{pacmi} performs provenance-aware memory invalidation. TRACE~\citep{trace2026} governs memory validity in multi-agent systems. Our work extends this to memory-specific evaluation with actionable patterns.
+\textbf{Evaluation reliability}: \citet{li2025unreliable} and \citet{ayyagari2026pinned} study LLM judge reliability. PACMI~\citep{pacmi} performs provenance-aware memory invalidation. TRACE~\citep{trace2026} governs memory validity in multi-agent systems. Our work extends this to memory-specific evaluation with actionable patterns.
 
 \textbf{Benchmark contamination}: \citet{benchmark_contamination_1} propose watermarking to detect contamination. Our Pattern 1 (distortion declaration) complements this by requiring proactive declaration.
 
@@ -381,8 +381,7 @@ The author conceived the study, designed and implemented the system, conducted a
 
 \bibitem[Wu et al.(2024)]{wu2024longmemeval}
 Wu, C. et al.
-\newblock LongMemEval: Benchmarking Long-Term Memory in LLM Agents.
-\newblock \emph{arXiv:2410.10813}, 2024.
+\newblock LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. \newblock \emph{arXiv:2410.10813}, 2024.
 
 Li, S. et al.
 \newblock LLMs Cannot Reliably Judge (Yet?): A Comprehensive Assessment on the Robustness of LLM-as-a-Judge.
@@ -394,10 +393,7 @@ Ayyagari, K.C.
 
 \bibitem[BenchmarkContamination(2025)]{benchmark_contamination_1}
 Detecting Benchmark Contamination Through Watermarking.
-\newblock \emph{arXiv:2502.17259}, 2025.
-
-Gilda, S.
-\newblock Position: Evaluation Scores Are Perishable Knowledge Claims.
+\newblock A Systematic Review of Reproducibility Research in Natural Language Processing. \newblock Position: Evaluation Scores Are Perishable Knowledge Claims.
 \newblock \emph{arXiv:2607.26191}, 2026.
 
 Belz, A., Agarwal, A., Shimorina, A.
@@ -439,9 +435,7 @@ Open LLM Leaderboard Team.
 
 \bibitem[SilentMedical(2023)]{silent_medical_2023}
 Silent Failures in Medical Image Classification.
-\newblock \emph{arXiv:2307.14729}, 2023.
-
-\bibitem[SilentAgent(2025)]{silent_agent_2025}
+\newblock Understanding Silent Failures in Medical Image Classification. \bibitem[SilentAgent(2025)]{silent_agent_2025}
 Detecting Silent Failures in Multi-Agentic AI Trajectories.
 \newblock \emph{arXiv:2511.04032}, 2025.
 
@@ -453,29 +447,18 @@ Scaling Law of Evaluation Failure.
 
 \bibitem[SilentFederated(2026)]{silent_federated_2026}
 Silent Failures in Federated Personalization.
-\newblock \emph{arXiv:2606.00947}, 2026.
-
-REFLECT: Error Attribution for Silent Failures.
-\newblock \emph{arXiv:2606.09071}, 2026.
+\newblock Silent Failures in Federated Personalization of Foundation Models. \newblock \emph{arXiv:2606.09071}, 2026.
 
 \bibitem[SilentTool(2026)]{silent_tool_2026}
 Silent Failures in Agent-Tool Interaction.
-\newblock \emph{arXiv:2609.26836}, 2026.
-
-\bibitem[EvalPitfalls(2026)]{eval_pitfalls_conf_2026}
+\newblock Silent Failures in Agent-Tool Interaction: An Audit of ToolUniverse. \bibitem[EvalPitfalls(2026)]{eval_pitfalls_conf_2026}
 Eval Pitfalls in LLM Confidence Estimation.
-\newblock \emph{arXiv:2608.04899}, 2026.
-
-\bibitem[NLGMeta(2026)]{nlg_meta_2026}
+\newblock Evaluation Pitfalls and Sparsity Limitations in LLM-based Confidence Estimates f. \bibitem[NLGMeta(2026)]{nlg_meta_2026}
 What Are We Measuring in NLG? A Meta-Analysis.
-\newblock \emph{arXiv:2601.07648}, 2026.
-
-LLMs as Judges: A Comprehensive Survey on Reliability.
-\newblock \emph{arXiv:2508.18076}, 2025.
+\newblock What Are We Measuring in NLG? A Meta-Analysis of Evaluation Trends 2020-2025. \newblock \emph{arXiv:2508.18076}, 2025.
 \bibitem[Unearned(2026)]{unearned2026}
 Luo, W., Luu, K., Liu, X., et al.
-\newblock Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remediation of Unearned Passes.
-\newblock \emph{arXiv:2609.34262}, 2026.
+\newblock Maintaining Benchmarks Against Increasingly Capable Agents: Detection and Remedi. \newblock \emph{arXiv:2609.34262}, 2026.
 
 \bibitem[Receipts(2026)]{receipts2026}
 Chen, Y. and Zhang, W.
@@ -484,8 +467,7 @@ Chen, Y. and Zhang, W.
 
 \bibitem[Hidden(2026)]{hiddenconfounds2026}
 Tang, L. and Zheng, Y.
-\newblock Measuring the Serving Stack Instead of the Model: Hidden Confounds in Local Tool-Use Evaluation.
-\newblock \emph{arXiv:2609.26693}, 2026.
+\newblock Measuring the Serving Stack Instead of the Model: Hidden Confounds in Local Tool. \newblock \emph{arXiv:2609.26693}, 2026.
 
 
 \bibitem[BGE(2023)]{bge2023}
@@ -509,10 +491,12 @@ Li, X. et~al.
 \newblock Unreliable Judges: Systematic Bias in LLM-as-Judge Evaluation.
 \newblock \emph{arXiv}, 2025.
 
+
+
 \bibitem[Ayyagari(2026)]{ayyagari2026pinned}
-Ayyagari, R.
-\newblock Pinned Judge Versions for Reproducible Evaluation.
-\newblock \emph{arXiv}, 2026.
+Ayyagari, K.~C.
+\newblock Pinned and Still Unstable: Within-Judge Verdict Variance and the Noise Floor of LLM-as-Judge Leaderboards.
+\newblock \emph{arXiv:2609.33044}, 2026.
 
 \bibitem[Gu(2024)]{gu2024judgesurvey}
 Gu, J. et~al.
