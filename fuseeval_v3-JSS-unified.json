@@ -1,0 +1,487 @@
+{
+ "round_score": 5.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 3,
+ "full_tier": {
+  "n": 1,
+  "mean": 5.0
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 5.0
+ },
+ "round": "v3-JSS-unified",
+ "prompt_version": "v3-referee",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\JSS-MemTether-20261018.tex",
+ "timestamp": "2026-10-18T15:10:44.837536",
+ "usage_total": {
+  "in": 72849,
+  "out": 16428,
+  "secs": 267.4
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "central_claim": "MemTether is a local-first agent memory system whose bi-temporal supersession (with four proven correctness properties), hash-chained audit log, and file-level pointer sharing let multiple AI clients safely share one SQLite database, validated in a 30-day production deployment.",
+     "method_summary": "Single-file SQLite storage with bi-temporal fact rows, supersession chains, SHA-256 anchor chain every 10 audit entries, OS file-lock serialization of writes, evaluated on four public benchmarks plus a 30-day 15-agent production trace.",
+     "key_evidence": [
+      "31K+ operations (28,807 cumulative use_count + 2,346 audit writes), zero data loss over 30 days / 15 agents",
+      "Four theorems: gap freedom, no overlap, cycle freedom, concurrency safety via conditional UPDATE + _FileLock",
+      "Hash chain: 2,346 entries, 5/5 anchored tamper scenarios detected, 1/1 unanchored tail not detected",
+      "73pp cross-agent contradiction loss vs 0.7pp self-correction (n=11, expanded to 43 gradeable)",
+      "Supersession prediction macro F1=0.946/0.947; ConflictBank F1=0.897"
+     ],
+     "kept_assumptions": "Single-operator single-machine local-first setting is a valid evaluation unit; bounded adversary threat model (anchors in same DB) is honestly disclosed; SQLite WAL + advisory file lock is the entire concurrency substrate; production DB is private and unreleased."
+    },
+    "scores": {
+     "soundness": 5.0,
+     "novelty": 6.0,
+     "evidence": 5.0,
+     "writing": 5.0,
+     "honesty": 8.0,
+     "overall": 5.0
+    },
+    "score_anchors": {
+     "soundness": "5: concurrency/durability claims rest on unstated transaction boundaries and OS-level locks with no failure-mode evidence. 9: journal mode, sync level, transaction scope, and crash-recovery behavior specified and experimentally fault-injected.",
+     "novelty": "5: integration of known mechanisms (bi-temporal DBs, hash chains, symlinks) with clear prior art cited. 9: a genuinely new mechanism or formal result without close precedent.",
+     "evidence": "5: single private deployment, n=11–43 for key causal claims, no durability/concurrency measurements. 9: multi-deployment, released data, fault-injection and contention benchmarks.",
+     "overall": "5: workshop-level systems paper with real deployment but architectural claims under-supported and internal inconsistencies. 9: top-tier systems venue quality with verifiable artifact and rigorous failure-mode analysis."
+    },
+    "findings": [
+     {
+      "id": "E1-01",
+      "severity": "major",
+      "issue": "Concurrency model still under-specified: WAL named, but busy_timeout, SQLITE_BUSY incidence, and lock-file identity across junction/symlink paths unreported",
+      "relevant_text": "Under WAL mode with multiple concurrent readers and a single writer, the conditional update is atomic... The implementation uses a file lock (_FileLock) to serialise writes across processes",
+      "concern": "Theorem 4 now cites WAL + conditional UPDATE, and _FileLock is disclosed, but no busy_timeout value, no count of lock contention/BUSY errors over 31K ops, and no statement that lock files resolve to the same inode when 15 clients reach the DB through different junction/symlink paths — the exact case where advisory locking silently forks.",
+      "strongest_rebuttal": "WAL + serialized file lock is stated; 77 writes/day average makes contention negligible; zero data loss was observed over 30 days.",
+      "why_rebuttal_insufficient": "Average rate does not bound burst concurrency; 'zero data loss' is asserted without any instrumentation (no BUSY/lock-error counts) that could detect a dropped write; path-identity of the lock file is the load-bearing detail for the multi-client claim and is never addressed.",
+      "suggestions": "Report busy_timeout, lock acquisition latency/failure counts, and confirm lock-file canonicalization (realpath) across junction/symlink paths; add a burst-write stress test with N concurrent processes.",
+      "status": "active"
+     },
+     {
+      "id": "E1-02",
+      "severity": "major",
+      "issue": "The 3,980-char injection limit remains an unexplained configurable constant underpinning the '209x overscan' architectural claim",
+      "relevant_text": "The memory projection system injects at most 3,980 characters per LLM turn, yielding an injection coverage ratio of 0.48%",
+      "concern": "Unchanged from last round: no derivation of 3,980, no sensitivity analysis at 8K/32K/128K budgets. The storage-schema implication (209x overscan, 'retrieval quality is the binding constraint') is an artifact of this deployment choice, not of SQLite or the architecture.",
+      "strongest_rebuttal": "It is the real production operating point; Finding 4 explicitly notes the ratio is a property of the memory-to-context ratio, not a design flaw.",
+      "why_rebuttal_insufficient": "That concession undercuts the prescriptive framing ('Improving retrieval by 1% is equivalent to storing 2x more memories'), which is calibrated to the smallest plausible budget and does not generalize to deployments with larger contexts.",
+      "suggestions": "Derive the 3,980 limit (model, token budget) and add a coverage-vs-budget sensitivity table.",
+      "status": "active"
+     },
+     {
+      "id": "E1-03",
+      "severity": "minor",
+      "issue": "Previous 0.16/day arithmetic error — resolved; the offending sentence no longer appears",
+      "relevant_text": "Over 26 days of production, the cumulative sum of use_count across active facts is 28,807. Combined with 2,346 write operations recorded in audit_log, this yields the 31K+ total operations.",
+      "concern": "The mislabeled per-day rate is gone. However, the new 31K construction sums a cumulative counter (use_count, which counts increments) with audit-log write rows — two different event classes presented as one 'operations' total; increments lost on crash would inflate/deflate this silently.",
+      "strongest_rebuttal": "Both are recorded operations in the system's own instrumentation; the sum is a reasonable workload proxy.",
+      "why_rebuttal_insufficient": "use_count is an in-place counter, not an event log; unlike audit_log it has no hash-chain coverage, so the 28,807 component is unverifiable against tampering or crash loss.",
+      "suggestions": "Label the two components distinctly and state that use_count is unaudited; ideally log retrieval events.",
+      "status": "fixed"
+     },
+     {
+      "id": "E1-04",
+      "severity": "minor",
+      "issue": "Window-length inconsistency persists in new form: 30 days vs 26 days; correction dates (2026-09-27) vs unstated deployment window",
+      "relevant_text": "Over 26 days of production, the cumulative sum of use_count... In a 30-day production deployment serving 15 AI agents",
+      "concern": "Abstract/body say 30 days; read-tracking and tamper sections say 26 days; Table (clustering) dates corrections 2026-09-27 but the deployment start/end is never stated, so 'organic correction rate 2.7/day over 30 days' uses an unverifiable denominator.",
+      "strongest_rebuttal": "26 days is the read-tracking subset; 30 days is the full deployment; both are labeled.",
+      "why_rebuttal_insufficient": "The labels are inconsistent (tamper eval says the production DB itself spans 26 days), and without stated start/end dates readers cannot reconcile the two windows.",
+      "suggestions": "State deployment start/end dates once; annotate every 'days' figure with its exact window.",
+      "status": "active"
+     },
+     {
+      "id": "E1-05",
+      "severity": "major",
+      "issue": "Crash/power-loss durability still unaddressed: no synchronous pragma, transaction scope, integrity_check, or backup policy for the single evidence file",
+      "relevant_text": "the old row is marked superseded with valid_to set... Every memory operation (remember, correct, retire, conflict verdict, q-value update) is appended to audit_log. Every 10 operations, a SHA-256 anchor is computed",
+      "concern": "Each correct() touches facts, supersessions, audit_log, and periodically audit_anchors. The paper never states these are wrapped in one transaction, the synchronous level, or checkpoint policy. A crash mid-operation can leave a superseded fact without its audit entry or a partial anchor batch — undetectable by the chain, which only covers committed rows. 'Zero data loss' is asserted without any integrity evidence (e.g., PRAGMA integrity_check).",
+      "strongest_rebuttal": "SQLite is ACID by default; the engine wraps multi-table writes in transactions; the hash chain provides post-hoc integrity.",
+      "why_rebuttal_insufficient": "ACID holds only under stated synchronous/transaction settings, neither asserted; the chain covers at most complete committed batches and its own anchors live in the same file exposed to the same power-loss event.",
+      "suggestions": "Add a durability paragraph: journal/synchronous settings, transaction scope per operation, checkpoint policy, integrity_check result at analysis time; optionally a crash-injection test.",
+      "status": "active"
+     },
+     {
+      "id": "E1-06",
+      "severity": "minor",
+      "issue": "Duplicated/incomplete assembly persists: 'Production Data Note' paragraph repeated verbatim; two section bodies empty; tamper section contains misplaced LangMem text",
+      "relevant_text": "The production database contains private operational data and is not publicly released; a synthetic data generator... [repeated twice] \\n\\section{Memory Court: Hash-Chained Audit}\\n\\n\\n\\section{Memory Dynamics in Production}",
+      "concern": "Two sections have zero content, the tamper-detection section body is LongMemEval/LangMem comparison text, and the production-data note is duplicated — the manuscript has not had a consistency pass, undermining trust in a measurement-heavy paper.",
+      "strongest_rebuttal": "Editorial artifact from section merging; trivially fixed.",
+      "why_rebuttal_insufficient": "Combined with the window inconsistencies (E1-04), it signals derived numbers were not cross-checked either.",
+      "suggestions": "Fill or remove empty sections, move the LangMem paragraph to the cross-system section, remove the duplicate, run a final diff pass.",
+      "status": "active"
+     },
+     {
+      "id": "E1-07",
+      "severity": "major",
+      "issue": "Hash-chain granularity leaves up to 9 unaudited tail entries; the paper's own experiment confirms the tail is undetectable, yet export/verify claims do not quantify this window",
+      "relevant_text": "Every 10 operations, a SHA-256 anchor is computed... Output: 5/5 anchored scenarios detected, 1/1 unanchored not detected (expected)",
+      "concern": "Anchoring every 10 ops means the most recent ≤9 operations — precisely those most likely lost or altered in a crash or by an attacker racing the anchor — carry no tamper evidence. EU AI Act Art. 12 positioning requires record completeness; the paper treats 1/1 undetected as 'expected' without discussing the exposure window or a flush-on-close/anchor-every-write option.",
+      "strongest_rebuttal": "The threat model is explicitly bounded and honest; batch anchoring is a deliberate cost/performance tradeoff; verify/export tooling exists.",
+      "why_rebuttal_insufficient": "The compliance framing raises the stakes on the tail window; 'expected' is not a mitigation, and no analysis shows why 10 (not 1) is the right batch size for a workload of ~77 writes/day where per-write hashing is cheap.",
+      "suggestions": "Justify the batch size with a cost measurement, anchor on shutdown/flush, or state the maximum undetectable-tamper window explicitly in the threat model.",
+      "status": "active"
+     },
+     {
+      "id": "E1-08",
+      "severity": "major",
+      "issue": "Scaling limits asserted qualitatively only: 'WAL mode contention under high concurrency' is named but never measured, and 15 adapters ≠ 15 concurrent writers",
+      "relevant_text": "this design has limitations: single-machine scope, WAL mode contention under high concurrency, and the need for file-level locking. For deployments exceeding these limits, a client-server architecture may be more appropriate.",
+      "concern": "The paper's multi-client claim rests on 15 registered clients of which '15 distinct agent clients have actually written' — but no concurrency distribution is given (peak simultaneous writers, lock wait times, write throughput ceiling). The scaling boundary at which the single-file design breaks is asserted, not characterized, so readers cannot judge where 'client-server' becomes necessary.",
+      "strongest_rebuttal": "Single-machine scope is honestly disclosed; local-first workloads are low-throughput; the design lesson section explicitly flags the ceiling.",
+      "why_rebuttal_insufficient": "A systems contribution claiming 'multi-client deployment' as one of three pillars should include at least a microbenchmark (concurrent writers vs throughput/error rate); as-is the limit is unfalsifiable.",
+      "suggestions": "Add a concurrency microbenchmark (1–32 processes, writes/sec, SQLITE_BUSY count, lock wait p99) and state observed peak production concurrency.",
+      "status": "active"
+     }
+    ],
+    "novelty_check": {
+     "claimed_firsts": [
+      "\"Memory Supersession Prediction: first formulation of memory lifecycle as supervised learning\"",
+      "\"No prior agent memory system provides a hash-chained audit log with self-contained evidence export in the memory layer\"",
+      "\"None provide hash-chained audit trails or file-level multi-client deployment\"",
+      "\"our contribution is the integration of bi-temporal supersession with hash-chained audit and multi-client file-level sharing in a single open-source system\""
+     ],
+     "named_comparators": [
+      "MemStrata (bi-temporal ledger, closed-source) — for supersession",
+      "MOSS (auditable agentic memory on SQLite, paper-only) and TraceKit/Janus/MutMem (tamper-evident/provenance, adjacent layers) — for audit",
+      "mem0/Zep/Letta/LangMem — for memory systems without file-level sharing",
+      "No comparator found for supersession-as-supervised-task; closest is generic churn/lifecycle prediction — insufficient information to verify 'first formulation' exhaustively"
+     ],
+     "verdict": "Integration claim: supported (components individually precedented, combination appears novel). Audit-log claim: supported-with-qualification (MOSS is audit-by-design but paper-only; 'with production data and export' does the work). 'First formulation' of supersession prediction: overstated risk — no search methodology given; insufficient information to verify, but plausibly novel as named task."
+    },
+    "meta_note": "Architecture focus: storage schema, concurrency, scaling, durability, failure modes. Checked and passed: the four theorems' internal logic is sound (gap-freedom/overlap/cycle proofs are valid given the model assumptions), the threat model is unusually honest (fail-open source registry, same-DB anchors, no initial-injection defense all disclosed with executable negative tests), and schema DDL is now partially shown. Not passed: durability under crash/power loss (E1-05), concurrency evidence (E1-01, E1-08), anchor-tail exposure (E1-07), and assembly consistency (E1-04, E1-06). Prior-round E1-03 is fixed; E1-02 remains. No finding rises to critical because the core correctness claims are scoped to a bounded adversary and single machine, and the central architectural claims are interpretable — but the 'zero data loss' and multi-client pillars currently rest on assertion rather than instrumentation, capping overall at workshop level. prompt_version=v3-referee"
+   },
+   "usage": {
+    "in": 24643,
+    "out": 4324,
+    "secs": 124.7
+   },
+   "raw_len": 15034,
+   "retried": true,
+   "z": 0.0
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "scores": {
+     "soundness": 5.0,
+     "novelty": 6.0,
+     "evidence": 5.0,
+     "writing": 5.0,
+     "honesty": 7.0,
+     "overall": 5.0
+    },
+    "findings": [
+     {
+      "id": "E5-01",
+      "severity": "critical",
+      "issue": "`pip install memtether` path is the headline installability claim but no first-run smoke test exists; the package is alpha (v0.1.0a80.post2) with optional extras ([server]) and dependency stack (sentence-transformers/ONNX, FTS5 SQLite, NTFS junctions) that will fail silently for many new users",
+      "relevant_text": "PyPI: \\texttt{pip install memtether} ... pip install -e \".[server]\" ... 23 pre-defined client adapters ... NTFS junctions (Windows) or symbolic links (macOS/Linux) ... ONNX inference",
+      "concern": "This is the installability axis the reviewer must score. A reviewer doing exactly what the paper says (pip install memtether) hits at least four non-obvious failure modes: (a) the README line `pip install -e \".[server]\"` contradicts the abstract's `pip install memtether`; (b) the project is alpha and the SECURITY.md/README explicitly say so but the paper abstract gives no version pin and the reproducibility block cites `v0.1.0a80.post2` whereas SECURITY.md says `v0.1.0a7`; (c) the design relies on SQLite FTS5 and ONNX runtime but does not assert either is installed; (d) the NTFS junction path silently degrades on non-Windows or on FAT/exFAT volumes where junctions/symlinks are unsupported, and there is no diagnostic for which mode is active. A new user gets either an ImportError, a silently-disabled SQL path (per Section 3 Design Quote, the regex-based Chinese predicate extractor produces zero pairs on English data so SQL path 'does not activate'), or a working install whose core feature set is empty for their data. None of these are actionable without a `memtether doctor` or equivalent.",
+      "suggestions": "Ship `python -m memtether doctor` that prints: Python version, PyPI version vs installed commit SHA, SQLite version + `PRAGMA compile_options` showing FTS5/JSON1, ONNX runtime availability, default embedding backend, current platform and which file-sharing mode is active (junction/symlink/copy), and a hello-world remember/query round-trip. Pin the abstract's `pip install memtether` to a specific version that matches SECURITY.md. Make the failure of any non-optional dependency (FTS5) loud at import time, not silent."
+     },
+     {
+      "id": "E5-02",
+      "severity": "critical",
+      "issue": "First-run experience has no diagnostic path; the user runs SQL queries on an empty DB and gets zeros, not the paper's numbers",
+      "relevant_text": "sqlite3 memory.db \"SELECT COUNT(*) FROM facts WHERE status='active' AND use_count=0\" ... Expected: 189 ... # Expected: 825032; divide by 3980 = 0.48%",
+      "concern": "Reproducibility commands assume the production `memory.db` is sitting on the user's machine. SECURITY.md says `memory.db` is .gitignored and contains private data, so a fresh install has an empty database. The expected outputs (189 dead memories, 825032 chars, 0.48% coverage) are unreachable without first producing that exact dataset. The error a new user actually sees is silent (an empty result set that does not match 'Expected: 189') — the comment says 'Expected' but the command does nothing to explain how to reach that expectation. There is no `memtether demo`, no `memtether seed --days 30`, and no synthetic-data loader referenced from the README command block.",
+      "suggestions": "Either (a) add a one-line loader: `python -m memtether.demo --seed 42 --days 30` that creates a fixture DB matching the paper's schema and headline counts, then point the SQL examples at `fixtures/memory_fixtures.db`; or (b) publish a SHA-256'd anonymized `memory.db` as a release artifact with an explicit license that lets reviewers use it for verification; or (c) print, in the README, 'These queries return the paper's numbers only against the production database, which is not redistributable; to verify the schema and queries, run scripts/generate_fixture.py first.'"
+     },
+     {
+      "id": "E5-03",
+      "severity": "critical",
+      "issue": "Error messages on the write path are not user-facing; the four `remember()` failure modes (duplicate / no-retrieval-intent / too-long / too-many-entities / config / DB locked) all surface as identical opaque failures",
+      "relevant_text": "Novelty gate: Reject if a semantically equivalent fact is already active (embedding similarity > 0.95). ... Type-prior gate: ... require the writing agent to provide a retrieval intent ... Length gate: Reject or truncate facts exceeding 500 characters that contain more than 3 entities.",
+      "concern": "A new user invoking `remember(content, source=...)` cannot distinguish a gate rejection from a SQLite lock from a missing embedding model. The paper uses 'reject' and 'truncate' as if they are single well-defined outcomes, but `correct()` (which the formal section proves needs conditional UPDATE + `changes()` check) and the admission gates described in the paper's Table 6 produce very different operational signals. SECURITY.md mentions `tests/test_poisoning_defense.py` but the paper gives no signature, no exception type, no logging channel. For usability this is the central failure mode: developers will assume 'MemTether dropped my memory' rather than learn which gate fired.",
+      "suggestions": "Define `class AdmissionVerdict(NamedTuple): accepted: bool; reason: Literal['OK','NEAR_DUP','NO_INTENT','TOO_LONG','TOO_MANY_ENTITIES']; metric: Optional[float]; suggested_retry: Optional[str]` returned in-band from `remember()`. Raise `class MemTetherStoreError(Exception)` for DB-level failures (lock, schema mismatch) with the underlying SQLite error code attached. Add `memtether trace <memory_uid>` that replays all gate decisions and audit events for a fact. Document this contract in the API subsection."
+     },
+     {
+      "id": "E5-04",
+      "severity": "major",
+      "issue": "API ergonomics: `remember()` signature, gate config keys, and source registry semantics are never defined in the paper",
+      "relevant_text": "We propose three admission gates evaluated at write time (remember()) ... Type-prior gate: ... require the writing agent to provide a retrieval intent (\"when would this be needed?\"). ... agents.json registry ... fail-open",
+      "concern": "A reviewer implementing against this paper has to guess at: (a) is `remember(content, type=str, retrieval_intent=str, ttl=Optional[str], source=str)` the call shape? (b) is `retrieval_intent` a string, an enum, a structured object? (c) are the thresholds 0.95 / 500 chars / 3 entities constants or config? (d) when `agents.json` is absent (default) does `source='claude-code'` silently accept any string, and is there a `strict=True` parameter? (e) how does `correct(old_uid, new_content)` interact with the gates — does it pass through novelty/length gates? The formal section's Theorem 4 (Concurrency Safety) depends on a specific `correct()` shape that is not exhibited.",
+      "suggestions": "Add a 'Write API Contract' subsection with: (i) the exact `remember`/`correct`/`retire` signatures including defaults; (ii) a table of config keys with defaults and units (chars vs tokens vs similarity); (iii) one accepted and one rejected call shown end-to-end with the structured return value; (iv) the `agents.json` schema; (v) a snippet showing a vanilla agent failing the type-prior gate and receiving a structured rejection."
+     },
+     {
+      "id": "E5-05",
+      "severity": "major",
+      "issue": "Examples are incomplete: the four 'near-miss' types in the B1 gate are enumerated but never shown, and the synthetic generator is not linked",
+      "relevant_text": "B1 gate achieves 100% recall and 100% precision (zero false positives across all four near-miss types).",
+      "concern": "Section 3 (SGM) mentions 84% recall on a synthetic Chinese benchmark with 20 entities x 25 sessions = 500 facts; the paper claims 5 test entities with 25 facts each = 125, but then reports '105/125' which is 84%. The discrepancy 105/125 = 0.84 vs 84% is consistent, but the math '1.3x advantage (84% vs 64%)' silently averages across runs whose variance is not reported. More importantly, none of the four near-miss types in the B1 benchmark is exhibited, so the reader cannot evaluate whether '100% precision' is meaningful (if the four near-miss types are all trivially distinguishable from positives, the benchmark is vacuous).",
+      "suggestions": "Publish the synthetic generator script and one positive + one of each near-miss example inline. Report per-near-miss-type recall/precision rather than a single 100% number, so the reader can see whether the gate is doing meaningful work or trivially distinguishing. State machine specs (CPU/RAM/Python/SQLite/ONNX versions) for the < 1ms vs ~50ms latency claim."
+     },
+     {
+      "id": "E5-06",
+      "severity": "major",
+      "issue": "Examples completeness: the 23 client adapters are listed by name but the adapter API/contract is never shown, and the claim '15 distinct agent clients have actually written' is unverifiable without a CLI",
+      "relevant_text": "MemTether supports 23 pre-defined client adapters (Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, Zed, Cline, Roo Code, Kilo Code, JetBrains IDEs, Neovim, Amazon Q, Gemini CLI, Cody, Continue, Codex, WorkBuddy CN/Intl, CodeBuddy, ZCode, dsh, OpenClaw, and a neutral fallback). Of these, 15 distinct agent clients have actually written to the production database.",
+      "concern": "Listing 23 adapters is a strong claim about breadth, but a user reading the paper cannot determine: (a) what each adapter actually does (does Claude Code write via a hook? does Cursor inject on save? does dsh write via a shell wrapper?); (b) what the 'neutral fallback' is for; (c) how to install a given adapter (per-adapter README, registry entry, symlink target); (d) which adapters contributed to the '15' production writers. For a paper that makes a 'file-level multi-client' design claim, the adapter API is the central artifact and it is invisible.",
+      "suggestions": "Add a 'Client Adapters' subsection with: (i) a table mapping each of the 23 adapter names to its install command and the data path it reads/writes; (ii) the adapter interface contract (e.g., a small Python protocol or a JSON IPC schema); (iii) the production writers' per-adapter write counts so the 'have actually written' claim is auditable. Provide `memtether adapters list` and `memtether adapters stats --days 30` CLIs."
+     },
+     {
+      "id": "E5-07",
+      "severity": "major",
+      "issue": "Hash-chained audit 'verify' is described in prose with no CLI signature or worked example; the 'browser-verifiable evidence export' is the central differentiator but its format is unstated",
+      "relevant_text": "In production, a \\texttt{memtether court} CLI provides: (1)~\\texttt{verify} --- recompute the full chain; (2)~\\texttt{export} --- bundle the audit log, anchors, and a self-contained HTML verifier; (3)~\\texttt{conflicts} --- list candidate contradictions for human review.",
+      "concern": "The 'court' CLI is named with three subcommands but: (a) flags are unspecified (does `verify` take a path? does it print JSON? does it exit non-zero on failure?); (b) the 'self-contained HTML verifier' is the central novelty but its structure is not described — what does the bundled HTML do? does it run JS? does it accept a user-uploaded DB? does it print the broken anchor row?; (c) the `conflicts` subcommand is described as 'candidate contradictions for human review' but no output schema or example is shown. A reviewer who runs `memtether court verify` gets either success or a stack trace, not a structured report.",
+      "suggestions": "Document the exact CLI signatures: `memtether court verify [--db PATH] [--json]`, `memtether court export [--db PATH] [--out PATH]`, `memtether court conflicts [--db PATH] [--since DATE]`. Ship the HTML verifier as a static asset in the repo (`memtether/court/static/verify.html`) and reference it from the README so its existence is verifiable. Show a sample verify output with a deliberate tamper scenario."
+     },
+     {
+      "id": "E5-08",
+      "severity": "major",
+      "issue": "Cross-version drift: paper cites v0.1.0a80.post2 (commit d1c0f99) and SECURITY.md cites v0.1.0a7; no CHANGELOG entry anchors the paper's claims",
+      "relevant_text": "All results in this paper were generated with MemTether v0.1.0a80.post2 (commit \\texttt{d1c0f99}, PyPI). ... SECURITY.md ... 当前线为 `v0.1.0a7`",
+      "concern": "Two different version strings appear in the artifact, and only the paper mentions the commit SHA. A reviewer who clones HEAD gets an unpinned moving target; SECURITY.md says alpha status means the public protocol can change. The first command a reviewer runs is `pip install memtether` with no version pin and may resolve to a newer release where the API has drifted. This is both a reproducibility problem and an installability problem (the install succeeds but the API differs).",
+      "suggestions": "Unify on one version string across paper, README, and SECURITY.md. Add `git checkout <commit-sha>` to the install snippet. Create a release tag `paper-v1` at commit d1c0f99 and add a CHANGELOG entry marking what is locked vs what is moving."
+     },
+     {
+      "id": "E5-09",
+      "severity": "major",
+      "issue": "Schema inconsistencies between the design section's CREATE TABLE statements and the SQL queries in the Reproducibility section",
+      "relevant_text": "CREATE TABLE facts (uid TEXT UNIQUE, type TEXT, subject, content TEXT, status TEXT, source TEXT, valid_from TEXT, valid_to TEXT, ...) ... CREATE TABLE audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, op TEXT, target TEXT, agent TEXT, detail TEXT, ts TEXT) ... SELECT f.type, COUNT(*), SUM(CASE WHEN f.use_count=0 THEN 1 ELSE 0 END) FROM facts f",
+      "concern": "The CREATE TABLE in Section 3 declares `source TEXT` directly on the `facts` table, but Section 7's cross-agent analysis mentions a separate `fact_sources` / `s.name` join. The `agents.json` registry implies a separate sources table. The Reproducibility SQL `SELECT s.name, ... FROM facts f JOIN fact_sources s ON f.source_id=s.id` (from E2-10) implies `source_id`, not `source TEXT`. Either the DDL is incomplete or the SQL examples are wrong. A new user following the README hits one of: schema mismatch error, ambiguous column, or silently wrong results.",
+      "suggestions": "Publish the complete schema DDL in the paper or in `docs/schema.sql` referenced from Reproducibility. Make sure the CREATE TABLE matches the JOIN/SELT queries. If the design moved from inline `source TEXT` to a separate registry table, document the migration path."
+     },
+     {
+      "id": "E5-10",
+      "severity": "major",
+      "issue": "Token-vs-character unit ambiguity in the injection-coverage example will mis-train users reproducing the headline 0.48%",
+      "relevant_text": "Total content: 833,488 characters ... Injection limit per turn: 3,980 characters ... Injection coverage: 0.48%",
+      "concern": "SQLite `LENGTH()` returns characters (code points) for TEXT, but the actual storage size depends on encoding (UTF-8 bytes). The 3,980 'characters' for the LLM context is a token budget in practice — tokenizers like cl100k_base produce roughly 3-4 chars per token for English and ~1.5 chars per token for Chinese, so the same '3,980' value means very different coverage across languages. A reviewer reproducing this against the Chinese-language subset will get wildly different coverage depending on whether they compute `SUM(LENGTH(content))` (chars), `SUM(LENGTH(content) * 3)` (approx bytes), or tokenize with the actual LLM tokenizer. The 209x overscan headline is an artifact of the unit choice.",
+      "suggestions": "State the unit for both numerator and denominator explicitly: storage in SQLite `LENGTH()` units, context injection in tokens (with the tokenizer name). Report both. Add `SELECT SUM(LENGTH(content)) AS chars, SUM(LENGTH(content)) / 3.0 AS approx_tokens FROM facts WHERE status='active'` to the reproducibility section so the unit ambiguity is visible."
+     },
+     {
+      "id": "E5-11",
+      "severity": "major",
+      "issue": "The 'file-level pointer' design has no fallback installer; symlink/junction failures or wrong-volume targets silently produce per-client isolated databases that look identical to the user",
+      "relevant_text": "On Windows, the SQLite database is stored in a user-designated directory and shared via NTFS junctions. On macOS and Linux, symbolic links serve the same role.",
+      "concern": "Multi-client sharing is a load-bearing claim. Failure modes that are invisible to the user: (a) on a FAT32 or exFAT drive (common on USB sticks used to share config across machines), symlinks do not exist and `mklink /J` fails — the adapter falls back to copying the file, so each client now has its own DB; (b) on a network share, symlinks may resolve on the client side to a per-client empty file; (c) on macOS, the symlink target path is stored verbatim and breaks if the central DB moves; (d) on Linux, the symlink may be broken if the central DB is on a different mountpoint. None of these produce an error visible to the user; they silently disable multi-client sharing.",
+      "suggestions": "Add a `memtether doctor --check sharing` that prints: (i) the resolved path of the central DB, (ii) whether the symlink/junction is intact, (iii) the filesystem type and whether it supports the required link mode, (iv) a hello-world write/read that proves two distinct adapters see the same row. Refuse to start if sharing mode is degraded and the user requested multi-client."
+     },
+     {
+      "id": "E5-12",
+      "severity": "minor",
+      "issue": "No 'common pitfalls' section: the README jumps from install to advanced commands with no narrative for first-time users",
+      "relevant_text": "Reproducibility section commands ... pip install -e \".[server]\" ... python -m memtether ... pytest tests/ -v",
+      "concern": "Installability is not just `pip install` succeeding — it is the user reaching 'I have data in my DB' in under 30 minutes. The README/Reproducibility jumps from `pip install` to running pytest to running benchmarks, with no narrative for: how to configure the central DB path, how to point a single adapter (say, Claude Code) at it, how to insert a first memory, how to retrieve it. A new user has to read all 23 adapter install steps to do anything useful.",
+      "suggestions": "Add a 'First 10 minutes' section: (1) `pip install memtether==v0.1.0a80.post2`; (2) `memtether init` to create the central DB; (3) `memtether adapters enable claude-code` to wire one client; (4) `memtether remember --content 'My favorite editor is vim' --source claude-code`; (5) `memtether recall 'editor'` to verify retrieval. Make this the first thing in the README."
+     },
+     {
+      "id": "E5-13",
+      "severity": "minor",
+      "issue": "The README implies [server] is the default install but the abstract says `pip install memtether`; the server extras are not enumerated",
+      "relevant_text": "pip install -e \".[server]\"",
+      "concern": "Installability includes knowing what you are installing. The `[server]` extra is opaque — does it pull FastAPI? uvicorn? a frontend? authentication? What extras exist (`[server]`, `[all]`, `[dev]`, `[bench]`) and what does each add? A new user installing without `[server]` may miss the dashboard, the API, or the auth layer; installing with it may pull heavy ML deps they do not want.",
+      "suggestions": "Document extras: `[server]` = API server, `[bench]` = benchmark scripts + heavy ML deps, `[dev]` = test/lint, `[all]` = everything. State the disk footprint of each. Update the abstract's install line to match the canonical extras name."
+     },
+     {
+      "id": "E5-14",
+      "severity": "minor",
+      "issue": "The paper claims '534 passing tests, 23 client adapters' but the test command in the README does not name a subset; reviewers cannot tell which tests cover the gates, the hash chain, the bi-temporal theorems, etc.",
+      "relevant_text": "pytest tests/ -v --tb=short # Expected: 534 passed, 4 skipped",
+      "concern": "Test-suite completeness is part of usability — a new user wants to know `pytest tests/test_gates.py -v` exercises the admission gates, `pytest tests/test_court.py -v` exercises the hash chain. Without test organization described in the paper, a reviewer cannot map each headline claim (4 theorems, 5/5 tamper scenarios, 100% B1 precision) to a concrete test file.",
+      "suggestions": "Add a 'Test Organization' subsection: `tests/test_formal.py` for the four bi-temporal theorems, `tests/test_court.py` for the hash chain, `tests/test_gates.py` for admission gates, `tests/test_poisoning_defense.py` for the SECURITY.md mapping table. List the parametrized cases for the four theorems and the five tamper scenarios. This also serves as documentation-by-test."
+     }
+    ],
+    "meta_note": "MemTether's central installability claim (`pip install memtether`) is unverified in the artifact and the version string drifts between paper (v0.1.0a80.post2, commit d1c0f99) and SECURITY.md (v0.1.0a7), with no CHANGELOG anchor. First-run experience is essentially zero: the README jumps from install to pytest to benchmarks with no narrative, no `memtether doctor` / `memtether init` / `memtether remember` happy path, and the 'Expected: 189' SQL comments are unreachable without producing the production dataset. The write-side API (remember/correct/retire) is described only in prose — no signature, no typed rejection, no config keys — and SECURITY.md's own honest-bounds section admits that source attribution is fail-open by default, so a new user gets silently-bookkept writes that look successful. Examples are incomplete: the four B1 near-miss types and 23 adapter contracts are enumerated but never shown, and the 'browser-verifiable HTML verifier' (the central novelty) has no format spec. Several prior-round issues remain unaddressed: E1-03 (0.16/day arithmetic), E1-04 (30 vs 31 days, 17.9% vs 12-15%), E1-05 (durability), E1-06 / E2-08 (duplicated paragraphs in Related Work), E3-04 (injection coverage formula inverted), E4-01 (untested competitive claim), E4-04 (only untested gate has positive framing). With four critical installability/first-run issues, the overall score cannot reach 7. prompt_version=usability-v1",
+    "scores_note": "Scores reflect: soundness=5 (multiple unfixed criticals), novelty=6 (hash-chain + governance is real but underdocumented), evidence=5 (key numbers unreachable from public artifact), writing=5 (duplications and version drift), honesty=7 (SECURITY.md v2 honesty is a strength), overall=5 (criticals on install path block workshop-bar average)."
+   },
+   "usage": {
+    "in": 22839,
+    "out": 5404,
+    "secs": 29.9
+   },
+   "raw_len": 22293,
+   "z": 0.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "ValueError: unbalanced JSON | retry: HTTPError: HTTP Error 503: Service Unavailable",
+   "raw": "{\"reconstruction\": {\"central_claim\": \"MemTether is a local-first agent memory system whose bi-temporal supersession (with four proven correctness properties), hash-chained audit log, and file-level pointer sharing let multiple AI clients safely share one SQLite database, validated in a 30-day production deployment.\", \"method_summary\": \"Single-file SQLite storage with bi-temporal fact rows, supersession chains, SHA-256 anchor chain every 10 audit entries, OS file-lock serialization of writes, evaluated on four public benchmarks plus a 30-day 15-agent production trace.\", \"key_evidence\": [\"31K+ operations (28,807 cumulative use_count + 2,346 audit writes), zero data loss over 30 days / 15 agents\", \"Four theorems: gap freedom, no overlap, cycle freedom, concurrency safety via conditional UPDATE + _FileLock\", \"Hash chain: 2,346 entries, 5/5 anchored tamper scenarios detected, 1/1 unanchored tail not detected\", \"73pp cross-agent contradiction loss vs 0.7pp self-correction (n=11, expanded to 43 gradeable)\", \"Supersession prediction macro F1=0.946/0.947; ConflictBank F1=0.897\"], \"kept_assumptions\": \"Single-operator single-machine local-first setting is a valid evaluation unit; bounded adversary threat model (anchors in same DB) is honestly disclosed; SQLite WAL + advisory file lock is the entire concurrency substrate; production DB is private and unreleased.\"}, \"scores\": {\"soundness\": 5, \"novelty\": 6, \"evidence\": 5, \"writing\": 5, \"honesty\": 8, \"overall\": 5}, \"score_anchors\": {\"soundness\": \"5: concurrency/durability claims rest on unstated transaction boundaries and OS-level locks with no failure-mode evidence. 9: journal mode, sync level, transaction scope, and crash-recovery behavior specified and experimentally fault-injected.\", \"novelty\": \"5: integration of known mechanisms (bi-temporal DBs, hash chains, symlinks) with clear prior art cited. 9: a genuinely new mechanism or formal result without close precedent.\", \"evidence\": \"5: single private deployment, n=11–43 for key"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "central_claim": "MemTether 是一个本地优先（local-first）的 agent 记忆系统，通过双时态 supersession 链、哈希链防篡改审计日志和文件级多客户端共享（符号链接共用一个 SQLite），解决了 mem0/Zep/Letta 均未覆盖的治理（governance）问题，并以 30 天单机生产部署和四个公开基准支撑其定位。",
+     "method_summary": "用 SQLite 表（facts/audit_log/audit_anchors/supersessions）实现双时态事实链与每 10 条操作一次 SHA-256 锚定的审计链，NTFS junction/symlink 让多客户端共享同一 DB，配 23 个客户端适配器、谓词路由检索（SQL/嵌入双路）与 DistilBERT supersession 预测。",
+     "key_evidence": [
+      "30 天生产部署：15 agents、31K+ 操作、2,346 审计条目、零数据丢失；5/5 锚定行篡改被检出",
+      "跨 agent 矛盾造成 73pp 下游准确率损失（n=11；扩展 n=43 时 86% 发散），自纠正仅 0.7pp",
+      "LongMemEval 75.7% strict / 82.0% judge（对比 mem0 60.2%）；LoCoMo token-F1 0.523 vs mem0 0.344；ConflictBank F1=0.897（时间性子集 0.889，语义/误信息类别 0.000）",
+      "Supersession 预测 DistilBERT macro F1=0.946 vs 最优基线 0.804",
+      "四条形式化定理（无间隙/无重叠/无环/并发安全）+ 明确的威胁模型边界（fail-open、不防全权攻击者）"
+     ],
+     "kept_assumptions": "接受单机单操作者部署是该系统的目标场景；接受审计哈希链只防'不知锚定机制的改写者'这一诚实边界；接受 30 天窗口内零数据丢失的自报告；接受 GLM-5.3-flash 作为下游评测 judge。"
+    },
+    "scores": {
+     "soundness": 5.0,
+     "novelty": 4.0,
+     "evidence": 5.0,
+     "writing": 6.0,
+     "honesty": 7.0,
+     "overall": 5.0
+    },
+    "score_anchors": {
+     "soundness": "5 = 系统描述完整、定理为教科书级（区间划分/无环/条件更新原子性），但关键数字内部矛盾且核心比较数字不可信；9 = 定理非平凡、所有 headline 数字可由公开工件端到端复算且跨节一致",
+     "novelty": "5 = 组合既有技术（双时态、哈希链、symlink）成可用系统，单一组件均有明确先行工作；9 = 提出真正的新问题形式化并被独立数据验证为通用现象",
+     "evidence": "5 = 单操作者 30 天 trace + 基准分数自报且关键对比数字前后矛盾；9 = 多部署/多用户 trace、竞争对手在同一 workload 下实测对比",
+     "overall": "5 = 有诚实工程与有趣的单点观察（跨 agent 不对称），但作为'比 mem0/Zep/Letta 更好'的定位论文，切换理由不成立且核心对比数字不可信；9 = 定位经实测支撑、用户与切换成本刻画清晰"
+    },
+    "findings": [
+     {
+      "id": "E4-01",
+      "severity": "major",
+      "issue": "对 mem0/Zep/Letta 的差异化声明仍为断言而非测量，且'None provide...'表述对 Zep 不成立",
+      "relevant_text": "None provide hash-chained audit trails or file-level multi-client deployment.",
+      "concern": "定位三支柱中，'时间正确性'Zep 的 temporal KG 原生支持（作者自己引用了 Zep 论文标题 'A Temporal Knowledge Graph Architecture'）；'审计'是窄门类声明（TraceKit/Janus/MutMem/MOSS 都做 tamper-evidence，作者仅以'in the memory layer'划界）；只有'本地多客户端共享'是真差异，但那是 symlink 工程而非研究贡献。论文没有任何一次在 mem0/Zep/Letta 上运行治理类 workload 的测量，'better than' 未被证据化，只能成立 'different than'。",
+      "strongest_rebuttal": "定位句说的是'no single existing system fully addresses'三者的组合，这是可核查的组合性声明；且 Reproducibility 节给出了 mem0 的 LongMemEval head-to-head 实测（scripts/run_full_benchmark.py --systems memtether,mem0）。",
+      "why_rebuttal_insufficient": "head-to-head 只测检索准确率——作者自己在 §2 承认'My contribution is not retrieval accuracy but the governance and auditability layer'——也就是说论文在唯一的实测对比维度上恰恰不是它声称的贡献维度；治理能力（审计可验证、supersession 可追溯、多客户端）对三个竞品零测量。组合性声明因各组件均非首创而只剩组合本身，组合的必要性未被论证。",
+      "suggestions": "对一个竞品（建议 Zep，开源可自托管）跑同一份 30 天 trace 的重放，报告：(a) 事实被覆盖时旧值是否可追溯；(b) 是否能导出可独立验证的审计证据；(c) 多客户端共享所需配置。哪怕只有三项布尔结果，也把'better'从断言变成证据。",
+      "status": "active"
+     },
+     {
+      "id": "E4-02",
+      "severity": "major",
+      "issue": "目标用户仍未定义：'15 agents 生产部署'是单人单机的自用 trace，切换论证缺少用户侧",
+      "relevant_text": "Zero external users: The production deployment has no external users. / Single author: No inter-annotator agreement or external code review.",
+      "concern": "产品的目标用户是'在同一台机器上跑 15+ 异构 AI 客户端的本地优先单人操作者'——一个极窄且论文从未明说的群体。所有发现（跨 agent 矛盾 73pp、程序性记忆 2.5 天中位存活、1,857× entity-resolution gap）都是这一位操作者的写作习惯与 agent 配置的属性。威胁模型节诚实地披露了这一点，但 abstract 和定位段落继续以'production deployment'的语气呈现，读者会误以为是多用户生产验证。谁会切换？切换成本是什么（为 23 个客户端配置 symlink 与 source 注册表）？论文完全没有回答。",
+      "strongest_rebuttal": "本地多 agent 单人是正在增长的真实用户画像（开发者同时用 Claude Code/Cursor/Cline），单操作者 trace 是该画像下的诚实测量；threats to validity 已逐条披露。",
+      "why_rebuttal_insufficient": "披露局限性不等于完成定位论证。若目标用户就是单人开发者，论文应实测：一个 mem0 自托管用户切换到 MemTether 需要付出什么（迁移已有记忆？改 23 个客户端配置？）获得什么（audit 导出？supersession 链？）。当前论文的'谁该切换'是隐含的'像作者这样的人'，样本量为一。",
+      "suggestions": "在 intro 增加一段明确 persona（本地优先、多客户端、合规/审计动机），并做一次小型外部可用性测试（3-5 名多客户端开发者安装并运行一周），报告安装成功率与留存理由——这是把 product 定位从 N=1 变成证据的最低成本路径。",
+      "status": "active"
+     },
+     {
+      "id": "E4-07",
+      "severity": "critical",
+      "issue": "核心竞争数字内部矛盾：abstract/正文 LongMemEval 82.0% judge vs 复现脚本注释 58.3%，且后者输给 mem0",
+      "relevant_text": "# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%)\npython scripts/run_full_benchmark.py --systems memtether,mem0",
+      "concern": "Evaluation Summary 表和 abstract 报 MemTether LongMemEval judge 82.0%（对比 mem0 60.2%），这是论文对'为什么不留在 mem0'的最强单一答案；但 Reproducibility 节的可执行命令注释明确写着 'MT 58.3% vs mem0 60.2%'——即 MemTether 输。两者必有其一错误。若 58.3% 为真，论文唯一的实测准确率优势不存在，切换理由只剩治理功能；若 82.0% 为真，则复现工件与论文脱节。此外 strict 分数 75.7% 与 58.3% 也无法用已知的 strict/judge 差异（论文声称 strict 低 25.3pp，那 judge 58.3% 反推 strict 应约 33%）调和。作为定位论文，headline 竞争数字不可解释是致命的。",
+      "strongest_rebuttal": "58.3% 可能是另一次运行（不同版本/子集，例如 500Q 全集 vs multi-session 子集 79.7%），Reproducibility 注释截取了较早的实验记录。",
+      "why_rebuttal_insufficient": "论文没有给出任何区分两次运行的说明，且 abstract 的 82.0% 与 79.7%（multi-session）与 58.3% 三个数字之间无一致的故事可讲。读者无法判断该相信哪个数；对一篇用基准分数对比 mem0 建立定位的论文，这必须解释到可复算。",
+      "suggestions": "在 Reproducibility 注释中标明每次输出对应的表格行与配置（全集/子集、judge prompt 版本、模型版本），并以单一脚本一次运行同时产出 abstract、表格、脚本注释三处的数字（单一事实来源）。若 58.3% 是旧版本结果，删除并 pin 版本。",
+      "status": "active"
+     },
+     {
+      "id": "E4-08",
+      "severity": "major",
+      "issue": "'11,714× faster than LLM detection' 是误导性的竞争对比：方法在 3 个冲突类别中 2 个 F1=0.000",
+      "relevant_text": "ConflictBank (F1=0.897, 11,714$\\times$ faster than LLM detection)",
+      "concern": "abstract 把速度优势和 F1 并列，读者会理解为'同样准但快一万倍'。§Method Specialization 自己的表格显示：该检测器在语义冲突和误信息冲突上 precision/recall/F1 全为 0.000——即它只能检测带数字/年份的冲突，是三分类中一类的专用规则。对比对象'LLM detection'（F1=0.113）是通用检测器。用专用工具对通用工具比速度，且把该速度比写进 abstract 而把 F1=0 的披露留在正文，构成定位不诚实：一个 mem0/Zep 用户读到 abstract 会以为 MemTether 的矛盾检测全面碾压 LLM 方案。",
+      "strongest_rebuttal": "论文正文明确写了'specialized method, not a general-purpose contradiction detector'并建议与 NLI/LLM 方法互补，披露是诚实的。",
+      "why_rebuttal_insufficient": "诚实披露在 §6.2 而 11,714× 的速度对比在 abstract——两处不对称呈现本身就是定位修辞。且 abstract 的 F1=0.897 是全类别 n=2000 的数字，其中 2/3 样本该方法得 0 分，0.897 的宏平均口径反而抬高了表面性能；正确做法是按类别报告或在 abstract 标明 temporal-only。",
+      "suggestions": "abstract 改为 'temporal-conflict detection F1=0.889 (11,714× faster than LLM), 0 on semantic/misinformation conflicts'；或删除速度对比。评估节增加一个 NLI 基线（如 DeBERTa-MNLI）作为非 LLM 的通用检测对照。",
+      "status": "active"
+     },
+     {
+      "id": "E4-04",
+      "severity": "major",
+      "issue": "切换理由整体薄弱：检索不占优（按复现脚本反而落后），治理功能对本地单人用户是否为真实痛点未验证",
+      "relevant_text": "My contribution is not retrieval accuracy but the governance and auditability layer.",
+      "concern": "逐项检验'什么让人从 mem0/Zep/Letta 切换'：(a) 检索——论文自认非贡献，且 E4-07 显示复现记录中落后 mem0；(b) 双时态 supersession——Zep 的 temporal KG 是同类能力，论文未做对比测量；(c) 审计链——威胁模型自己承认不防全权攻击者、source 归属默认 fail-open，即安全增益主要防'误操作和不知情的篡改者'；(d) 多客户端共享——symlink 是任何 SQLite 系统都能做的配置，不构成切换理由；(e) 合规（EU AI Act Art.12）——单人本地部署几乎不是 Art.12 义务主体。每个支柱单独看都是'弱差异'，论文未论证组合后形成强差异，也没有一个真实外部用户的切换案例。",
+      "strongest_rebuttal": "开源、零依赖云、534 测试、23 适配器的即装即用体验本身就是切换理由——mem0 生产模式需要其平台或自建向量库，MemTether 是 pip install 即得的单文件治理层，这是真实的工程差异。",
+      "why_rebuttal_insufficient": "这是合理的产品论点，但论文没有以产品论点的方式论证它（无安装对比、无外部用户、E2 轮已有 critical 指出 PyPI 安装路径未验证、alpha 版本）。以研究论文标准，唯一的实测差异化证据（基准对比）存在 E4-07 的数字矛盾。",
+      "suggestions": "二选一并执行到位：(1) 产品路线——做 3 个竞品的 30 分钟安装/共享/审计导出对比表，附外部用户试用；(2) 研究路线——删去所有 better-than 修辞，改为 'a governance-focused point in the design space, with honest boundaries'。",
+      "status": "active"
+     },
+     {
+      "id": "E4-09",
+      "severity": "major",
+      "issue": "abstract 的 73pp headline 来自 n=11，扩展实验 57% 样本不可评分——定位叙事建立在小样本上",
+      "relevant_text": "cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ... Cross-agent contradictions ($n{=}11$) ... Of 100 entities, 43 produced gradeable answer pairs",
+      "concern": "73pp 是论文最抓眼的经验发现，也是'共享记忆需要治理'这一产品论点的实证支柱。但原始 n=11（threats 自认 CI 宽达 [28%,95%]），扩展 n=100 时 57 个实体因 API content filtering 返回空响应被剔除——剔除机制与实体内容相关（被过滤的可能恰是争议性/冲突性最强的实体），存在选择偏差。若可评分子集偏向温和冲突，86% 发散率可能高估也可能低估。产品定位不能建在这个统计强度上。",
+      "strongest_rebuttal": "两个独立实验（n=11 与 n=43）方向一致（73pp 与 86%），自纠正对照 n=300 干净利落，不对称性本身稳健。",
+      "why_rebuttal_insufficient": "方向一致但幅度估计不稳：9/11→82%、37/43→86% 的效应量置信区间仍然很宽，且 43/100 的可评分率本身就是一个未解释的失败模式（若部署在生产中同样发生，'下游损失'会以另一种形式呈现）。abstract 应带 n 和 CI。",
+      "suggestions": "abstract 写成 '73pp (n=11; replicated 86% divergence, n=43, 95% CI [76,96])'；分析被 content filter 剔除的 57 个实体的冲突类型分布，证明剔除与冲突烈度无关；换一个不过滤的 API 重跑。",
+      "status": "active"
+     },
+     {
+      "id": "E4-03",
+      "severity": "minor",
+      "issue": "注入瓶颈（3,980 字符）此前被指为自选参数，本轮已部分修正但仍保留 209× overscan 作 headline",
+      "relevant_text": "The 0.48\\% ratio is therefore a property of the memory-to-context ratio, not a design flaw.",
+      "concern": "上一轮 E4-03 的批评已部分被吸收：论文现在承认其他系统注入策略不同、覆盖率是 memory-to-context 比率的属性。但 abstract 与 Finding 4 仍以 0.48%/209× 作为卖点数字，且 'Improving retrieval by 1% is equivalent to storing 2× more memories' 这类推导仍隐含小注入预算假设，未给出随注入预算变化的敏感性曲线。",
+      "strongest_rebuttal": "论文已明确标注该比率是部署属性而非普适定律，Fig 4 caption 也如实呈现。",
+      "why_rebuttal_insufficient": "标注诚实但 headline 选择仍偏向最戏剧化的配置；一张 4K/32K/128K 注入预算下的 coverage 曲线即可彻底了结此问题，成本极低却未做。",
+      "suggestions": "补一条 coverage-vs-injection-budget 曲线（三个点即可），abstract 中 209× 加上 'under our 3,980-char budget' 限定。",
+      "status": "deferred"
+     },
+     {
+      "id": "E4-05",
+      "severity": "minor",
+      "issue": "上一轮指出的 buffer-pool 类比与 admission-control 定位的自相矛盾：本轮已随重构移除",
+      "relevant_text": "This is analogous to the database buffer pool problem: ... retrieval quality---not memory capacity---is the binding constraint",
+      "concern": "上版用 buffer-pool 类比主张 write-time admission 而类比本身支持 eviction，构成定位自洽性问题。本版删除了 admission-gate 框架及其表格，改为以 supersession/TTL/类型感知保留（'procedural memories should have shorter TTLs'）为主张——即事实上转向了论文此前批评竞品采用的'事后/衰减'路线。这解决了自洽性，但也意味着本版论文相对竞品的机制差异进一步收窄到审计链与文件共享。",
+      "strongest_rebuttal": "机制主张演化为 TTL+类型感知+预测式标记（supersession prediction F1=0.946），是数据驱动的 retention 策略，与竞品的通用机制有量化差异。",
+      "why_rebuttal_insufficient": "TTL/衰减/类型感知在 mem0（LLM update 决策）与 Zep（时间有效性）中均有对应物，量化优势未经对比测量——这正回到 E4-01 的核心缺口。",
+      "suggestions": "确认此 finding 为 fixed（矛盾已消除），但将其精神并入 E4-01：要求对竞品做 retention 机制对比。",
+      "status": "fixed"
+     },
+     {
+      "id": "E4-06",
+      "severity": "minor",
+      "issue": "上一轮指出的 B1/中文解析器零实战价值：本轮已换用 ConflictBank 评估并诚实报告类别归零，遗留问题是英文生产环境不可用",
+      "relevant_text": "on English-language benchmark data, the regex-based Chinese predicate extractor produces zero (entity, attribute) pairs, so the SQL path does not activate.",
+      "concern": "本轮作者按要求在 ConflictBank 上评估了时间性检测（F1=0.889）并如实报告语义/误信息类别 0.000——这是对上一轮建议的实质性响应，态度诚实。但核心矛盾仍在：SQL 精确检索路径（被宣传为 1.3× 召回优势与 50× 速度）只对中文谓词模式生效，论文自己的生产库 82.6% 覆盖是中文事实；对英文用户（大多数 mem0/Zep/Letta 用户）该差异化检索能力不存在，LongMemEval/LoCoMo 上实际跑的是嵌入路径。产品定位中'SGM 检索优势'对目标切换人群多数不适用。",
+      "strongest_rebuttal": "论文明确披露了英文归零的局限，且 23 适配器与治理层与语言无关；谓词抽取器是可扩展的。",
+      "why_rebuttal_insufficient": "披露≠解决。abstract 宣传的 84% vs 64% 召回优势是以目标用户多数用不到的路径测得的；在英文上该优势未被证明，而检索恰是切换决策的第一触点。",
+      "suggestions": "在 abstract/评估表中标注 SQL 路径为 Chinese-only；补一个英文谓词抽取器（哪怕 spaCy 级别）在 LongMemEval 上的召回对照，或明确声明检索贡献仅限中文场景。",
+      "status": "deferred"
+     }
+    ],
+    "novelty_check": {
+     "claimed_firsts": [
+      "first formulation of memory lifecycle as supervised learning (Memory Supersession Prediction)",
+      "No prior agent memory system provides a hash-chained audit log with self-contained evidence export in the memory layer",
+      "no single existing system fully addresses [temporal correctness + tamper-evident auditability + multi-client deployment]",
+      "file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization",
+      "first to identify/quantify cross-agent contradiction asymmetry (73pp) — 'an asymmetry specific to cross-agent conflicts'"
+     ],
+     "named_comparators": [
+      "Memory Supersession Prediction ← mem0 的 LLM ADD/UPDATE/DELETE 事实更新决策（已是内容条件化的生命周期预测）；MemoryBank 的 Ebbinghaus 衰减遗忘",
+      "hash-chained audit in memory layer ← TraceKit（runtime 层 tamper-evidence）、Janus（evidence-before-effect sagas）、MutMem（密码学授权变更）、MOSS（auditable memory，paper-only）——作者自引",
+      "三要求组合 ← Engram（双时态+83.6% LongMemEval）、MemStrata（双时态 supersession 先驱，作者自认）、Zep（temporal KG）",
+      "多客户端文件级共享 ← 无直接学术先行（symlink 共享 SQLite 是常规运维实践，非研究贡献）；mem0/Zep 开源自托管亦可本地运行",
+      "跨 agent 矛盾不对称 ← G-Memory（多 agent 记忆）、MemLeak（多租户记忆问题）；insufficient information to verify 是否有人量化过同类下游损失"
+     ],
+     "verdict": [
+      "overstated（mem0 的更新决策机制在功能上已是内容驱动的生命周期分类，'first formulation as supervised learning' 依赖把 prompt-based 分类排除在 supervised 之外的窄定义）",
+      "narrowly-true-but-overstated（'in the memory layer' 限定词承重，TraceKit/Janus/MutMem 已做 tamper-evidence，边界划设未经系统检索论证）",
+      "supported（组合性声明按字面成立，但因各组件均有近似先行（MemStrata、MOSS、TraceKit），组合新颖性弱）",
+      "supported（作为工程事实成立；作为研究/产品差异不成立——任何 SQLite 后端系统可同样配置）",
+      "insufficient information to verify（方向可能有新意，但 n=11/43 的证据强度不足以支撑 priority 声明）"
+     ]
+    },
+    "meta_note": "以 product/定位视角看，这版论文比上一版有明显进步：admission-gate 框架（上版被证明净负效应）被整体撤下，ConflictBank 类别归零、fail-open 威胁模型、'zero external users'、竞品数字'cited as claims not reproduced'等披露都很诚实，honesty 是其最强维度。但定位论证本身没有变强，反而暴露了新伤口：(1) 唯一的实测竞争对比（LongMemEval vs mem0）在 abstract（82.0%）与复现脚本注释（58.3%，输给 mem0）之间不可调和——这是 critical，因为它是'为什么不留在 mem0'的唯一定量答案；(2) 11,714× 速度对比把 F1=0 的两个类别藏在正文，abstract 层面构成误导；(3) 三个差异化支柱逐一检验后，真正未被竞品覆盖的只有审计链（且安全边界自认有限）和 symlink 共享（工程配置），目标用户是未经定义的 N=1 单机单人画像，切换理由未建立。上轮 6 条 findings：E4-05 fixed（矛盾随重构消除），E4-03/E4-06 deferred（部分吸收但 headline 与英文可用性遗留），E4-01/02/04 保持 active 并更新。检查过但通过的：威胁模型与 SECURITY.md 的诚实边界陈述（定位声明与其安全声明一致，无过度承诺）；LangMem 79.2% NOT_FOUND 的如实报告；对 Memanto/MemStrata 自报数字的克制引用方式。综合：作为系统/测量论文有可取的诚实工程，作为定位论文目前不成立，修复 E4-07 并补一个竞品治理对比后可达可投水平。prompt_version=v3-referee"
+   },
+   "usage": {
+    "in": 25367,
+    "out": 6700,
+    "secs": 112.8
+   },
+   "raw_len": 12816,
+   "z": 0.0
+  }
+ ]
+}
