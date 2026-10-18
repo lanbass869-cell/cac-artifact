@@ -250,7 +250,7 @@ evalguard is complementary to existing tooling: linters (pylint, flake8) check c
 
 
 
-Our findings do not establish that evaluation integrity violations are widespread. We identify 15 findings across 8 of 33 evaluation files (24.2\%), which represents a lower bound: our regex-based approach may miss violations in frameworks with different code structures. Expanding to 100+ frameworks is straightforward but would require significant download and processing time; we leave this to future work. Under a binomial model with expected violation rate $p = 0.05$, the probability of observing $\geq 5$ violations in 50 frameworks is $P(X \geq 5) = 0.38$, which is not statistically significant. We therefore present our findings as exploratory rather than confirming widespread prevalence.
+Our findings do not establish that evaluation integrity violations are widespread. We identify 15 findings across 8 of 33 evaluation files (24.2\%), which represents a lower bound: our regex-based approach may miss violations in frameworks with different code structures. Expanding to 100+ frameworks is straightforward but would require significant download and processing time; we leave this to future work. Under a binomial model with expected violation rate $p = 0.05$, the probability of observing $\geq 5$ findings in 33 audited files is $P(X \geq 5) \approx 0.10$ (exact binomial), which is not statistically significant at the 5\% level. We therefore present our findings as exploratory rather than confirming widespread prevalence.
 
 
 \section{Reproducibility}
