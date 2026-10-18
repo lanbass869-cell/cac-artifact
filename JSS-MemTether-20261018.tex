@@ -20,6 +20,7 @@
        Bi-Temporal Supersession and Hash-Chained Audit\\
        for Multi-Client AI Agents}
 
+% AUTHOR-REQUIRED: JSS is single-blind, not double-blind. Replace Anonymous with real name + affiliation before submission.
 \author{Anonymous}
 \date{}
 
@@ -27,8 +28,19 @@
 \maketitle
 
 \begin{abstract}
-AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: (1)~bi-temporal supersession chains that track when facts are corrected without deleting history, backed by four formal correctness theorems; (2)~a hash-chained tamper-evident audit log with browser-verifiable evidence export, addressing EU AI Act Article~12 record-keeping requirements; and (3)~file-level pointers enabling 23 AI client adapters to share one physical SQLite database without cloud synchronization. In a 30-day production deployment serving 15 AI agents through a shared database (31K+ operations, 2{,}346 audit entries), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ($n{=}11$ discovery; $n{=}43$ expanded cohort, 57\% gradeable)---an asymmetry specific to cross-agent conflicts that self-corrections do not exhibit (0.7pp). We evaluate MemTether on four public benchmarks: LongMemEval (62.4\% strict, 68.8\% judge on full 500Q; multi-session judge 79.7\%), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897; deterministic detection is 11{,}714$\times$ faster than LLM detection on the two rule-classifiable categories). We further introduce Memory Supersession Prediction, formalizing memory lifecycle as a supervised learning task with DistilBERT achieving macro F1=0.947. The system is released as Apache-2.0 open source with 534 passing tests, 23 client adapters, and a reproducibility artifact.
+AI agents accumulate persistent memory across sessions, but existing systems either require cloud infrastructure, lack governance mechanisms, or cannot share memory across heterogeneous clients. We present MemTether, a local-first agent memory system that enables multiple AI clients on the same machine to share a single SQLite database through file-level pointers. MemTether introduces three governance mechanisms: bi-temporal supersession chains backed by four formal correctness theorems; a hash-chained tamper-evident audit log with browser-verifiable evidence export addressing EU AI Act Article~12 requirements; and file-level pointers enabling 23 AI client adapters to share one physical database. In a 30-day production deployment serving 15 agents (31K+ operations), we identify that cross-agent contradictions cause a 73-percentage-point downstream accuracy loss ($n{=}11$ discovery; $n{=}43$ expanded, 57\% gradeable)---an asymmetry self-corrections do not exhibit (0.7pp). We evaluate on LongMemEval (62.4\% strict, 68.8\% judge), LoCoMo (0.523 token-F1), and ConflictBank (F1=0.897), and introduce Memory Supersession Prediction (DistilBERT, macro F1=0.947). Apache-2.0 open source with 534 passing tests.
 \end{abstract}
+
+\noindent\textbf{Highlights:}
+\begin{itemize}
+\item Bi-temporal supersession with four proven correctness theorems
+\item Hash-chained audit log with browser-verifiable evidence export
+\item 23 AI clients share one SQLite database via file-level pointers
+\item Cross-agent contradictions cause 73pp downstream accuracy loss
+\item Memory Supersession Prediction: macro F1=0.947 (DistilBERT)
+\end{itemize}
+
+\noindent\textbf{Keywords:} Agent memory; bi-temporal database; hash chain; auditability; multi-client; local-first
 
 \section{Introduction}
 \label{sec:intro}
@@ -58,7 +70,7 @@ MemTether is released as Apache-2.0 open source at \url{https://github.com/MemTe
 \label{sec:related}
 
 \subsection{Agent Memory Systems}
-mem0~\citep{mem0} provides a hosted memory platform with LLM-based fact extraction and vector retrieval. Zep~\citep{zep} offers a temporal knowledge graph. Letta~\citep{letta} manages hierarchical memory with paging. LangMem~\citep{langmem} integrates memory into LangGraph. Engram~\citep{engram} achieves 83.6\% on LongMemEval-S with a bi-temporal model but lacks governance features. G-Memory~\citep{gmotion} proposes a three-layer graph hierarchy for multi-agent systems. None provide hash-chained audit trails or file-level multi-client deployment.
+mem0~\citep{mem0} provides a hosted memory platform with LLM-based fact extraction and vector retrieval. Zep~\citep{zep} offers a temporal knowledge graph. Letta~\citep{letta} manages hierarchical memory with paging. LangMem~\citep{langmem} integrates memory into LangGraph. Engram~\citep{engram} achieves 83.6\% on LongMemEval-S with a bi-temporal model but lacks governance features. G-Memory~\citep{gmotion} proposes a three-layer graph hierarchy for multi-agent systems. MemOS~\cite{memos} treats memory as a resource-managed OS layer. MemProbe~\cite{memprobe} applies cognitive-science-inspired stability-plasticity diagnostics to agent memory. MemoryLACE~\cite{memorylace} performs lifecycle-aware consolidation distinguishing repeated evidence from historical conflicts. None provide hash-chained audit trails or file-level multi-client deployment.
 
 \subsection{Schema-Grounded and Typed Memory}
 xmemory~\citep{xmemory} proposes schema-grounded memory with iterative schema-aware extraction (97.1\% F1, paper-only, no public implementation). Memanto~\citep{memanto} presents typed semantic memory with information-theoretic retrieval (89.8\% LongMemEval), built on the Moorcheh cloud engine---all storage and retrieval pass through a hosted API. MemStrata~\citep{memstrata} maintains temporal validity with deterministic supersession (95\% LongMemEval under source-aware grading; the system is closed-source with source code unavailable). MOSS~\citep{moss} presents an auditable agentic memory architecture with symbolic retrieval on SQLite (paper-only, no public implementation). MemSim~\citep{memsim} provides a Bayesian simulator for evaluating memory systems with synthetic data. These systems demonstrate that schema-grounded, deterministic retrieval is a promising direction. However, none provide tamper-evident audit in the memory layer, file-level multi-client sharing, or production data with an open-source implementation. All three figures are self-reported under different or non-public protocols and have not been independently reproduced; we cite them as claimed results rather than like-for-like comparisons.
@@ -215,7 +227,7 @@ The above theorems rely on SQLite's transactional isolation for Theorem~\ref{the
 \section{Tamper-Detection Evaluation}
 \label{sec:tamper}
 
-We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15 sources, 30-day window). After anchoring, we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run \texttt{verify\_chain()}.
+We evaluate the hash chain on a copy of the production database (2{,}346 audit entries, 15 sources, 30-day window). After anchoring every 10 entries (yielding 235 anchors), we apply six tamper scenarios: (1)~content change, (2)~timestamp change, (3)~agent identity change, (4)~entry deletion, and (5)~anchor tampering on anchored rows; plus (6)~modification of an unanchored tail entry. Re-running \texttt{verify\_chain()} detects all 5 of 5 anchored-row modifications; the unanchored tail modification is not detected until the next anchor is computed. This is an expected property of the anchoring granularity rather than a defect; the effective unaudited window is at most 9 entries between anchors. The contribution is not the detection mechanism itself (any correctly implemented hash chain provides this guarantee) but its integration with self-contained evidence export in a production multi-agent deployment.
 
 
 
@@ -276,7 +288,15 @@ The detector achieves F1 = 0.889 on temporal conflicts (500-sample subset, seed=
 
 
 \section{Memory Court: Hash-Chained Audit}
+\label{sec:court}
 
+Memory Court is the governance layer that operationalizes the hash-chained audit log described in Section~\ref{sec:design}. It provides three capabilities beyond passive logging: (1)~a \texttt{court verify} command that recomputes the full chain and reports the first divergent anchor; (2)~a \texttt{court export} command that bundles the audit log, anchors, and a self-contained HTML verifier into a ZIP archive viewable in any browser without installing software; and (3)~a \texttt{court conflicts} command that lists candidate contradictions for human adjudication, ordered by Q-value divergence between sources.
+
+\subsection{Integration Testing}
+14 integration tests cover six dimensions of Memory Court's behavior: hash chain verification (6 tests), tamper detection (2), write-time conflict handling (1), evidence export (2), supersession adjudication (1), and end-to-end integration (2). All 14 tests pass. Five engineering-level gaps were identified (anchor tail coverage, concurrent anchor computation, database migration, 1000+ entry stress testing, and browser CI verification) but none affect the correctness of the core mechanism.
+
+\subsection{Case Study: Cross-Agent Contradiction Resolution}
+The \emph{packy} entity (an API proxy service) accumulated 24 memories from 4 agent sources over 18 days. At the time of audit, 15 memories were active and retrievable: 2 asserted ``available'' while 3 asserted ``banned'' or ``403'', yielding a 60\% contradiction rate. A downstream agent querying packy's status received contradictory evidence. Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries, and the contradiction rate dropped to 0\%. The full adjudication record---who decided, when, based on what evidence, with hash-chain verification---is preserved in the audit log and exportable as a browser-verifiable evidence package.
 
 \section{Findings}
 \label{sec:findings}
@@ -307,6 +327,10 @@ Decision & 413 & 34 & 8.2\% \\
 \caption{Memory correction rate by type. Procedural memories (91.5\%) are corrected at over 11$\times$ the rate of decisions (8.2\%).}
 \label{fig:type-correction}
 \end{figure}
+
+
+
+\noindent\textbf{Data scope note.} This paper uses three overlapping production datasets: (1)~the full fact table (2,590 typed records; Table~\ref{tab:type-correction}), (2)~the 30-day survival cohort (2,309 records: 349 correction events + 1,960 right-censored; Figure~\ref{fig:km}), and (3)~the desensitized supersession benchmark (2,635 records: 386 positive + 2,249 negative; Table~\ref{tab:supersession}). The three scopes differ because the fact table includes records without a type label (excluded from Dataset~1), the survival cohort is restricted to the 30-day observation window, and the benchmark includes retired records that fall outside the active-fact retrieval set.
 
 The 11$\times$ difference between procedural and decision correction rates has a clear explanation: procedures describe \emph{how to do things} (tool configurations, deployment steps, API usage patterns), and these change as software is updated. Decisions describe \emph{why choices were made}, and the rationale for a decision does not change even when the implementation changes. This suggests that memory systems should implement type-aware retention: procedural memories should have shorter TTLs or require more frequent validation, while decisions can persist with lower maintenance overhead.
 
@@ -410,6 +434,8 @@ Of 349 corrections, 52 (14.9\%) are cross-agent (one agent correcting another ag
 
 The downstream impact of these two correction types is dramatically different. In a controlled experiment (Section~\ref{sec:expanded-dyn}), stale cross-agent context caused answer divergence in 86\% of entities (37/43, 95\% CI [76\%, 96\%], binomial $p < 0.001$), while stale self-correction context caused only 0.7\% divergence ($n{=}300$).
 
+Note on metrics: the 73pp figure (Section~\ref{sec:asymmetry}, Table~\ref{tab:asymmetry}) measures the accuracy drop from correct to stale context within a single LLM QA protocol ({=}11$); the 86\% figure measures the rate at which stale context causes a \emph{different} answer compared to correct context on the expanded {=}43$ cohort. Both support the same conclusion (cross-agent staleness is the dominant failure mode) but they measure different aspects: absolute accuracy loss vs.\ answer divergence rate.
+
 This asymmetry follows a power-law distribution: the 14.9\% of corrections that are cross-agent are responsible for approximately 99\% of the measurable downstream harm. The implication is that memory systems should prioritize cross-agent conflict interception (detecting when agent A's write contradicts agent B's existing memory) over self-correction tracking. The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose.
 
 \begin{figure}[h]
@@ -427,7 +453,7 @@ To validate the cross-agent harm asymmetry at scale, we expanded the downstream 
 
 Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering). Stale context caused downstream answer divergence in 86\% of gradeable entities (37/43, 95\% CI [76\%, 96\%], binomial test $p < 0.001$ against the null hypothesis of 50\% divergence).
 
-This confirms the 73pp finding from our companion paper on cross-agent contradictions~\cite{cac} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
+This confirms the 73pp finding from Section~\ref{sec:asymmetry} and establishes that cross-agent memory staleness is a systematic problem affecting the majority of shared entities, not an artifact of small-sample selection.
 
 
 \section{Memory Supersession Prediction}
@@ -483,7 +509,7 @@ DistilBERT achieves macro F1 = 0.946 on the supersession prediction task, exceed
 
 \begin{table}[h]
 \centering
-\caption{MemTether evaluation summary across benchmarks and deployment.}
+\caption{MemTether evaluation summary across benchmarks and deployment. Comparison column: mem0 scores are from its published paper (self-reported, v2.0.20); LLM baseline is our measurement on the same benchmark. MemTether scores are from the EAF pipeline unless noted.}
 \begin{tabular}{llll}
 \toprule
 Benchmark & Metric & Score & Comparison \\
@@ -518,17 +544,18 @@ File-level pointers (NTFS junctions on Windows, symbolic links on Unix) enable m
 
 \subsection{Cross-Agent Contradictions Are the Dominant Failure Mode}
 
-Of the 349 corrections in our production deployment, cross-agent contradictions (15\%) caused 86\% of downstream answer divergence, while self-corrections (85\%) caused only 0.7\%. This power-law asymmetry suggests that memory systems should prioritize cross-agent conflict interception over self-correction tracking.
+Of the 349 corrections in our production deployment, cross-agent contradictions (14.9\%) caused 86\% of downstream answer divergence, while self-corrections (81.4\%) caused only 0.7\%. This power-law asymmetry suggests that memory systems should prioritize cross-agent conflict interception over self-correction tracking.
 
 \section{Threats to Validity}
 
 \begin{itemize}
 \item \textbf{Single deployment}: All data comes from one production system operated by one person. Findings may not generalize to multi-user deployments.
 \item \textbf{Irreproducible data}: The production database contains private operational data and cannot be publicly released. We provide synthetic data generators and public benchmark results.
-\item \textbf{Small sample}: The cross-agent contradiction experiment uses $n=11$ (expanded to $n=43$). The 95\% CI is wide [28\%, 95\%].
+\item \textbf{Small sample}: The initial cross-agent contradiction experiment uses $n=11$; the expanded validation uses $n=43$ (57\% gradeable from 100 sampled). The 95\% CI is [76\%, 96\%], but the 57\% gradeability rate limits generalizability.
 \item \textbf{Free-tier API}: All LLM calls use free-tier API endpoints, which may differ from paid production APIs.
 \item \textbf{Single author}: No inter-annotator agreement or external code review.
 \item \textbf{Zero external users}: The production deployment has no external users.
+\item \textbf{Chinese-only SGM}: The schema-grounded retrieval path depends on a Chinese-language regex predicate extractor; on English benchmark data it produces zero (entity, attribute) pairs. The 84\% vs 64\% retrieval advantage is demonstrated only in Chinese. Multilingual support is future work.
 \item \textbf{30-day window}: May not capture seasonal patterns or long-term drift.
 \end{itemize}
 
@@ -556,7 +583,7 @@ python _dev/benchmarks/locomo_full_run.py --system memtether
 python examples/audit_chain_demo.py
 # Expected: chain verify PASS -> tamper -> chain verify FAIL
 
-# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%, standalone full-benchmark path)
+# LongMemEval head-to-head (MT 58.3% vs mem0 60.2%, standalone full-benchmark path; see note below)
 python scripts/run_full_benchmark.py --systems memtether,mem0
 # Output: results JSON with per-question records
 
@@ -564,13 +591,18 @@ python scripts/run_full_benchmark.py --systems memtether,mem0
 python _dev/benchmarks/temporal_full.py
 # Output: _dev/benchmarks/results/temporal_accuracy_results.json
 \end{verbatim}
+
+
+\subsection{Note on LongMemEval Score Variants}
+The 62.4\% strict / 68.8\% judge scores reported in the abstract and Evaluation Summary (Table~1) come from the full EAF pipeline (ECO+SSI+AFN, 500Q rerun with LLM-as-judge). The 58.3\% in the reproduction script above uses a different standalone path (\texttt{run\_full\_benchmark.py}) that assembles evidence differently (no ECO curation, flat retrieval). Both are valid; the EAF pipeline is the primary configuration, and the standalone path is provided for independent verification without the full pipeline dependency chain. The 58.3\% vs mem0's 60.2\% shows that a naive retrieval path does not outperform mem0; the +8.6pp advantage in the main results requires the full EAF pipeline.
+
 \subsection{Version Pinning and Reproducibility Details}
 
 All results in this paper were generated with MemTether v0.1.0a80.post2 (commit \texttt{d1c0f99}, PyPI). The exact pytest summary is: \texttt{534 passed, 4 skipped} (538 total collected). SECURITY.md notes that the package is in alpha status; we recommend pinning to this specific version for reproduction.
 
 \subsection{Cross-System Comparison Protocols}
 
-Table~Table~1 reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
+Table~1 reports LongMemEval strict and judge scores under identical hardware and judge configuration (see Section~\ref{sec:judge} for the judge prompt). mem0 numbers are from its published paper (v2.0.20); LangMem numbers are from our own runs of its public codebase. These systems use different scoring protocols (strict matching vs.\ LLM-as-judge); we report both metrics for all systems where available.
 
 \subsection{B1 Gate Reproduction}
 
@@ -578,7 +610,7 @@ The B1 gate was evaluated on a synthetic injection benchmark: 50 contradictory w
 
 \subsection{r\textsuperscript{N} Fit Reproduction}
 
-The r\textsuperscript{N} decay fit (Figure~\ref{sec:crosssys}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
+The r\textsuperscript{N} decay fit (Section~\ref{sec:crosssys}) was computed using \texttt{\_dev/benchmarks/locomo\_full\_run.py} on LongMemEval 500Q. The script outputs a JSON file containing per-session-count bin accuracies, fitted parameters ($a = 0.702$, $r = 0.736$), $R^2$, and bootstrap CIs. The LoCoMo analysis uses the same script with \texttt{--benchmark locomo}.
 
 \subsection{Tamper-Detection Reproduction}
 
@@ -666,10 +698,6 @@ Lyu, L.
 \newblock Court: Provenance-First Memory for AI Agents.
 \newblock \emph{GitHub}, 2026.
 
-\bibitem[Admissibility(2026)]{admissibility}
-Anonymous.
-\newblock The Right Memory in the Wrong Context: Verifying Retrieval Admissibility in Long-Term Agent Memory.
-\newblock \emph{arXiv:2610.07309}, 2026.
 
 \bibitem[AuditLME(2026)]{auditlme}
 Chanhnourack, C. J.
@@ -687,10 +715,6 @@ European Parliament and Council.
 \newblock \emph{Official Journal of the European Union}, 2024.
 
 
-\bibitem[PoisonRecall(2025)]{poisonrecall}
-Anonymous.
-\newblock PoisonRecall: Attack Taxonomy and Defenses for LLM Agent Memory Systems.
-\newblock \emph{arXiv}, 2025.
 
 \bibitem[Sleeper(2025)]{sleeper}
 Anonymous.
@@ -707,8 +731,43 @@ Anonymous.
 \newblock AgentPoison: Red-Teaming Agent Memory via Poisoning.
 \newblock \emph{NeurIPS 2024}, 2024.
 
+\bibitem[MemOS(2025)]{memos}
+Li, Z. et~al.
+\newblock MemOS: An Operating System for Memory-Augmented Generation (MAG) in Large Language Models.
+\newblock \emph{arXiv:2505.22101}, 2025.
+
+\bibitem[MemProbe(2026)]{memprobe}
+Anonymous.
+\newblock Probing Stability-Plasticity Tradeoffs in Agent Memory through Cognitive Experimental Paradigms.
+\newblock \emph{arXiv:2609.30558}, 2026.
+
+\bibitem[MemoryLACE(2026)]{memorylace}
+Anonymous.
+\newblock MemoryLACE: Memory Lifecycle-Aware Consolidation and Evidence Retrieval.
+\newblock \emph{arXiv:2609.03201}, 2026.
+
 \end{thebibliography}
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
