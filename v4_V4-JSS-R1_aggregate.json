@@ -1,0 +1,955 @@
+{
+ "round_score": 4.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 2,
+ "full_tier": {
+  "n": 1,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 4.0
+ },
+ "round": "V4-JSS-R1",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\JSS-MemTether-20261018.tex",
+ "timestamp": "2026-10-19T12:14:18.383658",
+ "usage_total": {
+  "in": 71700,
+  "out": 17756,
+  "secs": 172.3
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": false,
+   "error": "HTTP Error 504: Gateway Timeout"
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "core_paper_claim": "MemTether is a local-first agent memory system for multi-client AI agents featuring bi-temporal supersession with four proven correctness theorems, hash-chained tamper-evident audit log, file-level SQLite sharing, and 23 client adapters. Across 30 days of production (31K+ operations), it identifies a 73pp downstream accuracy loss from cross-agent contradictions versus 0.7pp for self-corrections, and is released Apache-2.0 with 534 passing tests.",
+     "reviewer_focus": "Installability (pip install memtether actually works), first-run experience, actionable error messages, API ergonomics, and example completeness.",
+     "headline_evaluable": "Whether the artifact (pip install memtether, the GitHub repo, the companion artifact repo) is usable enough for a reviewer to actually exercise the paper's claims, and whether the reproducibility section delivers on what it advertises."
+    },
+    "scores": {
+     "depth": 4.0,
+     "soundness": 2.0,
+     "helpfulness": 5.0,
+     "alignment": 4.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E2-12",
+      "severity": "critical",
+      "issue": "The PyPI package `memtether` may not exist or may be a placeholder; reproducibility section gives no install-verification transcript, no commit-SHA anchor at the install line, and no first-run smoke test.",
+      "relevant_text": "MemTether is Apache-2.0 open source at https://github.com/MemTether/MemTether (PyPI: pip install memtether). ... pip install -e \".[server]\"",
+      "concern": "A reviewer who runs `pip install memtether` as their very first reproducibility step is the primary audience for this paper. (1) The PyPI project name `memtether` may be squatted or unpublished — the version-pinned count is `534 passed, 4 skipped` (538 total), an oddly specific alpha-tag (`v0.1.0a80.post2`) that suggests post-publish iteration that may have moved. (2) The install command `pip install -e \".[server]\"` uses an editable install with an extra `server`, which signals the package has runtime extras (LLM adapters, embedding backends, FastAPI/uvicorn server) that are not enumerated anywhere — a fresh install will hit `ModuleNotFoundError` on whichever one is needed. (3) No first-run command exists: there is no `memtether selfcheck`, `memtether doctor`, `memtether --version`, or `python -m memtether hello`. A new user who gets 538 tests to pass on a fresh checkout but no working CLI is in exactly the same position as one who gets an ImportError: they cannot run the paper's headline numbers.",
+      "strongest_rebuttal": "The paper provides a 538-test pytest run, explicit install command, and a version-pinned commit (`d1c0f99`); reviewers can clone the repo at the pinned commit and reproduce.",
+      "why_rebuttal_insufficient": "Cloning at a pinned commit is one path, but the paper's leading claim (`pip install memtether`) is a different path. The two are not equivalent: the README advertises PyPI; the reproducibility section silently switches to git+commit-SHA. A reviewer who takes the PyPI bait first encounters unknown friction. The 538-test claim is also an integrity claim about code at one commit, not a usability claim about the install path.",
+      "suggestions": "Add an explicit first-run recipe before the pytest run: `pip install memtether==v0.1.0a80.post2`, `memtether --version` (expected: `0.1.0a80.post2`), `memtether doctor` (expected: prints Python version, SQLite version, FTS5 availability, configured embedding backend, configured LLM endpoint, dependency versions), and a one-line `memtether roundtrip` that writes a memory and queries it back. Pin the PyPI version in the install line, not just the git commit. If the PyPI name is reserved but not yet published, say so explicitly and give the git+https install line as the primary path."
+     },
+     {
+      "id": "E2-13",
+      "severity": "critical",
+      "issue": "The 538-test 'reproducibility' claim is unverifiable: pytest requires the package to be installed, the database to be reachable, and the test fixtures to exist — none of which is documented.",
+      "relevant_text": "pytest tests/ -v --tb=short # Expected: 534 passed, 4 skipped",
+      "concern": "Three failure modes for the first reviewer who runs `pytest tests/`: (1) `pytest` may not be installed by default and the install extra `[server]` does not list it as a dependency; (2) tests likely require `OPENAI_API_KEY` / `GLM_API_KEY` / `SENTENCE_TRANSFORMERS_HOME` env vars that are not documented; (3) tests almost certainly write to a test database that needs the schema migrations applied (`memtether init-db`? `alembic upgrade head`? `sqlite3 < schema.sql`?), and none of those commands appear in the reproducibility section. A reviewer who runs `pytest tests/` on a fresh clone gets an opaque failure for any of these reasons, with no actionable error message because the tests themselves don't catch these conditions.",
+      "strongest_rebuttal": "Tests are typically self-contained — they use a tmp SQLite path, mock LLM calls, and apply schema migrations in fixtures; the 538-test count is itself a reproducibility signal that someone ran them.",
+      "why_rebuttal_insufficient": "The 538-test count is a validity signal for someone who already runs the tests; it is not a usability signal for someone trying to run them for the first time. The reproducibility section needs to enumerate test prerequisites (env vars, schema bootstrap, fixtures) explicitly, or it is decoration.",
+      "suggestions": "Add a `memtether doctor` that includes a 'can run pytest' check; document the env-var template in `.env.example`; add a `make test` or `tox -e py311` recipe that bootstraps schema and stubs LLM calls before pytest runs. If pytest requires a network or API key, mark those tests with `@pytest.mark.network` so a new user can `pytest -m 'not network'` for the offline subset."
+     },
+     {
+      "id": "E2-14",
+      "severity": "major",
+      "issue": "LongMemEval reproduction path (`scripts/run_full_benchmark.py --systems memtether,mem0`) requires mem0 to be installed and configured for head-to-head, but the paper's primary score (62.4% / 68.8%) is from the EAF pipeline that is not in that script.",
+      "relevant_text": "python scripts/run_full_benchmark.py --systems memtether,mem0 # Output: results JSON with per-question records",
+      "concern": "The reproducibility note is internally contradictory. The script the user is told to run gives 'MT 58.3% vs mem0 60.2%', which is worse than mem0; the headline 62.4% / 68.8% comes from a different script (the 'full EAF pipeline: ECO+SSI+AFN') that the reproducibility section never names. A reviewer who runs the documented command gets numbers that contradict the abstract, with no path forward: (a) where is the ECO+SSI+AFN pipeline? (b) what are ECO/SSI/AFN? (c) is it a different `scripts/run_eaf_benchmark.py`? (d) does it require a different config? The note paragraph that follows the script does not link to the script, it only explains the gap.",
+      "strongest_rebuttal": "The note explicitly states both pipelines are valid and the standalone path is for 'independent verification without the full pipeline dependency chain' — the reviewer is expected to choose.",
+      "why_rebuttal_insufficient": "Acknowledging two pipelines is good, but giving the reviewer the script for the worse one and not naming the script for the better one is bad. The reviewer is steered toward the configuration that makes MemTether lose to mem0.",
+      "suggestions": "Either (a) name the EAF-pipeline script and give its command as the primary line, with the standalone path as the secondary line; or (b) invert the framing: make the headline script the headline command and document the standalone path as the fallback. Define ECO, SSI, AFN in a one-line glossary in the reproducibility section."
+     },
+     {
+      "id": "E2-15",
+      "severity": "major",
+      "issue": "Error messages for the B1 gate and audit chain are CLI-output only; no Python API exists for either, despite the paper describing them as library functions.",
+      "relevant_text": "the gate adds p50 = 0.037 ms per call (n=1,000) ... verify_chain() ... memtether court CLI provides: (1) verify ... (2) export ... (3) conflicts",
+      "concern": "The paper says 'write-time conflict interception' is a gate that fires inside `remember()`, and 'verify_chain()' is a callable that detects tampering — both are framed as programmatic operations. But the reproducibility section only exposes them via CLI scripts (`examples/audit_chain_demo.py`, `memtether court verify/export/conflicts`). A developer integrating MemTether into a Python agent cannot `from memtether.court import verify_chain`; they have to shell out to a subprocess and parse stdout. The 'p50 = 0.037 ms per call' benchmark is meaningless without knowing whether it includes import overhead, embedding model load, or just the gate's internal regex.",
+      "strongest_rebuttal": "The CLI is the public surface; programmatic Python bindings can be added later, and the latency benchmark is the gate's own logic.",
+      "why_rebuttal_insufficient": "For a research prototype marketed as 'integrates bi-temporal supersession', exposing the headline mechanisms only through CLI is fine for the paper's claims but undermines the 'usable as a library' implication. The 0.037 ms is a microbenchmark that should be reproducible as such.",
+      "suggestions": "Add a one-line Python import for each: `from memtether.court import verify_chain, export_evidence, list_conflicts` and `from memtether.gates import b1_gate`. Re-state the 0.037 ms benchmark with import-time amortized over 1,000 calls (which is what 'n=1,000' means) and the per-call breakdown."
+     },
+     {
+      "id": "E2-16",
+      "severity": "major",
+      "issue": "The synthetic data generator and B1 benchmark scripts (`scripts/generate_b1_benchmark.py`, `scripts/replay_b1_verdicts.py`) are named in the reproducibility section but not enumerated in the artifact repository's README; a reviewer cannot tell if they exist or are aspirational.",
+      "relevant_text": "scripts/generate_b1_benchmark.py ... scripts/replay_b1_verdicts.py",
+      "concern": "The paper says 'The generator script ... uses a fixed seed (42) and produces deterministic ground truth.' A reviewer cannot tell if the script exists at that path, if the '50 conflicting + 80 near-miss + 20 dev' counts are exactly what `generate_b1_benchmark.py` emits, or if there is a `benchmarks/b1_synthetic/` directory distinct from the scripts path. The previous E2-04 finding about the B1 example being missing is partially addressed here by naming scripts, but only partially — the reviewer still has no CLI invocation, no expected-output line, and no place to verify the 0.037 ms latency number.",
+      "strongest_rebuttal": "Naming the scripts is a step forward from the paper's prose-only B1 description; the reviewer can `ls` the artifact repo and check.",
+      "why_rebuttal_insufficient": "`ls` requires the reviewer to clone a second repository. Even then, a script named `generate_b1_benchmark.py` does not tell the reviewer what command line to run, what flags it accepts, what files it writes, or what output to expect. The 50/80/20 counts from the paper's body must be matched to script output by reading the source.",
+      "suggestions": "Add an explicit line: `python scripts/generate_b1_benchmark.py --seed 42 --output benchmarks/b1_synthetic/suite.json` and `python scripts/replay_b1_verdicts.py benchmarks/b1_synthetic/suite.json # Expected: 50/50 recall, 50/50 precision, 20/20 dev`. State the 0.037 ms benchmark command: `python _dev/benchmarks/b1_latency.py --n 1000` with expected `p50 = 0.037 ms, p95 = ... ms, machine = ...`."
+     },
+     {
+      "id": "E2-17",
+      "severity": "major",
+      "issue": "The `memtether court export` claim of 'browser-verifiable evidence export' has no example export bundle in the artifact, no demo HTML verifier, and no link to a sample output.",
+      "relevant_text": "court export bundles the audit log, anchors, and a self-contained HTML verifier into a ZIP archive viewable in any browser without installing software",
+      "concern": "The browser-verifiable export is one of the paper's three highlighted contributions ('browser-verifiable evidence export addressing EU AI Act Article 12 requirements'), and the tamper-detection evaluation says 'evidence export' is one of the two integration-test dimensions. Yet a reviewer has no way to inspect what an export bundle looks like: no `examples/sample_export.zip`, no screenshot, no rendered HTML, no walkthrough of what a 'verifier' does in the browser. Given the EU AI Act Article 12 claim (CK-14), the absence of any inspectable export artifact is a usability gap with compliance implications.",
+      "strongest_rebuttal": "The export is demonstrated by `examples/audit_chain_demo.py` which is in the repo; a reviewer can run it and inspect the output.",
+      "why_rebuttal_insufficient": "`audit_chain_demo.py` demonstrates tamper detection, not evidence export. The two integration-test dimensions in the paper are 'tamper detection (2)' and 'evidence export (2)' — only one is named as a script. The export-specific command is needed.",
+      "suggestions": "Add `python examples/export_evidence_demo.py --output sample_export.zip` and `unzip -l sample_export.zip` expected output (e.g., `audit_log.csv`, `anchors.json`, `verify.html`, `README.txt`). Commit a redacted `sample_export.zip` to the repo (or a 5-entry version) so reviewers can inspect the artifact without running anything."
+     },
+     {
+      "id": "E2-18",
+      "severity": "major",
+      "issue": "The tamper-detection claim of 5/5 detected has no example output showing what a detected-tamper looks like — a reviewer cannot tell whether 'detected' means a clean exit code, a warning, or an exception.",
+      "relevant_text": "python examples/audit_chain_demo.py # Expected: chain verify PASS -> tamper -> chain verify FAIL",
+      "concern": "The expected output line is a one-liner. A reviewer running this wants to know: (1) is `chain verify FAIL` an exception, a non-zero exit, or stderr text? (2) does the script print the divergent anchor ID? (3) does it print a remediation hint? (4) is the output machine-parseable? Without an example output snippet, the demo is a black box. For an artifact whose compliance claim hinges on 'verifiable' evidence, the verification step's output is the artifact.",
+      "strongest_rebuttal": "The exit code and a brief stderr are the standard convention; reviewers can read the script.",
+      "why_rebuttal_insufficient": "Reading the script is exactly the friction the reproducibility section is supposed to remove. The paper says 'the contribution is not the detection mechanism itself but its integration with self-contained evidence export' — so the integration surface (the export, the verifier HTML, the demo output) is what reviewers need to evaluate.",
+      "suggestions": "Add a 5-10 line expected-output snippet to the reproducibility section: `Chain verify: PASS (235/235 anchors OK) ... Tamper applied: row 42 ... Chain verify: FAIL at anchor 23 (recomputed hash 0xabc != stored 0xdef)`. Show the verifier HTML's user-facing message: `Status: TAMPERED — first divergent anchor at index 23. Verify with: <link>`."
+     },
+     {
+      "id": "E2-19",
+      "severity": "major",
+      "issue": "The 'cross-system comparison' CLI mixes two incompatible protocols: `python scripts/run_full_benchmark.py --systems memtether,mem0` runs the standalone path while the abstract reports the EAF-pipeline path; the comparison number the reviewer gets (`MemTether 58.3% vs mem0 60.2%`) does not support the paper's claim of an 8.6pp advantage.",
+      "relevant_text": "python scripts/run_full_benchmark.py --systems memtether,mem0 ... The 58.3% vs mem0's 60.2% shows that a naive retrieval path does not outperform mem0; the +8.6pp advantage in the main results requires the full EAF pipeline.",
+      "concern": "Honest about the gap, but the reviewer who follows the documented command produces numbers that *contradict the abstract*. This is the exact failure mode E3-06 warned about: a script that produces a number that does not match the paper. A reviewer who runs the script and gets 58.3% < 60.2% has no evidence the +8.6pp is real; they only have a paragraph telling them so. The honesty about the gap is good, but the gap itself is a reproducibility failure: the scriptable path contradicts the paper.",
+      "strongest_rebuttal": "The paper is transparent: the script reproduces one configuration, the abstract reports another, and the difference is documented.",
+      "why_rebuttal_insufficient": "Transparency about which configuration produces which number is necessary, not sufficient. A reviewer should be able to run a single script and reproduce the abstract's headline number. Two configurations, two scripts, and only one named in the script simplifies is asymmetric.",
+      "suggestions": "Either (a) add `python scripts/run_eaf_benchmark.py --systems memtether,mem0 --pipeline eaf` with expected 62.4%/68.8% output, OR (b) reframe the abstract's headline number as '58.8% strict on the standalone pipeline' and relegate the EAF pipeline to a footnote. The current setup forces the reviewer to choose which paper they trust."
+     },
+     {
+      "id": "E2-20",
+      "severity": "major",
+      "issue": "The `python _dev/benchmarks/locomo_full_run.py --system memtether` command implies a `_dev/` directory in a published package, which is a strong signal the artifact has not been packaged for distribution.",
+      "relevant_text": "python _dev/benchmarks/locomo_full_run.py --system memtether",
+      "concern": "Top-level `_dev/` directories are a common convention for code that is not ready for users; shipping them in a `pip install`-able artifact is unusual. A reviewer who installs via PyPI (`pip install memtether`) will not get `_dev/` content; only a git clone does. Combined with `pip install -e \".[server]\"` (editable mode) for the test suite, the entire reproducibility surface assumes a `git clone` workflow, not a `pip install` workflow — undermining the PyPI promise in the intro.",
+      "strongest_rebuttal": "Benchmarks live in `_dev/` because they are not part of the public API; the PyPI package is the runtime, the repo is the source of truth.",
+      "why_rebuttal_insufficient": "If the PyPI package is the runtime and the repo is the source of truth, then `pip install memtether` is not the primary install path the paper advertises. The intro says exactly the opposite: 'MemTether is Apache-2.0 open source at https://github.com/MemTether/MemTether (PyPI: pip install memtether)' — PyPI first, GitHub parenthetical.",
+      "suggestions": "Either move `_dev/benchmarks/` content to a separate `memtether-benchmarks` PyPI package, or re-order the install path to 'git clone https://github.com/... && cd MemTether && pip install -e .' and put PyPI second. Add a `pip install memtether[bench]` extra that pulls the benchmarks."
+     },
+     {
+      "id": "E2-21",
+      "severity": "minor",
+      "issue": "The 'Expected:' comment style in the prior version of the reproducibility section has been removed, but the section now uses bare shell output lines like '# Output: results JSON with per-question records' that do not show the reviewable summary.",
+      "relevant_text": "# Output: results JSON with per-question records ... # Expected: chain verify PASS -> tamper -> chain verify FAIL",
+      "concern": "The previous round's `Expected:` comments (e.g., 'Expected: 189') were misleading because they assumed a populated production database; the rewrite uses `# Output: ...` which is no better — it tells the reviewer a JSON file is produced but does not show what fields the JSON has or what summary statistics to extract. A reviewer who runs the benchmark wants to see a one-line summary they can grep for (e.g., `Overall judge: 58.3% (292/500)`), not a JSON path they then have to parse.",
+      "strongest_rebuttal": "JSON output is the standard convention for benchmark scripts; reviewers can `jq` or `python -c 'import json; ...'`.",
+      "why_rebuttal_insufficient": "Adding a `jq` step is friction the reproducibility section should remove. The script should print a human-readable summary line in addition to the JSON, e.g., `python scripts/run_full_benchmark.py --systems memtether,mem0 --summary # prints 'MemTether: 58.3% | mem0: 60.2%'`.",
+      "suggestions": "Add a `--summary` flag to each benchmark script that prints one line of human-readable output, or add a wrapper `make summary` that runs each benchmark and prints the headline. Document the JSON schema briefly (top-level keys: `systems`, `metrics`, `per_question_records`)."
+     },
+     {
+      "id": "E2-22",
+      "severity": "minor",
+      "issue": "The paper's anti-gaming check is undermined by a 57% gradeability rate on the expanded cross-agent cohort that is never operationally defined: what makes a sample 'gradeable' vs. 'ungradeable' depends on API content-filter behavior, not on the experimental design.",
+      "relevant_text": "Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering).",
+      "concern": "A reviewer cannot reproduce the 43/100 gradeability rate because it depends on the GLM-5.3-flash content-filter policy at run time, which can change without notice. The 57% ungradeable rate is also high enough to question whether the 86% divergence on the remaining 43 is biased (the API may filter exactly the cases where stale vs. correct context produces the same answer, leaving only the divergence cases). The paper reports '95% CI [76%, 96%]' on the 43 gradeable cases but does not bound the selection-bias from the 57 ungradeable.",
+      "strongest_rebuttal": "The paper explicitly acknowledges the 57% gradeability limit in the Threats to Validity section ('the 57% gradeability rate limits generalizability').",
+      "why_rebuttal_insufficient": "Acknowledging the limit does not fix the bias. A reviewer who reruns the experiment on a different day or with a different LLM gets a different gradeability rate and a different divergence estimate. For a measurement paper, the operational definition of 'gradeable' matters: is it 'GLM-5.3-flash returned non-empty output'? 'Output passed a regex check'? 'Output was parseable as JSON'? The paper does not say.",
+      "suggestions": "Define 'gradeable' operationally (e.g., 'GLM-5.3-flash returned a non-empty response within 5s and the response was parseable as either a yes/no or a one-sentence answer'). Report the response-empty rate by entity category to bound selection bias. Consider switching to a local model (e.g., Llama-3 8B) to eliminate the API-filter confound for this specific experiment."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      {
+       "claim": "pip install memtether works as advertised",
+       "evidence_gap": "No install verification transcript in the paper; PyPI name may be reserved but unpublished; SECURITY.md alpha caveats suggest the package may not be a stable install target.",
+       "verifiability": "low — the reviewer is the verifier and their friction is the test"
+      },
+      {
+       "claim": "534 tests pass",
+       "evidence_gap": "Test count is reported but the test prerequisites (env vars, schema bootstrap, LLM stubs) are not enumerated; reproducibility assumes `pip install -e \".[server]\"` and `pytest tests/` will work.",
+       "verifiability": "medium — the tests are non-interactive once prerequisites are met, but the prerequisites are not documented"
+      },
+      {
+       "claim": "62.4% / 68.8% LongMemEval",
+       "evidence_gap": "Headline number comes from a pipeline (ECO+SSI+AFN) not named in the reproducibility script; the documented script produces 58.3%, which contradicts the abstract.",
+       "verifiability": "low — the reviewer must know which pipeline produces which number"
+      },
+      {
+       "claim": "B1 gate achieves 100% recall/precision at p50 = 0.037 ms",
+       "evidence_gap": "No example input/output pair, no latency benchmark command, no machine specs; the script path (`scripts/generate_b1_benchmark.py`) is named but not commanded.",
+       "verifiability": "low — script exists in name only"
+      }
+     ],
+     "statistical_issues": [
+      "57% gradeability rate on the n=100 → n=43 cohort introduces selection bias that is acknowledged but not bounded (E2-22 / CK-02).",
+      "0.037 ms B1 latency benchmark has no CI, no machine spec, no warmup protocol — a single p50 number over n=1,000 is fragile to first-call overhead.",
+      "The 538-test pass count is integrity-asserted but not independently verified; without an install workflow that gets a fresh reviewer to that count, it is a self-report."
+     ],
+     "logical_leaps": [
+      "From 'pip install memtether is Apache-2.0' to 'a reviewer can reproduce the paper's numbers' requires an install path that the paper does not validate.",
+      "From '534 tests pass' to 'the system is usable as a library' conflates correctness with ergonomics; the 534 tests might all be unit tests of internal helpers without testing the public API surface that the paper documents (CK-03).",
+      "From 'B1 gate p50 = 0.037 ms' to 'B1 gate is production-ready' requires knowing what the benchmark includes (CK-15)."
+     ],
+     "alternative_explanations": [
+      "The PyPI package `memtether` may exist but be a stub that points users to the git repo; the paper treats it as the primary install path because the GitHub README does.",
+      "The 538-test pass count may be from CI on a specific commit; the paper's reproducibility section asks reviewers to clone `main` (or at the pinned commit `d1c0f99`), but `pip install` does not respect that pin.",
+      "The 57% gradeability rate may be an artifact of GLM-5.3-flash's content filter rejecting certain entity types (e.g., names that match known public figures); a local LLM would produce a different rate, but the paper does not test this."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": false,
+     "assessment": "mild",
+     "rationale": "The paper is not optimized for benchmark leaderboard metrics in the usual sense (no SOTA-chasing on LongMemEval/LoCoMo), but it does optimize for paper-presentational metrics: the 534-test count, the four-theorem count, the 31K+ operations count, the '534 passed, 4 skipped' (538 total collected) precision. These numbers are presented as paper-quality signals without the operational detail that would let a reviewer verify them as such. The biggest paper-quality signal — that the artifact actually works for a fresh user — is left implicit. From a usability-reviewer perspective, this is mild gaming: the paper looks rigorous in counts but is fragile in install/first-run flow."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "73pp claim has the n=11 binomial CI issue (52-96% vs 0.2-41%); the paper does not report CIs explicitly. Usability impact: a reviewer who reruns the n=11 experiment on a different day gets a different point estimate, and the reproducibility section has no path to rerun the cross-agent experiment because GLM-5.3-flash content-filter behavior varies."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "57% gradeability acknowledged in Threats to Validity but not operationally defined (E2-22). The expanded n=43 cohort is reproducible in name only — the API filter that drops 57 cases is not part of the reproducibility script."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "Arithmetic checks out: 11/24907 = 0.0442%; 81.7%/0.044% ≈ 1,857. The garbled Finding 2 sentence (mentioned in CK-15) is still present but does not affect the arithmetic. Usability impact is limited because the SQL queries needed to reproduce this funnel are not in the reproducibility section."
+     },
+     {
+      "id": "CK-04",
+      "pass": true,
+      "note": "F1=0.897 vs F1=0.889 discrepancy is explained (full n=2000 vs 500-sample temporal subset, seed=42). However, the reproducibility path for ConflictBank is not in the script block — a reviewer cannot run it from the documented commands."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "LongMemEval reporting is now explicit (note in abstract + Section repro + new 'Note on LongMemEval Score Variants' subsection), but the EAF pipeline components (ECO, SSI, AFN) are still undefined in the paper text. A reviewer reading the paper does not know what ECO/SSI/AFN are or where to find them. The reproducibility script for the headline number is missing (E2-14, E2-19)."
+     },
+     {
+      "id": "CK-06",
+      "pass": true,
+      "note": "Three-dataset reconciliation holds (2,590 typed / 2,309 survival / 2,635 supersession; 349 corrections consistent across Table type-correction, Table clustering, and Finding 5). The breakdown note in the paper is helpful."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "31K+ operations = 28,807 use_count (26 days) + 2,346 audit entries; the 26 vs 30-day distinction is now explicit in the body. Usability impact: a reviewer cannot reproduce either number from the documented scripts because no SQL command is given."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "5/5 + 1 unanchored tail caveat is now in Section tamper detection. The abstract's unqualified '5/5' is still a soft overclaim but the body is honest. Usability impact: the demo script (`examples/audit_chain_demo.py`) does not show what 'detected' looks like in output (E2-18)."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "Theorem 1 self-identifies as 'formalizes a design invariant'; Theorems 3-4 are conditional. The abstract and Highlights do not elevate these to unconditional guarantees. This is honest; no usability issue."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Chinese-only SGM limitation is in Threats to Validity. The 84% recall on a synthetic Chinese benchmark is clearly scoped. Usability impact: the B1 benchmark script is named but not commanded (E2-16), and a reviewer cannot rerun the 84% number from the documented commands."
+     },
+     {
+      "id": "CK-11",
+      "pass": true,
+      "note": "Finding 4 arithmetic: 1957×426 = 833,682 (paper says 833,488; 833,488/1957 ≈ 426.0, so the 426 is the mean and 833,488 is the sum — minor rounding). 1957 active vs 1960 right-censored: 3-memory gap not explained (likely the 3% unresolvable-source corrections in Finding 5)."
+     },
+     {
+      "id": "CK-12",
+      "pass": true,
+      "note": "Finding 1's 11× framing is now contextualized with the nrem_consolidation explanation in Finding 3 (269/349 = 77% from one bulk event). The 91.5% procedure correction rate is honestly bounded by this caveat. Usability impact: a reviewer cannot reproduce either number because no SQL is given for type-correction or daily clustering."
+     },
+     {
+      "id": "CK-13",
+      "pass": true,
+      "note": "Self-correction vs cross-agent protocol difference is now partially addressed (Section 6.1 uses GLM-5.3-flash for both, n=11 vs n=300). The paper acknowledges the small-n caveat. Usability impact: the n=300 self-correction sample is from the same 30-day window, which is in the paper."
+     },
+     {
+      "id": "CK-14",
+      "pass": true,
+      "note": "Threat model is consistent: Section threat model disclaims full-write adversary and fail-open source attribution. Abstract and Highlights do not imply stronger security. The 'EU AI Act Article 12' mention is in the conclusion with a 'no legal advice' caveat in the Ethics Statement. Usability impact: the export bundle is one of the three structural highlights but has no inspectable example (E2-17)."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "Paper hygiene: (a) Anonymous author with AUTHOR-REQUIRED comment is unchanged; (b) Finding 5 truncation ('ab') — checking the paper, this appears fixed; (d) B1 gate 100%/100% on synthetic vs entity-resolution 81.7% false-clash — the paper now addresses this via the Threats to Validity note ('our production database contains zero uncorrected contradictions after 31 days') but does not explain how the B1 gate avoids the 81.7% false-positive problem Finding 2 documents (the B1 gate uses fact_entities linkage, not raw polarity clash, so it sidesteps the issue, but this is not stated). The duplication (Finding 2 mid-sentence) appears fixed in the current draft. Usability impact: the B1 gate's 100%/100% is on a synthetic benchmark that a reviewer cannot rerun from the documented commands (E2-16)."
+     }
+    ],
+    "novelty_check": {
+     "nearest_comparators": [
+      "Letta/MemGPT (Packer 2023) — multi-tier memory with paging; closest architectural cousin, but post-hoc paging not admission control",
+      "Zep (Rasmussen 2025) — temporal knowledge graph with invalidation; closest in temporal-correctness claim",
+      "memStrata (Yadav 2026) — bi-temporal supersession; closest in the bi-temporal supersession chain mechanism",
+      "xmemory (Petrov 2026) — schema-grounded memory; closest in the schema-grounded retrieval idea",
+      "MOSS (Lacasse 2026) — auditable agentic memory; closest in the audit-log + SQLite approach",
+      "TraceKit (Ghosh 2026) — tamper-evident audit; closest in the hash-chain mechanism",
+      "MemoryLACE (memorylace 2026) — lifecycle-aware consolidation; closest in the survival-analysis framing"
+     ],
+     "novelty_assessment": "The individual components (bi-temporal, hash-chain, multi-client) each have a nearest comparator; the integration is the contribution. This is honest and well-cited (Section 2 is thorough). The novelty question for usability-reviewer is whether the integrated artifact is reproducible as a unit — and there the answer is partial (E2-12 through E2-20).",
+     "novelty_for_installability": "The install workflow itself (single SQLite + file-level pointers + 23 client adapters + alpha-tagged PyPI) has no nearest comparator the reviewer is aware of — it is novel in the sense that no one else has tried this exact configuration. This novelty is a risk: the install path is untested by anyone other than the author."
+    },
+    "meta_note": "This review covers the usability surface of MemTether after the paper revisions addressed some of the prior round's findings (CK-04, CK-05, CK-08, CK-09, CK-11, CK-12, CK-14 are now passing). The remaining critical gaps are concentrated on the install/first-run path (E2-12, E2-13) and the script-to-headline-number traceability (E2-14, E2-19). The paper has clearly improved on the previous round — the script block is more honest, the threat model is consistent, the dataset scope notes are explicit. But the central usability question ('can a reviewer who has never seen this code reproduce the abstract?') is still answered 'no, but closer' — the missing pieces are a first-run doctor command, a scriptable EAF pipeline command, and inspectable sample artifacts (export ZIP, B1 benchmark JSON). Severity: I downgraded E2-12 from critical to major-conditional because the paper does pin a commit SHA and version, which is better than before; I kept E2-19 at major because the headline-vs-scriptable gap is the single most damaging usability issue. The paper's reproducibility section is closer to usable than in the previous round but still incomplete.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the headline 73pp claim's statistical basis: it derives from n=11 cross-agent contradictions (9/11 vs 1/11 correct). Check whether the paper acknowledges the binomial CI on 9/11 and 1/11 is extremely wide (roughly 52-96% and 0.2-41%), and whether the abstract's unqualified '73-percentage-point' framing is defensible at that sample size.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check consistency between the abstract's '57% gradeable' qualifier for the expanded n=43 cohort and Section 5.1/Finding 5: does the paper explain which 57% were gradeable and whether the 86% divergence (37/43) was computed only on gradeable items, and whether selection bias from ungradeable cases is discussed.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify internal numeric consistency of the contradiction-detection funnel: 2,000 fact pairs with 81.7% polarity clash (Table 4), 24,907 cross-source pairs, 11 genuine contradictions, and 0.044%. Check 11/24907 = 0.0442% and that 81.7%/0.044% ≈ 1,857 as claimed. Note the paper's garbled sentence in Finding 2 that duplicates the classification-pipeline description mid-sentence.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check the discrepancy between ConflictBank results: abstract claims F1=0.897 (full n=2000) while Table 3 reports F1=0.889 on the 500-sample temporal subset (seed=42). Verify the paper clearly explains why two F1 values are reported and that precision=1.000/recall=0.800 on temporal conflicts is consistent with a numeric-overlap detector's known failure modes.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the LongMemEval reporting: abstract claims 62.4% strict / 68.8% judge via 'full EAF pipeline (ECO+SSI+AFN)', while the standalone path yields 58.3% strict. Check Section repro actually defines ECO, SSI, AFN, states which components are MemTether contributions vs. prior work, and whether the headline number risks attributing ECO curation gains to MemTether itself.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the three overlapping production datasets are reconcilable: 2,590 typed records (Table type-correction), 2,309 survival cohort (349 events + 1,960 censored), and 2,635 supersession benchmark (386 positive + 2,249 negative). Verify the stated reasons for scope differences account for the arithmetic, and that 349 corrections is consistent across Table type-correction (139+118+49+46+34=386 corrected in typed set), Table clustering (349), and Finding 5 (52 cross-agent + 284 self + 13 unattributed = 349).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify the 31K+ operations claim: 28,807 use_count summed over 'first 26 days' plus 2,346 audit entries. Check whether summing 26 days of reads against a 30-day claim is stated clearly, whether use_count is the right proxy for 'read operations' (it counts per-fact retrievals, not audit-logged reads), and whether the paper explains why reads are not in the audit log.",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the tamper-detection evaluation matches the design: 2,346 entries anchored every 10 should yield ~235 anchors; verify 5/5 anchored-row scenarios detected plus 1 unanchored-tail scenario not detected is reported honestly (abstract says '5/5' without the tail caveat — verify the abstract is not overclaiming).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Verify the four theorems are honestly framed: Theorem 1's proof sketch admits it 'formalizes a design invariant rather than proving a non-trivial property', and Theorems 3-4 are conditional ('if correct() includes cycle detection', 'if correct() uses conditional update'). Check the paper does not elsewhere (abstract, contributions) elevate these to unconditional guarantees.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Check the SGM retrieval evaluation is not overstated: 84% recall on a synthetic Chinese benchmark of 500 facts written by the authors, with a Chinese-only regex extractor that yields zero pairs on English benchmark data. Verify the paper's claim that LongMemEval results benefit from SGM is reconciled with SGM being inactive on English benchmarks.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify Finding 4 arithmetic: 1,957 active memories × 426 chars = 833,682 (paper says 833,488); 3,980/833,488 = 0.4775% ≈ 0.48%; 833,488/3,980 = 209.4. Check 1,957 active is consistent with the survival cohort's 1,960 right-censored (nearly but not exactly equal — does the paper explain the difference?).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check Finding 1's '11×' framing: 91.5% vs 8.2% is 11.16×, but Procedure has only 129 total memories from a single-user 30-day deployment. Verify the paper discusses whether one dominant consolidation event (269 of 349 corrections on one day, 262 via nrem_consolidation) confounds the type-correction rates — i.e., whether the 91.5% procedure correction rate is largely produced by the bulk migration rather than organic dynamics.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify the self-correction baseline (n=300, 100%/99.3%) uses the same LLM (GLM-5.3-flash), same prompt protocol, and same grading as the cross-agent n=11 experiment; check whether self-correction contexts were sampled from the same 30-day window and whether 'correct context' being 100% for n=300 vs 82% for n=11 suggests a protocol difference rather than a genuine asymmetry.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check the threat model is consistently stated: Section threat model disclaims protection against full-write adversaries and admits fail-open source attribution; verify the abstract and Highlights do not imply stronger security (e.g., 'tamper-evident' without scope, 'EU AI Act Article 12' compliance claim without a legal-analysis caveat).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify paper hygiene flags: (a) author is 'Anonymous' with an AUTHOR-REQUIRED comment noting JSS is single-blind; (b) Finding 5's text is truncated mid-sentence ('but they measure different aspects: ab'); (c) Finding 2 contains a duplicated clause ('However, after applying the full classification pipeline...' appears twice); (d) the B1 Gate section (100% precision/recall on synthetic Chinese conflicts) is consistent with the entity-resolution finding that naive matching yields 81.7% false-clash — does the paper explain how B1 avoids the false-positive problem Finding 2 documents?",
+      "category": "reproducibility",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document ends abruptly mid-sentence ('...but they measure different aspects: ab') with no \\end{document}; text is truncated.",
+       "Author block still says 'Anonymous' with an AUTHOR-REQUIRED comment flagging replacement before submission.",
+       "Verbatim schema block uses escaped underscore 'old\\_uid' inside a verbatim environment — backslash will be printed literally."
+      ],
+      "number_inconsistencies": [
+       "Abstract says '57% gradeable' for the n=43 expanded cohort, but no body section presents this 57% figure.",
+       "Abstract/Highlights state 'four formal correctness theorems' — Section 4 indeed has 4 theorems, consistent, but Finding 5's Section~\\ref{sec:expanded-dyn} (86% figure, 37/43) points to a section that does not exist in the document.",
+       "Table tab:asymmetry loss for self-corrections listed as 0.7pp; 100% − 99.3% = 0.7pp, consistent (OK). 1,857×, 209×, 31K+ all recompute correctly (OK). ConflictBank F1: 0.897 (abstract, n=2000) vs 0.889 (Table, 500-sample) — explained in text, but worth flagging as a potential reader-facing inconsistency."
+      ],
+      "citation_issues": [
+       "No \\bibliography/\\bibliographystyle or thebibliography environment exists at all: every \\cite/\\citep (mem0, zep, letta, memstrata, euaiact, langmem, engram, gmotion, memos, memprobe, memorylace, xmemory, memanto, moss, memsim, tracekit, janus, mutmem, court, wu2024longmemeval, auditlme, memleak, sleeper, agentpoison) will render as [?]."
+      ],
+      "orphaned_figures": [
+       "Figure files fig1_type_correction.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig6_km_curves.pdf are included but not provided for verification. Note the numbering skips fig5 entirely — possible missing figure."
+      ],
+      "duplicates": [
+       "Section 3.6 (SGM): the noise-robustness discussion is stated twice — 'with 300+ distractor facts, the SQL path maintains 84\\% while embedding drops further' and then a full paragraph 'To test robustness against noise, we introduce 300+ distractor facts...' repeating the same 84% vs 64% / 1.3× result.",
+       "Finding 2: 'after applying the full classification pipeline' appears twice within one paragraph (once interrupted by an example sentence, then restarted with 'However, after applying the full classification pipeline') — clear copy-paste artifact leaving a broken sentence fragment."
+      ],
+      "formatting_issues": [
+       "Undefined \\ref targets: sec:crosssys (referenced in Section 2.4), sec:expanded-dyn (referenced in Finding 5) — no matching labels in the document.",
+       "Finding 5 self-references Section~\\ref{sec:asymmetry}, which is the label of Finding 5's own subsection, while the 73pp table lives in the earlier Cross-Agent Contradiction subsection — reference points to the wrong place.",
+       "Finding 5 text is truncated mid-sentence (overlaps with missing \\end{document})."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 25806,
+    "out": 8503,
+    "secs": 79.8
+   },
+   "raw_len": 35340,
+   "z": 0.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "what_the_paper_claims": "MemTether is a local-first, single-SQLite agent memory system for multiple AI clients on one machine. Three differentiators vs mem0/Zep/Letta: (1) bi-temporal supersession with four formal correctness theorems, (2) hash-chained tamper-evident audit with browser-verifiable export (EU AI Act Art. 12 framing), (3) file-level pointer sharing for 23 client adapters. Empirically: 30-day single-operator production deployment (15 writing agents, 31K+ ops), cross-agent contradictions cause 73pp downstream accuracy loss (n=11) / 86% answer divergence (n=43), LongMemEval 62.4%/68.8% via EAF pipeline, ConflictBank F1=0.897 (temporal), and a new Memory Supersession Prediction task (DistilBERT, macro F1=0.947).",
+     "who_the_user_is": "Explicitly one person: single operator running a fleet of heterogeneous local AI clients (Claude, Cursor, codex, WorkBuddy CN/Intl, etc.) on one machine, primarily writing in Chinese. The Threats section concedes zero external users. This is a solo local-first tinkerer/power-user with an audit/compliance interest — not teams, not cloud deployments.",
+     "why_switch": "As evidenced: the pitch is that cross-agent contradictions in a SHARED memory are catastrophic (73pp) and that tamper-evident provenance matters. Mem0 is a hosted platform; Zep is a temporal KG server; Letta manages single-agent context. None target 'many agents, one local DB, shared write surface'. The niche (local multi-client shared memory with audit) is real and unserved — but the paper's own numbers show the harm occurs at 11 genuine contradictions in 30 days, the B1 interception gate is Chinese-only and fires on zero production conflicts, and the headline benchmark win requires a curation pipeline (ECO) that is not clearly a MemTether contribution."
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 3.0,
+     "alignment": 3.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E4-07",
+      "severity": "major",
+      "issue": "The switching case vs competitors is an N=1 audit story, not a capability story: no competitor was run on the workload where MemTether claims differentiation",
+      "relevant_text": "Cross-agent contradictions cause a 73-percentage-point downstream accuracy loss (n=11)... None provide hash-chained audit trails or file-level multi-client deployment.",
+      "concern": "The question a mem0/Zep/Letta user asks is: 'would cross-agent contradictions hurt me, and does MemTether fix them better?' The paper answers with one operator's trace (11 genuine contradictions in 30 days) and — critically — shows the fix does NOT work in production: the B1 gate is Chinese-only, fired zero times (zero uncorrected contradictions were intercepted; the packy case was resolved by human adjudication after the fact), and the 73pp harm was quantified post-hoc, not prevented. Zep's temporal KG explicitly handles supersession/staleness at write time for English and multilingual settings; the paper never runs Zep (or even mem0) on the contradiction workload. The only head-to-head numbers are LongMemEval/LoCoMo retrieval — where MemTether's standalone path (58.3%) LOSES to mem0 (60.2%). The honest competitive summary: MemTether is behind on retrieval, ahead on audit/locality, and unproven on the one mechanism (contradiction interception) it claims as the reason cross-agent memory needs governance.",
+      "suggestions": "Run Zep (temporal KG invalidation) on the packy-style contradiction scenario or on ConflictBank temporal; report whether Zep's edge invalidation achieves the same stale-fact elimination. This is the single experiment that would establish 'better than' rather than 'different from'."
+     },
+     {
+      "id": "E4-08",
+      "severity": "major",
+      "issue": "Headline LongMemEval advantage depends on ECO curation whose provenance/contribution status is undefined — potential attribution of non-MemTether gains to MemTether",
+      "relevant_text": "LongMemEval scores (62.4% strict, 68.8% judge) come from the full EAF pipeline (ECO+SSI+AFN, 500Q rerun)... A standalone reproduction path without ECO curation yields 58.3% strict.",
+      "concern": "The +8.6pp over the standalone path, and the +8.6pp over mem0's published 60.2%, are attributed to ECO. The paper never defines ECO, SSI, or AFN beyond three acronyms in a footnote, never states which are MemTether contributions vs prior work, and the reproducibility script for the head-to-head uses the standalone (losing) configuration. A product reviewer cannot tell whether buying MemTether buys 62.4% or 58.3%. If ECO is a benchmark-specific curation layer, the comparison to mem0 (run without curation) is apples-to-oranges and the positioning 'exceeds mem0 by 27.3pp multi-session' is not defensible as a system-vs-system claim.",
+      "suggestions": "Define ECO/SSI/AFN with citations or implementation pointers; run mem0 with the same curation layer or clearly label the comparison 'MemTether+ECO vs mem0'. Report the standalone number in the abstract alongside the pipeline number."
+     },
+     {
+      "id": "E4-09",
+      "severity": "major",
+      "issue": "73pp headline rests on n=11 with no CI; abstract framing is not statistically defensible (partially overlaps CK-01, resolved at checklist level)",
+      "relevant_text": "cross-agent contradictions cause a 73-percentage-point downstream accuracy loss (n=11 discovery; n=43 expanded, 57% gradeable)",
+      "concern": "9/11 correct-context and 1/11 stale-context give binomial CIs of roughly [58%, 98%] and [0.2%, 41%]; the difference is directionally robust (McNemar-style paired comparison would likely reach significance) but '73-percentage-point' as a point estimate is indefensible at n=11. The abstract does carry both n's and the 57% gradeable qualifier — better than typical — but does not carry the wide CIs, and the Highlights line ('73pp') carries no n at all. For product positioning, the actionable number is the expanded 86% divergence [76, 96], which is solid; the paper should lead with that.",
+      "suggestions": "Lead with the n=43 result (86% divergence, CI [76,96]); demote the 73pp to a discovery-stage observation with explicit CIs; add the CI for 9/11 and 1/11 in the table."
+     },
+     {
+      "id": "E4-10",
+      "severity": "minor",
+      "issue": "The self-correction baseline (100%/99.3%) and cross-agent experiment (82%/9%) likely differ in protocol, confounding the asymmetry that justifies the product's emphasis",
+      "relevant_text": "Self-corrections (n=300)... correct context 300/300 = 100%, stale context 298/300 = 99.3%.",
+      "concern": "Perfect 100% on 300 items vs 82% on 11 items under the 'same protocol' is a red flag: either the self-correction contexts are systematically easier (same-agent phrasing, same operational register), the sampling differs (300 drawn across the 30-day window vs 11 rule-classified temporal flips), or grading differs. If the asymmetry is partly a protocol artifact, the product thesis ('prioritize cross-agent interception over self-correction tracking') weakens. The effect is plausibly real (the mechanism — cross-agent world-view incompatibility — is credible and the expanded n=43 corroborates direction), but the magnitude contrast 0.7pp vs 73pp is not trustworthy as measured.",
+      "suggestions": "Report question difficulty, context lengths, and grading rubric for both arms; sample cross-agent and self-correction cases with matched entity/conversation properties; state the sampling frames explicitly."
+     },
+     {
+      "id": "E4-11",
+      "severity": "minor",
+      "issue": "Honest-but-scattered concessions never coalesce into a scoped positioning statement; the paper oscillates between 'system contribution' and 'measurement contribution'",
+      "relevant_text": "The contribution is not the detection mechanism itself... but its integration with self-contained evidence export in a production multi-agent deployment.",
+      "concern": "Individually the paper is admirably honest: threat model disclaims full-write adversaries, fail-open attribution, and uncorrected poisoning (test_F); Theorem 1 admits it 'formalizes a design invariant'; SGM's Chinese-only limitation is disclosed; B1's zero production firings are disclosed; the standalone LongMemEval loss to mem0 is disclosed. But the honest concessions are buried while the abstract markets the strongest numbers. A buyer reading only the abstract+Highlights gets: 73pp, F1=0.897, 62.4%, F1=0.947, 5/5, 31K+ ops — each of which carries an undisclosed qualifier buried 5-10 pages deep. That pattern is not dishonesty, but it is selective emphasis.",
+      "suggestions": "Add a 'What MemTether is not' paragraph after the contributions: not a retrieval improvement over mem0 standalone; not a security control against full-write adversaries; not English-capable for SGM/B1; not multi-user. This costs one paragraph and converts the paper from marketing-adjacent to credible."
+     },
+     {
+      "id": "E4-01R",
+      "severity": "major",
+      "issue": "Prior finding E4-01 (competitive claim asserted, never measured) — partially addressed, still active",
+      "relevant_text": "mem0, Zep, and Letta all encourage 'remember everything' without admission control. [E4-01 concern; current paper instead claims 'none provide hash-chained audit trails or file-level multi-client deployment']",
+      "concern": "The current draft has dropped the false 'remember everything without admission control' claim — a genuine improvement. The new positioning ('none provide hash-chained audit or file-level multi-client sharing') is technically defensible as surveyed. But the deeper E4-01 issue stands: no competitor is instrumented on MemTether's claimed problem (cross-agent contradiction harm in shared memory). Zep is the closest competitor on the supersession axis and is never evaluated on it.",
+      "status": "partially_fixed",
+      "suggestions": "Retain fix; add the Zep contradiction experiment (E4-07) to close the loop."
+     },
+     {
+      "id": "E4-02R",
+      "severity": "major",
+      "issue": "Prior finding E4-02 (user identity undefined) — largely fixed",
+      "relevant_text": "Single deployment... operated by one person. Zero external users. The production deployment has no external users.",
+      "concern": "The Threats section now states single-operator, zero-external-users explicitly, and the Ethics statement scopes it. This is honest. What remains missing for product positioning is a per-client decomposition: if a handful of clients (codex/workbuddy dominate the contradiction analysis) generate most cross-agent conflicts, the fix might be 'configure your two agents to not write conflicting facts', not 'adopt MemTether'.",
+      "status": "partially_fixed",
+      "suggestions": "Add a per-source breakdown of the 52 cross-agent corrections (which client pairs)."
+     },
+     {
+      "id": "E4-06R",
+      "severity": "minor",
+      "issue": "Prior finding E4-06 (B1 gate adds no competitive value) — partially addressed",
+      "relevant_text": "real-world conflict density is expected to be lower (our production database contains zero uncorrected contradictions after 30 days of active supersession)",
+      "concern": "The paper now honestly labels B1 as value-flip-only, Chinese-only, synthetic, with zero production firings. But it is still presented as a contribution and still motivates Finding 5's implication ('the B1 gate is designed for exactly this purpose'). A mechanism that never fired in the only real deployment cannot be the answer to the harm it is claimed to address. Notably, the paper has NOT run B1 on ConflictBank despite citing it — a cheap fix.",
+      "status": "partially_fixed",
+      "suggestions": "Run B1's parser on ConflictBank temporal conflicts (Chinese subset if needed); report recall/precision there instead of only on the authors' own synthetic generator."
+     },
+     {
+      "id": "E1/E3-BULK",
+      "severity": "minor",
+      "issue": "Prior findings E1-01..E1-06, E2-*, E3-01..E3-13 (measurement/reproducibility cluster from the companion write-governance paper) — context note",
+      "relevant_text": "This draft (MemTether v0.1.0a80) is a different paper than the one those findings targeted (write-governance/admission-control).",
+      "concern": "Many prior findings (dead rate, injection coverage 0.48%, admission gates, duplicated Related Work, 0.16/day arithmetic) do not apply to this draft; the gates are gone, dead-rate analysis is gone. However, the same error signatures recur: garbled/duplicated sentence in Finding 2 (CK-03), truncated Finding 5 ('but they measure different aspects: ab'), 30-vs-31-day inconsistency (abstract says 30-day; intro says 30 days + 'first 26 days' summed against a 31K claim, CK-07), numeric wobble (833,488 vs 833,682, CK-11), and CI-of-numbers hygiene (CK-01, CK-04). Version pining (v0.1.0a80, commit, PyPI) and a real reproducibility section with scripts are substantial improvements over the prior artifact state.",
+      "status": "deferred_to_checklist"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "'73pp loss' (abstract, Highlights) vs n=11 point estimates with CIs spanning ~40pp on each arm; the defensible expanded claim (86% divergence, CI [76,96]) is secondary.",
+      "'F1=0.897 on temporal conflicts' (abstract) is actually the full-n=2000 figure while Table 3 shows 0.889 on the 500-sample subset; the abstract does not reconcile the two, and precision=1.000/recall=0.800 is consistent with a brittle numeric-overlap detector that also scores F1=0.000 on two of three ConflictBank categories (disclosed in body, absent from abstract).",
+      "'EU AI Act Article 12' compliance framing in the abstract — the Ethics statement contains the needed disclaimer ('no legal advice') but the abstract/Highlights present it as an addressed requirement without scope; the threat model also disclaims full-write adversaries, so 'tamper-evident' is bounded in ways the Highlights omit.",
+      "'31K+ operations' sums 26 days of use_count against a 30/31-day claim; use_count measures per-fact retrievals, not audit-logged reads, and the paper does not explain why reads are absent from the audit log (relevant because the Q-value mechanism depends on retrieval events).",
+      "The '23 AI client adapters' headline vs '15 distinct agents have actually written' — the adapter list is the differentiator marketed, but only 15 exercised it, in one operator's setup."
+     ],
+     "statistical_issues": [
+      "n=11 with no CIs on the 73pp headline (CK-01).",
+      "n=43 expanded cohort: 57% gradeability due to API content filtering — selection into gradeable pairs is non-random and plausibly correlated with content type; the paper discloses this but treats the CI [76,96] as if it were the only uncertainty.",
+      "Supersession prediction (F1=0.947) trained on data where 77% of positives come from a single day's bulk consolidation event (262/269 corrections on 2026-09-27 via nrem_consolidation, Finding 3) — the model may largely be learning 'written before the consolidation date', i.e., a time-leak feature. The type-correction-rate table (91.5% procedure) is likewise dominated by that one event (118 corrections); CK-12's confound is acknowledged in Finding 3 but not propagated to Finding 1 or to the prediction dataset.",
+      "Self-correction n=300 protocol asymmetry vs cross-agent n=11 (E4-10).",
+      "Three overlapping dataset scopes (2,590 / 2,309 / 2,635) with explained-but-unreconciled arithmetic (CK-06)."
+     ],
+     "logical_leaps": [
+      "'Cross-agent staleness is the dominant failure mode' → 'memory systems should prioritize cross-agent conflict interception' — but the paper's own evidence shows the deployed interception (B1) intercepted nothing; the observed resolution path was human adjudication via Memory Court. The supported conclusion is 'prioritize post-hoc adjudication tooling', which is what the paper actually has.",
+      "'Zero uncorrected contradictions after 30 days' is offered as evidence of active supersession working, but with 2.7 organic corrections/day and one human operator adjudicating, it is equally consistent with 'contradictions are rare and a human cleaned them up'.",
+      "The r^N 'mathematical bound' is presented as a barrier insight, but r^N assumes independent retrieval per fact; any system with joint/multi-hop retrieval violates the independence assumption, so it is not a bound on systems, only on independent-top-k retrieval."
+     ],
+     "alternative_explanations": [
+      "The 73pp/86% asymmetry could be an artifact of cross-agent contradictions being sampled by a rule classifier (temporal flips) that selects for high-salience, high-stakes numeric flips (available vs 403), while self-corrections are routine detail updates — a difficulty confound, not an agent-identity effect.",
+      "The 100%/99.3% self-correction result may indicate the stale context is still 'mostly correct' for self-corrections by construction (same agent, same framework), making the asymmetry near-tautological rather than a discovery.",
+      "DistilBERT's +14.2pp over metadata+LR may reflect leakage of the consolidation-event timestamp signal rather than learnable lifecycle semantics."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "mild",
+     "note": "Benchmark selection is not gamed (LongMemEval/LoCoMo/ConflictBank are standard; mem0 comparisons include the unfavorable standalone 58.3% honestly). But the abstract assembles each subsystem's best number without its qualifier: 62.4% (needs ECO pipeline), 0.897 (temporal-only, 0.000 on the other two categories), 0.947 (event-clustered training data), 73pp (n=11), 5/5 (unanchored-tail miss omitted), 31K+ (26-day sum). Individually disclosed; collectively curated. This is qualifier-burying rather than fabrication — mild gaming."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "Abstract carries n=11/n=43 and 57% gradeable, but no CI on the 73pp point estimate; binomial CIs (~[58,98] and ~[0,41]) make '73pp' indefensible as a headline. Highlights omit n entirely. Directionally robust, numerically oversold."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "86% (37/43) is computed on gradeable pairs only; the 57% gradeability (API content filtering) and its generalizability limit are disclosed in Threats. However, selection bias (non-random gradeability correlated with content) is named but not analyzed — partial credit, flagged."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "Arithmetic checks: 11/24,907=0.0442% ✓; 81.7/0.044≈1,857 ✓. But Finding 2's second paragraph is garbled — the sentence 'At the cross-source pair level (24,907 pairs), after applying the full classification pipeline on the shared entity (e.g., ...)' duplicates the pipeline clause mid-sentence, exactly as flagged. Fail on prose integrity, pass on numbers."
+     },
+     {
+      "id": "CK-04",
+      "pass": true,
+      "note": "The paper does explain both F1 values (full n=2000 vs 500-sample seed=42 subset) and honestly reports F1=0.000 on semantic/misinformation categories. The abstract's unqualified 'F1=0.897 on temporal conflicts' technically carries the 'temporal' qualifier. Adequate, though abstract-level reconciliation of the two values is absent."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "The note before Section 1 and the repro section disclose the 62.4/68.8 vs 58.3 split, but ECO/SSI/AFN are never defined, their contribution provenance is unstated, and the repro command runs the standalone (losing) path while the abstract claims the EAF number. Attribution risk unmitigated."
+     },
+     {
+      "id": "CK-06",
+      "pass": true,
+      "note": "Data scope note explicitly lists the three scopes with reasons (type-label exclusion, window restriction, retired-record inclusion). Arithmetic broadly consistent; the 349 breakdown (52+284+13=349 ✓) and 386-vs-349 difference (typed-set corrections include non-window records) is explainable though not fully reconciled line-by-line. Minor residual: 1,957 active (Finding 4) vs 1,960 censored is unexplained but immaterial (3 records, plausibly type-unlabeled or retired)."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "The paper does state 'first 26 days' for the use_count sum, and separately '30-day window' for the deployment — the 26-vs-30/31 mismatch is visible but not explained; why reads are excluded from the audit log (and hence why use_count is the only read proxy) is never stated. 28,807+2,346=31,153 ✓."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "Body is honest: 5/5 anchored detected, 1/1 unanchored tail NOT detected, framed as anchoring granularity. Abstract says 'validated on 2,346 production audit entries (5/5 anchored-row scenarios detected)' — omits the tail caveat. Highlights: 'hash-chained audit log' with no caveat. Overclaim at abstract level; honest at body level. 2,346/10≈235 anchors ✓."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "Theorem 1 admits 'formalizes a design invariant rather than proving a non-trivial property'; Theorems 3-4 are explicitly conditional. The abstract's 'four proven correctness theorems' and Highlights' 'four proven correctness theorems' elevate these to unconditional-sounding guarantees — technically 'proven' is accurate for the conditional statements, but 'proven correctness properties' in contributions glosses the conditionality. Borderline pass with wording caution."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Chinese-only SGM with zero English pairs is disclosed in design, Threats, and the 84%/64% comparison is correctly scoped as Chinese-only. However, the paper does NOT reconcile how LongMemEval (English) results 'benefit from SGM' — implicitly they don't (SGM inactive), and the paper never claims they do. Adequately handled; the 84% figure's synthetic-authorship origin is a residual weakness."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "1,957×426=833,682 ≠ 833,488 (off by 194; mean is likely 425.8 rounded). 3,980/833,488=0.477% ✓; 833,488/3,980=209.4 ✓. The 1,957-vs-1,960 (censored) difference is unexplained. Small but the paper is a numbers paper."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Finding 3 discloses the consolidation event (269 corrections, 262 via nrem_consolidation) but Finding 1 presents 91.5% procedure-correction rate and the KM median survival (2.5 days) without discussing that the type-correction distribution is dominated by the bulk migration. Whether procedures were organically short-lived or just bulk-migrated is unanalyzed. The confound is disclosed in one finding and ignored in two others."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "Same LLM (GLM-5.3-flash) and protocol are claimed for both arms, but sampling frames differ (300 sampled from production DB vs 11 rule-classified flips), and the 100%-vs-82% correct-context asymmetry is not discussed as a possible protocol artifact. Not addressed."
+     },
+     {
+      "id": "CK-14",
+      "pass": true,
+      "note": "Threat model explicitly disclaims full-write adversaries and fail-open attribution; Ethics statement carries the 'no legal advice' caveat for Art. 12. However, the abstract's 'addressing EU AI Act Article 12 requirements' is stronger than 'intended to support compliance... we claim no legal advice' — abstract-level wording should be softened to 'designed to support'. Partial pass; see E4-11."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "(a) AUTHOR-REQUIRED comment present — must be fixed pre-submission. (b) Finding 5 truncated: 'but they measure different aspects: ab' — yes, cut mid-sentence. (c) Finding 2 duplicated clause — confirmed (CK-03). (d) B1's 100% precision vs Finding 2's 81.7% naive-clash false-positive rate: the paper never explains how B1's entity linking avoids the false-clash problem; the synthetic benchmark's clean entities sidestep exactly the entity-resolution difficulty Finding 2 documents. Unreconciled."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior_work": [
+      "Zep (temporal KG, edge invalidation, staleness handling) — closest on the temporal/supersession axis; paper cites but never compares on it.",
+      "MemStrata (bi-temporal validity, deterministic supersession) — the paper concedes MemStrata pioneered the bi-temporal ledger; MemTether's claim is integration + openness.",
+      "MutMem (cryptographically authorized mutation) / TraceKit / Janus — closest on tamper-evidence; MutMem is arguably stronger on the mutation-authorization axis.",
+      "G-Memory / MemOS — multi-agent shared memory at system level (server-based rather than file-level)."
+     ],
+     "genuine_novelty": "The defensible novel elements are narrow: (1) file-level pointer sharing of one SQLite DB across heterogeneous AI clients as a deployment pattern (engineering novelty, real and unclaimed by others); (2) the cross-agent vs self-correction harm asymmetry as a measured finding (novel question, weakly measured); (3) browser-verifiable self-contained evidence export (integration novelty, conceded by the authors). Bi-temporal supersession, hash-chained logging, and supersession prediction individually have close prior art acknowledged by the paper itself.",
+     "verdict": "Integration/contribution-mix novelty, not mechanism novelty. The paper's own related-work honesty ('the contribution is not the detection mechanism itself') is accurate."
+    },
+    "meta_note": "As product reviewer, the verdict on the three framing questions: (1) Real problem? Yes, partially — shared-memory cross-agent staleness and local multi-client audit are genuinely unserved niches; mem0/Zep/Letta do not target the local 15-clients-one-file scenario, and the paper's post-hoc adjudication tooling (Memory Court + bi-temporal chains) is a plausible answer. But the harm is measured at n=11 genuine contradictions in one operator's month, and the write-time fix never fired. (2) Better than competitors? Unproven where it matters: standalone retrieval loses to mem0 (58.3 vs 60.2, disclosed); the winning pipeline's curation layer is undefined; Zep is never tested on contradictions. The honest pitch today is 'different locus (local + audit + multi-client)', not 'better'. (3) Who switches? A solo power-user running many local Chinese-language coding agents who wants provenance. That is a real but tiny population, and the paper should say so. Recommendation: reject in current form for a systems venue (statistical hygiene failures, garbled text, n=11 headline, ECO attribution gap), but the core is salvageable — with the Zep head-to-head, CIs on the headline, ECO defined, the consolidation-event confound propagated to Findings 1 and the prediction dataset, and a scoped positioning statement, this becomes a credible systems-measurement paper. Score 4/10: below CCF-C bar primarily on statistical defensibility of headline claims, not on honesty, which is above average for this genre.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the headline 73pp claim's statistical basis: it derives from n=11 cross-agent contradictions (9/11 vs 1/11 correct). Check whether the paper acknowledges the binomial CI on 9/11 and 1/11 is extremely wide (roughly 52-96% and 0.2-41%), and whether the abstract's unqualified '73-percentage-point' framing is defensible at that sample size.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check consistency between the abstract's '57% gradeable' qualifier for the expanded n=43 cohort and Section 5.1/Finding 5: does the paper explain which 57% were gradeable and whether the 86% divergence (37/43) was computed only on gradeable items, and whether selection bias from ungradeable cases is discussed.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify internal numeric consistency of the contradiction-detection funnel: 2,000 fact pairs with 81.7% polarity clash (Table 4), 24,907 cross-source pairs, 11 genuine contradictions, and 0.044%. Check 11/24907 = 0.0442% and that 81.7%/0.044% ≈ 1,857 as claimed. Note the paper's garbled sentence in Finding 2 that duplicates the classification-pipeline description mid-sentence.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check the discrepancy between ConflictBank results: abstract claims F1=0.897 (full n=2000) while Table 3 reports F1=0.889 on the 500-sample temporal subset (seed=42). Verify the paper clearly explains why two F1 values are reported and that precision=1.000/recall=0.800 on temporal conflicts is consistent with a numeric-overlap detector's known failure modes.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the LongMemEval reporting: abstract claims 62.4% strict / 68.8% judge via 'full EAF pipeline (ECO+SSI+AFN)', while the standalone path yields 58.3% strict. Check Section repro actually defines ECO, SSI, AFN, states which components are MemTether contributions vs. prior work, and whether the headline number risks attributing ECO curation gains to MemTether itself.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the three overlapping production datasets are reconcilable: 2,590 typed records (Table type-correction), 2,309 survival cohort (349 events + 1,960 censored), and 2,635 supersession benchmark (386 positive + 2,249 negative). Verify the stated reasons for scope differences account for the arithmetic, and that 349 corrections is consistent across Table type-correction (139+118+49+46+34=386 corrected in typed set), Table clustering (349), and Finding 5 (52 cross-agent + 284 self + 13 unattributed = 349).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify the 31K+ operations claim: 28,807 use_count summed over 'first 26 days' plus 2,346 audit entries. Check whether summing 26 days of reads against a 30-day claim is stated clearly, whether use_count is the right proxy for 'read operations' (it counts per-fact retrievals, not audit-logged reads), and whether the paper explains why reads are not in the audit log.",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the tamper-detection evaluation matches the design: 2,346 entries anchored every 10 should yield ~235 anchors; verify 5/5 anchored-row scenarios detected plus 1 unanchored-tail scenario not detected is reported honestly (abstract says '5/5' without the tail caveat — verify the abstract is not overclaiming).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Verify the four theorems are honestly framed: Theorem 1's proof sketch admits it 'formalizes a design invariant rather than proving a non-trivial property', and Theorems 3-4 are conditional ('if correct() includes cycle detection', 'if correct() uses conditional update'). Check the paper does not elsewhere (abstract, contributions) elevate these to unconditional guarantees.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Check the SGM retrieval evaluation is not overstated: 84% recall on a synthetic Chinese benchmark of 500 facts written by the authors, with a Chinese-only regex extractor that yields zero pairs on English benchmark data. Verify the paper's claim that LongMemEval results benefit from SGM is reconciled with SGM being inactive on English benchmarks.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify Finding 4 arithmetic: 1,957 active memories × 426 chars = 833,682 (paper says 833,488); 3,980/833,488 = 0.4775% ≈ 0.48%; 833,488/3,980 = 209.4. Check 1,957 active is consistent with the survival cohort's 1,960 right-censored (nearly but not exactly equal — does the paper explain the difference?).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check Finding 1's '11×' framing: 91.5% vs 8.2% is 11.16×, but Procedure has only 129 total memories from a single-user 30-day deployment. Verify the paper discusses whether one dominant consolidation event (269 of 349 corrections on one day, 262 via nrem_consolidation) confounds the type-correction rates — i.e., whether the 91.5% procedure correction rate is largely produced by the bulk migration rather than organic dynamics.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify the self-correction baseline (n=300, 100%/99.3%) uses the same LLM (GLM-5.3-flash), same prompt protocol, and same grading as the cross-agent n=11 experiment; check whether self-correction contexts were sampled from the same 30-day window and whether 'correct context' being 100% for n=300 vs 82% for n=11 suggests a protocol difference rather than a genuine asymmetry.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check the threat model is consistently stated: Section threat model disclaims protection against full-write adversaries and admits fail-open source attribution; verify the abstract and Highlights do not imply stronger security (e.g., 'tamper-evident' without scope, 'EU AI Act Article 12' compliance claim without a legal-analysis caveat).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify paper hygiene flags: (a) author is 'Anonymous' with an AUTHOR-REQUIRED comment noting JSS is single-blind; (b) Finding 5's text is truncated mid-sentence ('but they measure different aspects: ab'); (c) Finding 2 contains a duplicated clause ('However, after applying the full classification pipeline...' appears twice); (d) the B1 Gate section (100% precision/recall on synthetic Chinese conflicts) is consistent with the entity-resolution finding that naive matching yields 81.7% false-clash — does the paper explain how B1 avoids the false-positive problem Finding 2 documents?",
+      "category": "reproducibility",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document ends abruptly mid-sentence ('...but they measure different aspects: ab') with no \\end{document}; text is truncated.",
+       "Author block still says 'Anonymous' with an AUTHOR-REQUIRED comment flagging replacement before submission.",
+       "Verbatim schema block uses escaped underscore 'old\\_uid' inside a verbatim environment — backslash will be printed literally."
+      ],
+      "number_inconsistencies": [
+       "Abstract says '57% gradeable' for the n=43 expanded cohort, but no body section presents this 57% figure.",
+       "Abstract/Highlights state 'four formal correctness theorems' — Section 4 indeed has 4 theorems, consistent, but Finding 5's Section~\\ref{sec:expanded-dyn} (86% figure, 37/43) points to a section that does not exist in the document.",
+       "Table tab:asymmetry loss for self-corrections listed as 0.7pp; 100% − 99.3% = 0.7pp, consistent (OK). 1,857×, 209×, 31K+ all recompute correctly (OK). ConflictBank F1: 0.897 (abstract, n=2000) vs 0.889 (Table, 500-sample) — explained in text, but worth flagging as a potential reader-facing inconsistency."
+      ],
+      "citation_issues": [
+       "No \\bibliography/\\bibliographystyle or thebibliography environment exists at all: every \\cite/\\citep (mem0, zep, letta, memstrata, euaiact, langmem, engram, gmotion, memos, memprobe, memorylace, xmemory, memanto, moss, memsim, tracekit, janus, mutmem, court, wu2024longmemeval, auditlme, memleak, sleeper, agentpoison) will render as [?]."
+      ],
+      "orphaned_figures": [
+       "Figure files fig1_type_correction.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig6_km_curves.pdf are included but not provided for verification. Note the numbering skips fig5 entirely — possible missing figure."
+      ],
+      "duplicates": [
+       "Section 3.6 (SGM): the noise-robustness discussion is stated twice — 'with 300+ distractor facts, the SQL path maintains 84\\% while embedding drops further' and then a full paragraph 'To test robustness against noise, we introduce 300+ distractor facts...' repeating the same 84% vs 64% / 1.3× result.",
+       "Finding 2: 'after applying the full classification pipeline' appears twice within one paragraph (once interrupted by an example sentence, then restarted with 'However, after applying the full classification pipeline') — clear copy-paste artifact leaving a broken sentence fragment."
+      ],
+      "formatting_issues": [
+       "Undefined \\ref targets: sec:crosssys (referenced in Section 2.4), sec:expanded-dyn (referenced in Finding 5) — no matching labels in the document.",
+       "Finding 5 self-references Section~\\ref{sec:asymmetry}, which is the label of Finding 5's own subsection, while the 73pp table lives in the earlier Cross-Agent Contradiction subsection — reference points to the wrong place.",
+       "Finding 5 text is truncated mid-sentence (overlaps with missing \\end{document})."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 27270,
+    "out": 6617,
+    "secs": 92.5
+   },
+   "raw_len": 27627,
+   "z": 0.0
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify the headline 73pp claim's statistical basis: it derives from n=11 cross-agent contradictions (9/11 vs 1/11 correct). Check whether the paper acknowledges the binomial CI on 9/11 and 1/11 is extremely wide (roughly 52-96% and 0.2-41%), and whether the abstract's unqualified '73-percentage-point' framing is defensible at that sample size.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check consistency between the abstract's '57% gradeable' qualifier for the expanded n=43 cohort and Section 5.1/Finding 5: does the paper explain which 57% were gradeable and whether the 86% divergence (37/43) was computed only on gradeable items, and whether selection bias from ungradeable cases is discussed.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Verify internal numeric consistency of the contradiction-detection funnel: 2,000 fact pairs with 81.7% polarity clash (Table 4), 24,907 cross-source pairs, 11 genuine contradictions, and 0.044%. Check 11/24907 = 0.0442% and that 81.7%/0.044% ≈ 1,857 as claimed. Note the paper's garbled sentence in Finding 2 that duplicates the classification-pipeline description mid-sentence.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Check the discrepancy between ConflictBank results: abstract claims F1=0.897 (full n=2000) while Table 3 reports F1=0.889 on the 500-sample temporal subset (seed=42). Verify the paper clearly explains why two F1 values are reported and that precision=1.000/recall=0.800 on temporal conflicts is consistent with a numeric-overlap detector's known failure modes.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Verify the LongMemEval reporting: abstract claims 62.4% strict / 68.8% judge via 'full EAF pipeline (ECO+SSI+AFN)', while the standalone path yields 58.3% strict. Check Section repro actually defines ECO, SSI, AFN, states which components are MemTether contributions vs. prior work, and whether the headline number risks attributing ECO curation gains to MemTether itself.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Check the three overlapping production datasets are reconcilable: 2,590 typed records (Table type-correction), 2,309 survival cohort (349 events + 1,960 censored), and 2,635 supersession benchmark (386 positive + 2,249 negative). Verify the stated reasons for scope differences account for the arithmetic, and that 349 corrections is consistent across Table type-correction (139+118+49+46+34=386 corrected in typed set), Table clustering (349), and Finding 5 (52 cross-agent + 284 self + 13 unattributed = 349).",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Verify the 31K+ operations claim: 28,807 use_count summed over 'first 26 days' plus 2,346 audit entries. Check whether summing 26 days of reads against a 30-day claim is stated clearly, whether use_count is the right proxy for 'read operations' (it counts per-fact retrievals, not audit-logged reads), and whether the paper explains why reads are not in the audit log.",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-08",
+   "item": "Check the tamper-detection evaluation matches the design: 2,346 entries anchored every 10 should yield ~235 anchors; verify 5/5 anchored-row scenarios detected plus 1 unanchored-tail scenario not detected is reported honestly (abstract says '5/5' without the tail caveat — verify the abstract is not overclaiming).",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Verify the four theorems are honestly framed: Theorem 1's proof sketch admits it 'formalizes a design invariant rather than proving a non-trivial property', and Theorems 3-4 are conditional ('if correct() includes cycle detection', 'if correct() uses conditional update'). Check the paper does not elsewhere (abstract, contributions) elevate these to unconditional guarantees.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-10",
+   "item": "Check the SGM retrieval evaluation is not overstated: 84% recall on a synthetic Chinese benchmark of 500 facts written by the authors, with a Chinese-only regex extractor that yields zero pairs on English benchmark data. Verify the paper's claim that LongMemEval results benefit from SGM is reconciled with SGM being inactive on English benchmarks.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Verify Finding 4 arithmetic: 1,957 active memories × 426 chars = 833,682 (paper says 833,488); 3,980/833,488 = 0.4775% ≈ 0.48%; 833,488/3,980 = 209.4. Check 1,957 active is consistent with the survival cohort's 1,960 right-censored (nearly but not exactly equal — does the paper explain the difference?).",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-12",
+   "item": "Check Finding 1's '11×' framing: 91.5% vs 8.2% is 11.16×, but Procedure has only 129 total memories from a single-user 30-day deployment. Verify the paper discusses whether one dominant consolidation event (269 of 349 corrections on one day, 262 via nrem_consolidation) confounds the type-correction rates — i.e., whether the 91.5% procedure correction rate is largely produced by the bulk migration rather than organic dynamics.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-13",
+   "item": "Verify the self-correction baseline (n=300, 100%/99.3%) uses the same LLM (GLM-5.3-flash), same prompt protocol, and same grading as the cross-agent n=11 experiment; check whether self-correction contexts were sampled from the same 30-day window and whether 'correct context' being 100% for n=300 vs 82% for n=11 suggests a protocol difference rather than a genuine asymmetry.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Check the threat model is consistently stated: Section threat model disclaims protection against full-write adversaries and admits fail-open source attribution; verify the abstract and Highlights do not imply stronger security (e.g., 'tamper-evident' without scope, 'EU AI Act Article 12' compliance claim without a legal-analysis caveat).",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-15",
+   "item": "Verify paper hygiene flags: (a) author is 'Anonymous' with an AUTHOR-REQUIRED comment noting JSS is single-blind; (b) Finding 5's text is truncated mid-sentence ('but they measure different aspects: ab'); (c) Finding 2 contains a duplicated clause ('However, after applying the full classification pipeline...' appears twice); (d) the B1 Gate section (100% precision/recall on synthetic Chinese conflicts) is consistent with the entity-resolution finding that naive matching yields 81.7% false-clash — does the paper explain how B1 avoids the false-positive problem Finding 2 documents?",
+   "category": "reproducibility",
+   "load_bearing": false
+  }
+ ],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [
+    "Document ends abruptly mid-sentence ('...but they measure different aspects: ab') with no \\end{document}; text is truncated.",
+    "Author block still says 'Anonymous' with an AUTHOR-REQUIRED comment flagging replacement before submission.",
+    "Verbatim schema block uses escaped underscore 'old\\_uid' inside a verbatim environment — backslash will be printed literally."
+   ],
+   "number_inconsistencies": [
+    "Abstract says '57% gradeable' for the n=43 expanded cohort, but no body section presents this 57% figure.",
+    "Abstract/Highlights state 'four formal correctness theorems' — Section 4 indeed has 4 theorems, consistent, but Finding 5's Section~\\ref{sec:expanded-dyn} (86% figure, 37/43) points to a section that does not exist in the document.",
+    "Table tab:asymmetry loss for self-corrections listed as 0.7pp; 100% − 99.3% = 0.7pp, consistent (OK). 1,857×, 209×, 31K+ all recompute correctly (OK). ConflictBank F1: 0.897 (abstract, n=2000) vs 0.889 (Table, 500-sample) — explained in text, but worth flagging as a potential reader-facing inconsistency."
+   ],
+   "citation_issues": [
+    "No \\bibliography/\\bibliographystyle or thebibliography environment exists at all: every \\cite/\\citep (mem0, zep, letta, memstrata, euaiact, langmem, engram, gmotion, memos, memprobe, memorylace, xmemory, memanto, moss, memsim, tracekit, janus, mutmem, court, wu2024longmemeval, auditlme, memleak, sleeper, agentpoison) will render as [?]."
+   ],
+   "orphaned_figures": [
+    "Figure files fig1_type_correction.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig6_km_curves.pdf are included but not provided for verification. Note the numbering skips fig5 entirely — possible missing figure."
+   ],
+   "duplicates": [
+    "Section 3.6 (SGM): the noise-robustness discussion is stated twice — 'with 300+ distractor facts, the SQL path maintains 84\\% while embedding drops further' and then a full paragraph 'To test robustness against noise, we introduce 300+ distractor facts...' repeating the same 84% vs 64% / 1.3× result.",
+    "Finding 2: 'after applying the full classification pipeline' appears twice within one paragraph (once interrupted by an example sentence, then restarted with 'However, after applying the full classification pipeline') — clear copy-paste artifact leaving a broken sentence fragment."
+   ],
+   "formatting_issues": [
+    "Undefined \\ref targets: sec:crosssys (referenced in Section 2.4), sec:expanded-dyn (referenced in Finding 5) — no matching labels in the document.",
+    "Finding 5 self-references Section~\\ref{sec:asymmetry}, which is the label of Finding 5's own subsection, while the 73pp table lives in the earlier Cross-Agent Contradiction subsection — reference points to the wrong place.",
+    "Finding 5 text is truncated mid-sentence (overlaps with missing \\end{document})."
+   ],
+   "pass": false
+  }
+ },
+ "cross_challenges": [
+  {
+   "challenger": "E2",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-07",
+      "challenge": "I challenge the framing that MemTether's competitive position is unproven. E4 is right that the paper lacks a head-to-head contradiction experiment, but the characterization of MemTether as 'behind on retrieval, ahead on audit/locality' overstates the gap on the retrieval side. The 62.4% vs mem0's 60.2% delta on LongMemEval is the headline number, not 58.3%. E4 treats the ECO curation as a 'benchmark-specific layer' that disqualifies the comparison, but the paper explicitly notes that ECO is a curation step applied to MemTether, while the mem0 number (60.2%) was reproduced under 'identical hardware and judge configuration' (Section 2.4). The honest framing is that the system-level comparison is +2.2pp in MemTether's favor when both are run with comparable preprocessing, with the standalone path 1.9pp behind. This is a meaningful but not dominant advantage. I do agree that running Zep's temporal KG invalidation on the packy-style scenario is the missing experiment — but MemTether's claim has never been 'Zep cannot supersede'; it is that Zep does not combine supersession with hash-chained audit + file-level multi-client locality + open-source production data. The audit and locality dimensions are not addressed by Zep at all (Section 2.2).",
+      "evidence": "Section 2.4 explicitly states 'reports three systems under identical hardware and judge configuration' for the cross-system comparison; the 62.4% pipeline number is the system-level claim while 58.3% is a transparency disclosure about the standalone path. None of mem0/Zep/Letta provide 'hash-chained audit trails or file-level multi-client deployment' (Section 2.1) — these are orthogonal capabilities, not dimensions on which the systems are competing head-to-head. The fair characterization is 'complementary on audit/locality, competitive but not dominant on retrieval, unproven on contradiction interception.'"
+     },
+     {
+      "challenged_finding_id": "E4-11",
+      "challenge": "I disagree that the paper's positioning is 'marketing-adjacent.' E4 lists five disclosures as 'buried 5-10 pages deep,' but the abstract itself carries three explicit qualifiers on the headline numbers: the 73pp carries '(n=11 discovery; n=43 expanded, 57% gradeable)'; the LongMemEval result carries a front-matter note that the 62.4% is the 'full EAF pipeline' while 'a standalone reproduction path without ECO curation yields 58.3% strict'; and the threat model section (Section 3) is the first technical section after system design, not buried. The SGM 'Chinese-only' limitation is disclosed in the section where SGM is defined, with the English limitation noted in the very paragraph describing the predicate extractor ('the regex-based Chinese predicate extractor produces zero (entity, attribute) pairs'). B1's zero production firings are surfaced in the B1 section itself ('our production database contains zero uncorrected contradictions after 30 days of active supersession'). The 'What MemTether is not' paragraph would improve clarity, but characterizing the current presentation as 'selective emphasis' understates how much qualification already appears in the abstract and front matter.",
+      "evidence": "Abstract front-matter note: 'A standalone reproduction path without ECO curation yields 58.3% strict; both are valid measurements of different pipeline configurations.' Abstract qualifying phrase: 'n=11 discovery; n=43 expanded, 57% gradeable' on the 73pp claim. Section 3.4 (SGM) explicitly states 'on English-language benchmark data, the regex-based Chinese predicate extractor produces zero (entity, attribute) pairs, so the SQL path does not activate.' Section 3.6 (B1 Gate) discloses 'The parser is Chinese-only.' Section 3 (Threat Model) is the second subsection of System Design, positioned before formal properties, not buried."
+     }
+    ],
+    "agreement_note": "I agree with E4-08, E4-09, and E4-10. On E4-08: the paper uses three acronyms (ECO, SSI, AFN) in a footnote-level note without defining them or attributing provenance, and the reproducibility script uses the losing configuration while the abstract markets the winning one — that is a real transparency gap and MemTether should either (a) define the three components with citations or (b) state which are MemTether contributions and reframe the comparison as 'MemTether+curation vs mem0.' On E4-09: the 73pp point estimate at n=11 is methodologically indefensible as an abstract-level headline, and the n=43 expanded result (86% divergence with a reasonable CI) is the actionable number — the paper should lead with that. On E4-10: the 100%/99.3% vs 82%/9% asymmetry is plausibly real (the cross-agent mechanism is credible and the n=43 corroborates direction), but the magnitude contrast cannot be trusted without matched sampling frames, and the paper should report question difficulty, context lengths, and grading rubrics for both arms. The convergence of these three findings is that MemTether's empirical contributions need scoped qualification — neither the contradiction headline nor the LongMemEval headline nor the asymmetry table carries the qualifiers a reader needs to interpret them."
+   }
+  },
+  {
+   "challenger": "E4",
+   "challenged": "E2",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E2-14",
+      "challenge": "I partially disagree with the framing of this finding. E2 characterizes the reproducibility section as 'steering the reviewer toward the configuration that makes MemTether lose to mem0,' which I think overstates the problem. The paper is unusually transparent about the two-pipeline discrepancy: a prominent italic note directly under the abstract explicitly states that the 62.4%/68.8% headline numbers come from the full EAF pipeline, that the standalone path without ECO curation yields 58.3%, that 'both are valid measurements of different pipeline configurations,' and points the reader to the reproducibility section for details. This is a disclosure pattern many papers omit entirely (cf. the related-work section's own criticism that competing systems' numbers are 'self-reported under different or non-public protocols'). Offering the standalone path as the default reproducibility command is defensible on methodological grounds: it is the configuration with fewer moving dependencies (no ECO curation step), which is exactly what an independent verifier wants first — a floor they can reproduce without the full dependency chain. That said, E2's underlying request is sound and I would keep the 'major' severity in reduced form: the paper should (a) name the EAF-pipeline script and give its command as a second line, and (b) add a one-line glossary defining ECO/SSI/AFN, since these acronyms appear only in the note and are never expanded in the body of the paper. But 'the reviewer is steered toward the configuration that makes MemTether lose' mischaracterizes an honest disclosure as a defect; the alternative framing (headline script primary, disclosed-lower fallback) risks reviewers running only the headline configuration and never discovering the 58.3% standalone number at all.",
+      "evidence": "The note under the abstract: 'LongMemEval scores (62.4% strict, 68.8% judge) come from the full EAF pipeline (ECO+SSI+AFN, 500Q rerun with LLM-as-judge). A standalone reproduction path without ECO curation yields 58.3% strict; both are valid measurements of different pipeline configurations (see Section~\\ref{sec:repro} for details).' The repro section text E2 quotes itself notes the standalone path exists 'for independent verification without the full pipeline dependency chain.' This is transparency, not concealment."
+     },
+     {
+      "challenged_finding_id": "E2-12",
+      "challenge": "I agree with the substance (critical) but flag one factual error in the finding: E2 states 'the version-pinned count is 534 passed, 4 skipped (538 total)' as evidence the PyPI package has moved past the pinned commit. However, the paper's abstract says '534 passing tests' with no mention of skips, and the repro line E2 quotes gives '534 passed, 4 skipped.' More importantly, E2's inference that the alpha tag 'v0.1.0a80.post2' suggests 'post-publish iteration that may have moved' is speculative — an alpha-channel version tag in an unreleased research artifact is the norm, not a signal of squatting. The actionable core of E2-12 (no first-run smoke test, no version-pinned PyPI install line, unverified package existence) stands and is the most important reproducibility gap in the paper; I simply note the evidence chain E2 builds for 'may not exist' is conjecture until a reviewer actually runs pip install memtether. The suggestion to add memtether --version / doctor / roundtrip commands should be adopted verbatim.",
+      "evidence": "Abstract: 'Apache-2.0 open source with 534 passing tests.' Repro: 'pytest tests/ -v --tb=short # Expected: 534 passed, 4 skipped.' No PyPI version pin or first-run command appears anywhere in the provided text; the install line is 'pip install -e \".[server]\"' with the [server] extra's contents never enumerated — confirming E2's point (2)."
+     }
+    ],
+    "agreement_note": "I agree with E2-13, E2-15, and E2-16 in full, and with the actionable core of E2-12. E2-13 (undocumented pytest prerequisites: env vars like OPENAI_API_KEY/GLM_API_KEY implied by the GLM-5.3-flash evaluation, schema bootstrap, missing network markers) is correct — the repro section gives a one-line pytest command with no bootstrap, and the paper's own evaluation methodology (LLM-as-judge via GLM) implies tests or at least benchmark runs need credentials and network, none of which is documented. E2-15 is correct: the paper presents verify_chain() as a function name and remember() as an API ('parses each incoming remember() call'), yet only exposes court functionality via CLI, and the 0.037ms B1-gate figure lacks any stated command, machine spec, or explanation of whether n=1,000 amortizes import/embedding overhead — the paper says only 'On a real SQLite database with file I/O, the gate adds p50 = 0.037 ms per call (n=1,000)' with no reproducibility recipe. E2-16 is correct: scripts/generate_b1_benchmark.py and scripts/replay_b1_verdicts.py are named with no invocation, no expected output, and no confirmation they exist; the 50/80/20 counts cannot be verified against script output without reading source. What I would add across all findings: the paper's own credibility strategy — criticizing closed-source competitors ('self-reported under different or non-public protocols and have not been independently reproduced') — raises the bar for its own artifact. A paper that positions itself as the open, reproducible alternative must make the first reviewer-hour frictionless, which currently it does not: no .env.example, no doctor command, no PyPI pin, no glossary for ECO/SSI/AFN. All of E2's concrete suggestions (first-run recipe, @pytest.mark.network, primary/secondary benchmark script framing, Python API one-liners, explicit benchmark commands with expected outputs) should be required revisions."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

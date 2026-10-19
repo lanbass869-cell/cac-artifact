@@ -1,0 +1,834 @@
+{
+ "round_score": 4.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 2,
+ "full_tier": {
+  "n": 2,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 0,
+  "mean": null
+ },
+ "round": "V4-WG",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\write-governance-paper.tex",
+ "timestamp": "2026-10-19T12:45:39.867953",
+ "usage_total": {
+  "in": 57861,
+  "out": 11965,
+  "secs": 144.3
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "role": "architecture-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper_goal": "A measurement study of a 31-day, single-operator, local-first agent memory deployment (MemTether, SQLite-backed, 15 AI clients) arguing three empirical problems — 9.5% never-retrieved 'dead' memories, 0.48% injection coverage (3,980-char injection budget vs 825K chars stored), and power-law retrieval concentration — and concluding the field should shift from retrieval accuracy to write governance via admission-control gates (novelty, type-prior, length), evaluated retrospectively.",
+     "core_mechanism": "Shared single-file SQLite store (facts, fact_entities, audit_log, hash-chain anchors) with use_count-based retrieval tracking, Q-value reward on corrections/retrievals, and simulated write-time gates over the audit log.",
+     "architecture_summary": "Single-writer SQLite file serving 15 concurrent clients; durability, journal mode, transaction boundaries, and dropped-event rates are unspecified. All load-bearing measurements derive from this one file, which is not released."
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 4.0,
+     "alignment": 3.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E1-01",
+      "severity": "major",
+      "status": "active",
+      "issue": "Concurrency model for 15 clients on one SQLite file unspecified (journal mode, busy_timeout, SQLITE_BUSY rate). Dropped retrieval write-backs would bias the dead-rate and Q-value findings upward; hash-chain anchors detect tampering, not dropped writes. Recommend: report journal mode, lock-error counts, and a retrieval-API-call vs write-back reconciliation bound."
+     },
+     {
+      "id": "E1-02",
+      "severity": "major",
+      "status": "active",
+      "issue": "The 'architectural, not algorithmic' bottleneck claim rests on the chosen 3,980-char constant. The paper now adds a doubling sentence (0.97% at 7,960 chars), which partially mitigates but still treats a configurable parameter as an architectural wall; no sensitivity at 32K/128K and no derivation of 3,980. Recommend: rename to 'configurational under current deployment' or show cost model."
+     },
+     {
+      "id": "E1-03",
+      "severity": "minor",
+      "status": "active",
+      "issue": "0.16-per-day rate is off 30x (316/1981/30 ≈ 0.0053/day). Confirmed by recomputation (CK-13)."
+     },
+     {
+      "id": "E1-04",
+      "severity": "minor",
+      "status": "active",
+      "issue": "30 vs 31 days and 12–15% write reduction vs 425/2378 = 17.9% remain unreconciled; additionally the temporal section dates the window 09-13 while Section 2 says 09-14 (CK-11)."
+     },
+     {
+      "id": "E1-05",
+      "severity": "minor",
+      "status": "active",
+      "issue": "Single-file durability story absent: no synchronous pragma, transaction scope for multi-table remember()/correct() writes, integrity_check result, or crash/power-loss discussion, and the DB is withheld so reproduction commands are decorative. A torn or lost use_count increment directly contaminates the dead-rate measurement."
+     },
+     {
+      "id": "E1-06",
+      "severity": "minor",
+      "status": "partially_fixed",
+      "issue": "Duplicated Reproducibility lead-in remains in this draft; Related Work duplication appears resolved. The 'first to quantify' claim still lacks any search-method description."
+     },
+     {
+      "id": "E1-07 (new)",
+      "severity": "major",
+      "issue": "Dead-memory definition conflates retrieval with write-back (CK-15): use_count=0 is measured against only 316 recorded write-backs, while Table 4's retrieval-share percentages imply thousands of retrieval events (15% of retrievals concentrated in 10 memories cannot coexist with 316 total retrievals and 1,981 memories unless retrievals ≫ write-backs). Either retrieval logging is lossy (compounding E1-01), or 'dead' means 'never written back', which is a different quantity than 'never retrieved'. The storage schema never documents when use_count is incremented."
+     },
+     {
+      "id": "E1-08 (new)",
+      "severity": "major",
+      "issue": "Memory-accounting identity does not close (CK-02): 2,378 writes − 200 retirements = 2,178 ≠ 1,981 active; the ~197 gap is never explained (corrections superseding writes? legacy imports? failed writes?). For a measurement paper whose every rate divides by these counts, the stock-flow reconciliation is load-bearing."
+     },
+     {
+      "id": "E1-09 (new)",
+      "severity": "minor",
+      "issue": "Length statistics internally inconsistent (CK-12): 189×535 + 1,792×415 ≈ 844,915 → overall mean ≈ 427, not the stated 416; and Table 1's per-type 'Avg content len' column weights to ~525 while its own Overall row says 535. At least one of {535, 415, 416, per-type means} is wrong."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "'Retrieval is not the binding constraint' (CK-07): precision@10 on 10 entity-name queries measures ranking quality, not injection behavior; the two are orthogonal, so the architectural claim is supported only by the coverage arithmetic, not by this experiment.",
+      "'Three orders of magnitude below 100%' is wrong by definition (100/0.48 ≈ 208 ≈ 2.3 orders; E3-13 confirmed).",
+      "Abstract '95% of memories remain unretrievable' vs body '99.5% of stored memory is unreadable' — different quantities conflated (E3-06, CK-04).",
+      "Abstract attributes 14.6% to 'dead experience-type memories prevented' — 14.6% is the experience dead rate; prevented share of all dead is 29% (E3-07).",
+      "Intent-gate '+200 net' simulation (CK-09): 80% of 323 retained = 258, so lost = 65 and net = 55 − 65 = −10, not +200; the printed arithmetic (55 + 240 vs 323) does not reconstruct any coherent policy. This speculative number must not appear without validated arithmetic."
+     ],
+     "statistical_issues": [
+      "No CIs anywhere; all rates are single-deployment point estimates (n=1 operator).",
+      "Power-law table (CK-05) cannot be reconciled with 316 write-backs; either the retrieval denominator is much larger (unlogged?) or percentages are computed on a different base — unstated.",
+      "Mann-Whitney p<0.01 with d=0.21 reported for length, but the underlying means are mutually inconsistent (CK-12), so the test inputs are suspect.",
+      "Temporal claims (19.2% first week, 2.4% last week, 6.8% excluding first week, 9.3% ≥7-day) have no denominator disclosure and a one-day window discrepancy (CK-11).",
+      "Table 4 rounding: 100/1,981 = 5.05% printed as 5.1%; minor."
+     ],
+     "logical_leaps": [
+      "From one operator's waste distribution (53% of dead from one client) to a field-wide call to shift research focus.",
+      "From 'Q-value learning is inactive because retrievals are rare' to 'admission control is better than post-hoc learning' — an eviction/LFU policy using the paper's own power-law data is never compared, though the buffer-pool section itself points at replacement policies.",
+      "B1 gate: 100%/100% on a synthetic Chinese-only benchmark with zero real conflicts in 31 days supports no load-bearing claim; it is decorative and should be labeled as such (CK-14)."
+     ],
+     "alternative_explanations": [
+      "High early-window dead rate (19.2%) may be one-time setup logs or client misconfiguration, not a learning trend — the paper offers both but cannot distinguish.",
+      "The 0.48% coverage is a consequence of the chosen 3,980-char budget; with competitor-scale budgets (32K–128K) coverage rises 8–32x and the 'architectural' framing collapses into a cost-tuning statement.",
+      "Dead rate may be inflated by unrecorded retrievals (write-back instrumentation gap, E1-07) rather than true non-use."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "mild",
+     "notes": "Positives: the paper reports its own gates as net-negative (−268, −261) and hedges the unsimulated intent gate — anti-gaming evidence. Negatives: headline framings are maximally dramatic ('three orders of magnitude', 208x overscan calibrated to the smallest plausible injection budget, '99.5% unreadable'); the B1 section presents perfect scores on a self-built synthetic benchmark; the +200 speculative number is arithmetically broken in the direction that favors the proposed fix. The honesty about negative gate results keeps this at 'mild' rather than 'significant'."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "Sums 1,981 and 189 exact; all rates match (55/378=14.55%, 102/1005=10.15%, 189/1981=9.54%)."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "2,378−200=2,178≠1,981; ~197 gap unexplained. Corrections superseding writes could close it but is never stated. Load-bearing reconciliation missing (E1-08)."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "825,032/1,981=416.47, so 416 is rounded (fine); 3,980/825,032=0.4824% ✓. But reproducibility comment 'divide by 3980 = 0.48%' inverts the formula (E3-04)."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "9.5%, 0.48%, top-5%≈40%, 28→73, −268 all match body; but abstract '95% of memories unretrievable' contradicts body's 99.5% content claim (E3-06), and 'prevented 14.6% of dead experience memories' misstates the statistic (E3-07)."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "Rounding acceptable (5.05→5.1), but retrieval-share percentages are irreconcilable with 316 write-backs/0.16-per-memory figures; the total retrieval denominator is never given (E1-07)."
+     },
+     {
+      "id": "CK-06",
+      "pass": true,
+      "note": "Sums verify: baseline 28, entity-aware 73. Method concern stands: queries are entity/system names and the entity index plausibly encodes the same entities — leakage not ruled out; no label-release plan."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "The 10-query precision benchmark is orthogonal to injection behavior; it does not evidence the 'retrieval is not the binding constraint' claim beyond what coverage arithmetic alone shows."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "55−323=−268 ✓; 378 and 55 match Table 1; prevented 4+55+21=80 and lost 0+323+18=341 match Combined row; union blocked 425 < sum 747 implies overlap, plausible but unexplained."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "'+200' does not follow from stated assumptions (80% pass → net ≈ −10); the inline '55 + 240 vs 323' is incoherent. Unvalidated and arithmetically broken; must be removed or fixed and hedged everywhere."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Active sums 1,981, dead sums 189, write shares sum to 100% and match text rounding."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Window start discrepancy (09-13 in Section 7 vs 09-14 in Section 2); 6.8% excluding-first-week vs 9.3% ≥7-day correction not reconciled; no denominators given."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Mixture mean implied by 535/415 ≈ 427, not 416; Table 1 per-type lengths weight to ~525, contradicting its own Overall 535. At least one printed mean is wrong."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "316/1,981/30 ≈ 0.0053 per memory-day; printed 0.16 is per-memory-per-window. 30x error confirmed (E1-03/E3-05)."
+     },
+     {
+      "id": "CK-14",
+      "pass": true,
+      "note": "Assessment: B1 is decorative for this paper's claims — synthetic benchmark, Chinese-only, zero real conflicts in the production data. It supports no load-bearing claim and should be moved to an appendix as a feasibility note."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "SQL snippets are non-executable for readers (DB withheld, schema undefined), the injection-coverage comment inverts the formula, and use_count=0 conflates 'never retrieved' with 'never written back' given the 316-vs-thousands discrepancy."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior": [
+      "mem0 (arXiv:2504.19413)",
+      "Zep (arXiv:2501.13956)",
+      "Letta/MemGPT (arXiv:2310.08560)",
+      "TinyLFU/ARC cache admission",
+      "MemoryAgentBench"
+     ],
+     "assessment": "The specific measurement (fraction of written agent memories never retrieved, injection coverage ratio) appears genuinely unmeasured in named comparators, and the TinyLFU/ARC admission-policy framing is a sensible transfer. However, the 'first to quantify' claim is asserted without any search-method description, and the claim that competitors lack write governance is unmeasured (E4-01). Novelty is real but narrow: a single-deployment measurement plus a negative gate result.",
+     "verdict": "moderate novelty, priority claim under-supported"
+    },
+    "meta_note": "Architecture verdict: the paper's evidentiary substrate (one SQLite file, unspecified concurrency/durability semantics, unlogged retrieval denominator, unclosed stock-flow identity, unreleased database) is weaker than its conclusions require. Strongest rebuttal overall — 'low write volume makes contention negligible and ACID defaults suffice' — fails because (a) burst concurrency is unbounded by average rate, (b) the retrieval-write-back count (316) is irreconcilable with the power-law table, which is direct evidence of an instrumentation or definitional gap, and (c) the paper's own SECURITY.md shows the project understands integrity limits (same-DB anchors) yet the paper transfers none of that honesty to durability. Score anchored at 4: below workshop-ready as written; fixable to 6–7 by (1) closing the write/active accounting identity, (2) specifying and bounding the retrieval logging pipeline, (3) correcting the 30x rate error, the length means, and the +200 arithmetic, (4) reframing the bottleneck as configurational with a sensitivity table, and (5) releasing a fixture DB or computation script. Prior E1 findings 01–05 remain active; E1-06 partially fixed. Depth 3 (engages the core measurement but many issues are arithmetic/consistency rather than conceptual), helpfulness 4 (all flagged items have concrete fixes).",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify arithmetic consistency of Table 1 (tab:dead): do the per-type Active counts (378+1005+11+188+388+11) sum to 1,981 and Dead counts (55+102+1+11+20+0) sum to 189, and do the stated dead rates (e.g., 55/378=14.6%, 102/1005=10.1%, 189/1981=9.5%) match the printed percentages?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check that the memory accounting in Section 2 is internally consistent: 2,378 writes + 316 retrieval write-backs + 349 corrections + 200 retirements should reconcile with 1,981 active memories at analysis time (2,378 writes − 200 retirements ≈ 2,178 ≠ 1,981, a gap of ~197 that must be explainable, e.g., by corrections superseding writes or double counting).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify the injection coverage ratio: 825,032 characters total and mean of 416 chars/memory must be mutually consistent (1,981 × 416 = 824,096, not 825,032 — check rounding or an off-by-one), and 3,980 / 825,032 = 0.48%.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Confirm the headline numbers in the abstract match the body: 9.5% never-retrieved, 0.48% coverage, top-5% = 40% of retrievals, precision@10 28%→73%, net −268, and that Table 4 (tab:powerlaw) row '100 memories, 5.1%' is consistent with the abstract's 'top 5%' claim.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the power-law table arithmetic: 10/1,981 ≈ 0.505% (stated 0.5%), 100/1,981 ≈ 5.05% (stated 5.1% — check rounding), and that the retrieval counts implied by the % column are non-decreasing and plausible given 316 retrieval write-backs over 30 days (note: Table 4 percentages imply many more than 316 retrievals — reconcile with Section 9's '0.16 retrievals per memory per day').",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the entity-aware retrieval evaluation (Table 3): per-query scores must sum to stated totals (baseline 1+2+2+1+9+5+2+3+2+1=28/100; entity-aware 10+10+10+10+10+9+8+4+2+0=73/100), and confirm the 100-pair labeled ground truth methodology is described enough to rule out label leakage (queries are system/entity names like 'packy', 'memory_hub').",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify the central 'retrieval is not the binding constraint' claim's logic: the paper claims 28%→73% precision doesn't change the 0.48% injection coverage — check whether precision@10 on 10 queries with a ~4K-char injection limit actually supports this architectural claim, or whether the benchmark queries are orthogonal to injection behavior.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the type-prior gate net-effect arithmetic (Table 5): 55 dead prevented − 323 retrieved lost = −268; verify 55 matches the experience dead count in Table 1 and 378 matches the experience active count; verify the Combined row (425 blocked, 80 prevented, 341 lost, −261) is consistent with a union of the three individual gates.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Assess the speculative intent-gate estimate in Section 6.1: the '+200 net effect' simulation assumes 80% of retrieved experience memories pass an intent check, but the inline arithmetic (55 + 240 vs 323) is presented inconsistently — check whether the numbers add up and whether this unvalidated estimate is appropriately hedged everywhere it is cited (abstract says 'retrospective simulation reveals a net −268' for the naive gate only).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Verify source-waste consistency (Table 6): Active counts (1053+559+257+44+68=1,981) and Dead counts (43+100+38+6+2=189) sum correctly; check 'Write share' column sums to ~100% and matches the text (codex 54% vs 53.2%, workbuddy 28% vs 28.2%, workbuddy_ai 13% vs 13.0%).",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-11",
+      "item": "Check the temporal decay claim: first-week dead rate 19.2% vs last-week 2.4%, and 'excluding the first week, the dead rate is 6.8%' — verify this is consistent with the ≥7-day corrected overall rate of 9.3% (Section 3.2) and the stated date ranges (09-13 start vs Section 2's 09-14 deployment start — off-by-one-day discrepancy).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Verify the length-predictor statistics: dead 535 vs retrieved 415 chars (Mann-Whitney p<0.01, d=0.21), and that the paper's own text (Section 3.1 '416 mean in Table 4 is the average across all 1,981') is internally consistent with 535 being dead-only and 415 retrieved-only — the overall mean implied by mixing them must land near 416.",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Check the Q-value finding: 74% default retention, 316 retrieval write-backs vs '0.16 per active memory per day' (316/1,981/30 ≈ 0.0053, not 0.16 — verify whether the denominator should be retrieved-relevant memories or whether the figure is wrong).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Assess the B1 gate section (Section 10): it claims 100% precision/recall on a synthetic benchmark and p50=0.037ms — check whether a Chinese-only parser on synthetic data with zero real-world conflicts (stated: 'production database contains zero uncorrected contradictions') supports any load-bearing claim, or whether this section is decorative and should be marked as such.",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify reproducibility claims: the SQL snippets in Section 12 must produce the stated expected values (189 dead via use_count=0; 825,032 total chars), and check whether 'use_count' as the dead-memory definition conflates injection-eligible retrievals with retrieval write-backs (only 316 write-backs in 30 days vs Table 4 implying thousands of retrievals — is 'never retrieved' actually measured as 'never written back'?).",
+      "category": "reproducibility",
+      "load_bearing": true
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Table tab:dead: column spec is `lccccc` (6 columns) but only 5 columns are used (Type, Active, Dead, Dead rate, Avg content len). Overly-specified tabular; cosmetic but a mismatch."
+      ],
+      "number_inconsistencies": [
+       "Section 'The 27% Retrieval Gap': residual misses are categorized as 3 (extraction) + 4 (multi-entity) + 3 (stale versions) = 10 queries, but the section title and precision numbers imply 27 misses (100 - 73). The categories sum to 10, not 27 (possibly intentional if multiple misses per query, but unexplained)."
+      ],
+      "citation_issues": [
+       "Bibitems `wu2024longmemeval` and `locomo2024` are defined but never \\cite'd anywhere in the text (LongMemEval and LoCoMo are mentioned in the Introduction without citations)."
+      ],
+      "orphaned_figures": [],
+      "duplicates": [
+       "Reproducibility section: the sentence 'All measurements are reproducible from the production SQLite database:' appears twice in a row (once before the verbatim intro, once immediately repeated)."
+      ],
+      "formatting_issues": [
+       "No \\includegraphics/figures exist in the paper at all; all visuals are tables — not an error, but nothing to orphan-check."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 19889,
+    "out": 4312,
+    "secs": 78.1
+   },
+   "raw_len": 13495,
+   "z": 0.0
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "ok": false,
+   "error": "unbalanced JSON"
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper_type": "Measurement + position paper on write governance for agent memory, grounded in a single-operator 30/31-day production deployment of the authors' own system (MemTether)",
+     "core_claims": [
+      "9.5% of active memories are never retrieved (write waste); experience-type worst at 14.6%",
+      "Injection coverage is 0.48% (3,980 chars injected vs 825K stored) — retrieval quality is not the binding constraint",
+      "Retrieval usage follows a power law (top 5% ≈ 40% of retrievals)",
+      "Precision@10 28%→73% via entity-aware ranking does not change coverage",
+      "Retrospective admission gates: type-prior net −268; novelty +4; length +3; combined −261; intent-gate (~+200) unsimulated",
+      "Mem0/Zep/Letta 'remember everything' without admission control; field should adopt write efficiency as a metric"
+     ],
+     "target_user_as_stated": "undefined; implied single local-first operator running 15 heterogeneous AI clients",
+     "contribution_reconstructed": "A diagnostic framing (write efficiency) plus a negative result on naive admission gates, with an untested intent-gate proposal"
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 4.0,
+     "alignment": 2.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E4-01",
+      "severity": "major",
+      "status": "active",
+      "issue": "Central competitive claim about mem0/Zep/Letta is asserted, never measured",
+      "note": "The Discussion states all three competitors 'encourage remember everything without admission control' with zero instrumented evidence. Zep's temporal KG performs supersession/invalidation; Letta/MemGPT's core mechanism is context-vs-archival placement — both are write/lifecycle governance in a broad sense. The technically defensible version (no *pre-storage admission rejection*) is never stated precisely, and no competitor is run on any workload. From a product-review perspective: the paper cannot currently claim it solves the problem 'better than' anyone — only that the problem is unmeasured in this one system."
+     },
+     {
+      "id": "E4-02",
+      "severity": "major",
+      "status": "active",
+      "issue": "User identity undefined; all headline numbers are one operator's writing habits",
+      "note": "The dead-rate variance across clients (Codex 4.1% vs WorkBuddy 17.9%) is itself evidence the problem magnitude is client-config-dependent. WorkBuddy + workbuddy_ai account for 138/189 (73%) of dead memories from 41% of writes. The honest per-client framing is: 'two of my five clients have over-chatty write prompts.' That is a prompt-engineering finding for one user, not (yet) a system-design finding for a user population. Paper concedes this in Limitations but positions generically in the abstract."
+     },
+     {
+      "id": "E4-03",
+      "severity": "major",
+      "status": "active",
+      "issue": "Injection bottleneck is a self-chosen 3,980-char config, not an architectural wall",
+      "note": "3,980 chars ≈ 1K tokens — far below any modern context. A Zep/Letta deployment at 128K tokens would have ~30× the coverage; the 0.48% and '208× overscan' headline is calibrated to the smallest plausible budget. The paper's own Discussion ('As context windows grow, the bottleneck will ease') contradicts the Finding's 'architectural, not algorithmic' framing. No sensitivity table across budgets is provided. Cross-system relevance of the bottleneck claim therefore fails."
+     },
+     {
+      "id": "E4-04",
+      "severity": "major",
+      "status": "active",
+      "issue": "No demonstrated switching reason: every evaluated gate is net-negative or noise",
+      "note": "Type-prior −268, combined −261, length +3, novelty +4 (on 2,378 writes — noise). The only mechanism claimed to work (+200 intent-gate) is explicitly unsimulated and rests on an assumed 80% pass rate. So the paper's honest deliverable is: 'measuring write waste matters, and my proposed gates make things worse.' That is scientifically valuable as a negative result but provides zero product differentiation. A mem0 user learns they should measure write efficiency; they get no evidence MemTether improves their outcomes. Either simulate the intent gate (proxy label: retrieved-within-7-days) or reposition as a pure measurement/diagnostic contribution."
+     },
+     {
+      "id": "E4-05",
+      "severity": "minor",
+      "status": "active",
+      "issue": "Buffer-pool analogy undercuts the admission-control pitch",
+      "note": "The paper's own Table 7 shows DBMS solved this with replacement/eviction policy (LRU/LFU/ARC), not admission rejection — and Zep's invalidation and Letta's paging are exactly eviction-time analogues. The paper's own power-law data (top 5% = 40% of retrievals) strongly favors hot/cold eviction as the first intervention, which is what competitors already approximate. The paper never compares a Q-value/LFU-style eviction baseline against admission gates in the retrospective simulation."
+     },
+     {
+      "id": "E4-06",
+      "severity": "minor",
+      "status": "active",
+      "issue": "B1 gate adds no competitive value and is positioned behind competitors",
+      "note": "Chinese-only parser, synthetic benchmark, 100/100 on data with zero real-world conflicts (production DB: 'zero uncorrected contradictions after 30 days'). A mechanism that never fires in the only real dataset presented cannot motivate switching, and Zep's temporal KG handles supersession multilingually as a core feature. Move to appendix as a feasibility note or evaluate on ConflictBank (name-dropped in the intro but never used)."
+     },
+     {
+      "id": "E4-07",
+      "severity": "major",
+      "status": "new",
+      "issue": "Who would switch, concretely? The paper never answers",
+      "note": "Reconstructing the buyer: (a) solo local-first operator with many agents — underserved by mem0/Zep's cloud orientation, plausible niche, but n=1 validation; (b) team/enterprise — needs multi-tenancy, durability, concurrency story (none given: single SQLite file, SECURITY.md reveals fail-open source registry and CORS `allow_origins=[\"*\"]`); (c) researchers — best fit, as a measurement methodology. The paper reads as (c) while its Discussion positions as (a)+(b). A positioning table (local-first, hash-chain audit, single-file, admission hooks) vs competitors would at least make the implicit pitch explicit and honest — currently the only stated differentiator (admission control) is the one shown not to work."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "'Solves the problem better than mem0/Zep/Letta': no comparator run exists; the claim reduces to 'competitors don't publish write-efficiency numbers,' which is a literature gap, not a superiority result",
+      "'95% of memories remain unretrievable' (abstract) conflates per-turn injection coverage (99.5% unreachable per turn) with never-retrieved-in-window (9.5%) — two different quantities presented as one dominance claim",
+      "Switching value proposition: net effects of −268/−261/+4/+3 across all evaluated gates; the +200 headline-adjacent estimate is unvalidated and inconsistently hedged (abstract omits it entirely, body includes it — abstract is actually more honest here)"
+     ],
+     "statistical_issues": [
+      "0.16 per active memory per day is off by ~30× (316/1981/30 ≈ 0.0053) — correction strengthens, not weakens, the Q-value finding, but a 30× error in a printed rate damages trust in all derived rates",
+      "3,980/825,032 vs 1,981×416=824,096: 936-char discrepancy unexplained (rounding of the mean only partially covers it)",
+      "Power-law table implies total retrievals far exceeding 316 write-backs (e.g., top-10 = 15% of retrievals with median memory 'retrieved fewer than 5 times' implies thousands of retrieval events) — never reconciled; if 'retrieval' means use_count increments from injection hits, the 'dead = use_count=0' definition conflates write-backs with injections and the 316 figure is a different quantity entirely",
+      "Precision benchmark: n=10 queries, hand-labeled by the system author, queries are the operator's own project names ('packy', 'memory_hub') — label-leakage risk unassessed; two queries regress to 0/10 under the proposed fix, unexplained",
+      "Dead-memory definition as 'use_count=0 at analysis time' vs 'never retrieved in window' not disambiguated (E2-02) — directly affects the headline 9.5%"
+     ],
+     "logical_leaps": [
+      "From 'one user's 9.5% dead rate' to 'the field should shift focus to write governance' — the per-client decomposition (WorkBuddy 17.9% vs Codex 4.1%) supports the alternative that selective-writing clients have little waste",
+      "From '0.48% coverage at our 1K-token budget' to 'retrieval quality is not the binding constraint' — the constraint is a config choice; no cost/latency/attention-dilution model justifies the small budget",
+      "From 'Q-value learning is inactive' to 'admission control is better' — inactive learning also motivates cheaper injection-time reward signals (e.g., log which injected memories the model used), which the paper never considers"
+     ],
+     "alternative_explanations": [
+      "Dead memories reflect one operator's verbose early-workflow prompts (first-week 19.2% vs last-week 2.4% dead rate supports this) rather than a structural problem",
+      "The 'injection bottleneck' is a budget choice: the same data at 32K chars shows ~3.9% coverage and at 128K chars ~31%, changing the entire framing",
+      "Power-law concentration may be an artifact of the operator's recurring lookups of a handful of project facts (the 10 'hot' memories are likely project-status facts), i.e., workload-specific, not a law of agent memory"
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": false,
+     "assessment": "mild",
+     "note": "Not gaming in the benchmark-selection sense — the paper honestly reports net −268 against its own proposal, which is commendable. The mild gaming is in framing: abstract's '95% remain unretrievable' merges two different metrics for rhetorical punch; the 'three orders of magnitude' claim is actually ~2.3 orders (208×); and the competitive sentence about mem0/Zep/Letta is strategically vague ('admission control' never precisely defined) so it survives rebuttal while implying more than it shows."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "378+1005+11+188+388+11=1,981 ✓; 55+102+1+11+20+0=189 ✓; 55/378=14.6%, 102/1005=10.1%, 189/1981=9.54% all match."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "2,378 writes − 200 retirements = 2,178, not 1,981; unexplained gap of ~197. Corrections (349) superseding writes could explain some, but correction-type rows in Table 1 count 11 active/1 dead, so superseded originals are not tracked. No reconciliation given."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "1,981×416 = 824,096 ≠ 825,032 (936-char gap, mean is 416.5 so rounding can't fully explain it). 3,980/825,032 = 0.482% ✓ for the ratio itself."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "9.5%, 0.48%, 28→73, −268 all match body. But 'top 5% = 40% of retrievals' matches Table 4's 100/5.1%/40.1% ✓. The failure: abstract says '95% of memories remain unretrievable' — 95% is 1−5% (the top-N framing), but 'unretrievable' is never defined and the body's never-retrieved figure is 9.5%, not 95%. Abstract conflates metrics (E3-06)."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "10/1,981=0.505%→0.5% ✓, 100/1,981=5.05%→5.1% ✓ (rounding fine). But the % column implies total retrievals of ~thousands (e.g., top-10 at 15% implies total = 10-mem counts / 0.15, inconsistent with 316 write-backs over 30 days and 'median < 5 retrievals'). Never reconciled; likely use_count measures injection hits while write-backs are a separate event class — this makes 'dead = use_count=0' ambiguous (see CK-15)."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Baseline sums 1+2+2+1+9+5+2+3+2+1=28 ✓; entity-aware 10+10+10+10+10+9+8+4+2+0=73 ✓. But methodology fails the leakage bar: 10 queries, author-labeled, queries are the operator's own project entity names — the 'entity-aware' method is presumably tuned on these same projects. Two queries regress to 0/10 and 2/10 (temporal accuracy, supersession) with only a post-hoc categorization."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "The inference is invalid as structured: the precision benchmark is orthogonal to injection behavior — improving ranking changes *which* 3,980 chars are injected, not the *amount*. Coverage staying at 0.48% is a tautology given a fixed limit, not an empirical finding. The claim 'retrieval is not the binding constraint' additionally requires the 3,980 limit to be externally imposed, which it is not (E4-03)."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "55−323=−268 ✓; 55 and 378 match Table 1. Combined 425/80/341/−261 is arithmetically consistent with a plausible union (individual sums 747 blocked, union 425 → 322 overlaps; prevented 55+4+21=80 ✓; lost 0+323+18=341 ✓)."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "The +200 estimate's inline arithmetic is garbled: 55 + 240 vs 323 does not obviously yield ~+200 under any consistent accounting (if 80% of 378 experience writes pass, 302 blocked, 76 of 378 blocked-were-retrieved lost → net = 55−76+... depends on framing). Abstract correctly omits it, but Conclusion also omits it while the body cites it as the motivating number — hedging is inconsistent."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Active sums 1,981 ✓, dead sums 189 ✓; write shares 53.2/28.2/13.0/2.2/3.4 = 100% ✓. Text's '54%/28%/13%' loosely matches table's 53.2/28.2/13.0 (sloppy but tolerable)."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "19.2%/2.4%/6.8% internally plausible, but date ranges conflict: first week '09-13' vs Section 2 deployment start 09-14; also 30 vs 31 days (E1-04). 'Dead rate stable across age groups' (§3.2) contradicts a 19.2%→2.4% first-to-last-week gradient — these two statements cannot both be true."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Weighted mix of 535 (dead, n=189) and 415 (retrieved, n=1792) ≈ 426, not 416; and Table 1's type-weighted mean computes ~522, not the printed overall 535. Three mutually inconsistent means (535 overall vs 535 dead vs 416 all) — the parenthetical clarification in §3.1 fixes one ambiguity but the numbers still don't reconcile."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "316/1,981/30 ≈ 0.0053, not 0.16. The 0.16 figure is per-memory-per-window. 30× error in a load-bearing rate (E1-03/E3-05, still unfixed in this draft)."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Confirmed decorative: Chinese-only parser, synthetic data, zero real-world conflicts in the production DB, no machine specs for 0.037ms. Cannot support any load-bearing claim; should be an appendix feasibility note (E4-06)."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "The SQL comment '825032; divide by 3980 = 0.48%' is inverted — 825032/3980=207.3; coverage is 3980/825032 (E3-04, unfixed). More seriously, the reproducibility path is decorative: DB withheld for privacy (SECURITY.md), no fixture/synthetic DB, no schema DDL, no version pin. And 'dead' as use_count=0 conflates injection-eligibility hits with retrieval write-backs if use_count counts injections (implied by Table 4's implied retrieval volume >> 316) — the headline 9.5% then means 'never injected into any turn,' a different (and defensible) metric that must be defined explicitly."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior": [
+      "MemGPT/Letta (context vs archival paging) — placement governance, cited but dismissed on a technicality",
+      "Zep temporal KG (supersession/invalidation) — write-lifecycle governance, cited but not measured against",
+      "TinyLFU/ARC (cited) — admission policies for caches; the paper's adaptation is the genuine novelty vector but is evaluated only as a negative result",
+      "Data-lake/lakehouse write governance and LSM compaction (cited) — analogous write-side cost management",
+      "Un-cited adjacent: streaming data-skipping / hot-cold tiering literature; 'cold data' analytics in storage systems"
+     ],
+     "novelty_assessment": "The write-efficiency *metric* for agent memory is genuinely novel and worth publishing as a measurement contribution. The admission-control *framework* is a direct port of cache admission policy and, as evaluated, does not work (net −268/−261). The honest positioning is: 'we define and measure write efficiency for agent memory; naive admission control fails; the open question is intent-aware admission.' The current framing ('we propose an admission control framework' + competitive superiority insinuation) oversells the negative result."
+    },
+    "meta_note": "From the product-reviewer seat: this paper's real product is a *metric and a measurement* (write efficiency, dead rate, injection coverage), not a system. As a system pitch against mem0/Zep/Letta it currently fails on all three switching criteria: no evidence the problem generalizes beyond one operator (73% of dead memories come from 2 of 5 clients), no evidence the proposed feature helps (all evaluated gates net-negative or noise; the promising variant unsimulated), and no evidence competitors lack equivalent mechanisms (Zep invalidation and Letta paging are write/lifecycle governance; the admission-vs-eviction distinction is asserted, never demonstrated to matter). The strongest rebuttal — 'honest negative result, novel metric, first measurement' — is genuinely good and would carry this to a solid workshop/measurement-track paper. What would make a user switch: (1) simulate the intent-gate, (2) run the same 30-day workload through mem0 and report its dead rate, (3) report coverage as a function of injection budget with a cost model, (4) show a per-client decomposition proving waste isn't one fixable prompt. None of these exist today. Recommendation: reject as positioned, encourage resubmission as a measurement paper with the above. The repeated numeric/arithmetic failures (0.16/day, 95% vs 9.5%, inverted coverage SQL, 535/416/426 mean tangle, three-orders claim, unreconciled 197-memory gap, 30-vs-31 days, duplicated Related Work — several flagged in prior rounds and still unfixed) are individually minor but collectively disqualifying for a paper whose entire contribution is quantitative precision.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify arithmetic consistency of Table 1 (tab:dead): do the per-type Active counts (378+1005+11+188+388+11) sum to 1,981 and Dead counts (55+102+1+11+20+0) sum to 189, and do the stated dead rates (e.g., 55/378=14.6%, 102/1005=10.1%, 189/1981=9.5%) match the printed percentages?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check that the memory accounting in Section 2 is internally consistent: 2,378 writes + 316 retrieval write-backs + 349 corrections + 200 retirements should reconcile with 1,981 active memories at analysis time (2,378 writes − 200 retirements ≈ 2,178 ≠ 1,981, a gap of ~197 that must be explainable, e.g., by corrections superseding writes or double counting).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify the injection coverage ratio: 825,032 characters total and mean of 416 chars/memory must be mutually consistent (1,981 × 416 = 824,096, not 825,032 — check rounding or an off-by-one), and 3,980 / 825,032 = 0.48%.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Confirm the headline numbers in the abstract match the body: 9.5% never-retrieved, 0.48% coverage, top-5% = 40% of retrievals, precision@10 28%→73%, net −268, and that Table 4 (tab:powerlaw) row '100 memories, 5.1%' is consistent with the abstract's 'top 5%' claim.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the power-law table arithmetic: 10/1,981 ≈ 0.505% (stated 0.5%), 100/1,981 ≈ 5.05% (stated 5.1% — check rounding), and that the retrieval counts implied by the % column are non-decreasing and plausible given 316 retrieval write-backs over 30 days (note: Table 4 percentages imply many more than 316 retrievals — reconcile with Section 9's '0.16 retrievals per memory per day').",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the entity-aware retrieval evaluation (Table 3): per-query scores must sum to stated totals (baseline 1+2+2+1+9+5+2+3+2+1=28/100; entity-aware 10+10+10+10+10+9+8+4+2+0=73/100), and confirm the 100-pair labeled ground truth methodology is described enough to rule out label leakage (queries are system/entity names like 'packy', 'memory_hub').",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify the central 'retrieval is not the binding constraint' claim's logic: the paper claims 28%→73% precision doesn't change the 0.48% injection coverage — check whether precision@10 on 10 queries with a ~4K-char injection limit actually supports this architectural claim, or whether the benchmark queries are orthogonal to injection behavior.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the type-prior gate net-effect arithmetic (Table 5): 55 dead prevented − 323 retrieved lost = −268; verify 55 matches the experience dead count in Table 1 and 378 matches the experience active count; verify the Combined row (425 blocked, 80 prevented, 341 lost, −261) is consistent with a union of the three individual gates.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Assess the speculative intent-gate estimate in Section 6.1: the '+200 net effect' simulation assumes 80% of retrieved experience memories pass an intent check, but the inline arithmetic (55 + 240 vs 323) is presented inconsistently — check whether the numbers add up and whether this unvalidated estimate is appropriately hedged everywhere it is cited (abstract says 'retrospective simulation reveals a net −268' for the naive gate only).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Verify source-waste consistency (Table 6): Active counts (1053+559+257+44+68=1,981) and Dead counts (43+100+38+6+2=189) sum correctly; check 'Write share' column sums to ~100% and matches the text (codex 54% vs 53.2%, workbuddy 28% vs 28.2%, workbuddy_ai 13% vs 13.0%).",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-11",
+      "item": "Check the temporal decay claim: first-week dead rate 19.2% vs last-week 2.4%, and 'excluding the first week, the dead rate is 6.8%' — verify this is consistent with the ≥7-day corrected overall rate of 9.3% (Section 3.2) and the stated date ranges (09-13 start vs Section 2's 09-14 deployment start — off-by-one-day discrepancy).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Verify the length-predictor statistics: dead 535 vs retrieved 415 chars (Mann-Whitney p<0.01, d=0.21), and that the paper's own text (Section 3.1 '416 mean in Table 4 is the average across all 1,981') is internally consistent with 535 being dead-only and 415 retrieved-only — the overall mean implied by mixing them must land near 416.",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Check the Q-value finding: 74% default retention, 316 retrieval write-backs vs '0.16 per active memory per day' (316/1,981/30 ≈ 0.0053, not 0.16 — verify whether the denominator should be retrieved-relevant memories or whether the figure is wrong).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Assess the B1 gate section (Section 10): it claims 100% precision/recall on a synthetic benchmark and p50=0.037ms — check whether a Chinese-only parser on synthetic data with zero real-world conflicts (stated: 'production database contains zero uncorrected contradictions') supports any load-bearing claim, or whether this section is decorative and should be marked as such.",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify reproducibility claims: the SQL snippets in Section 12 must produce the stated expected values (189 dead via use_count=0; 825,032 total chars), and check whether 'use_count' as the dead-memory definition conflates injection-eligible retrievals with retrieval write-backs (only 316 write-backs in 30 days vs Table 4 implying thousands of retrievals — is 'never retrieved' actually measured as 'never written back'?).",
+      "category": "reproducibility",
+      "load_bearing": true
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Table tab:dead: column spec is `lccccc` (6 columns) but only 5 columns are used (Type, Active, Dead, Dead rate, Avg content len). Overly-specified tabular; cosmetic but a mismatch."
+      ],
+      "number_inconsistencies": [
+       "Section 'The 27% Retrieval Gap': residual misses are categorized as 3 (extraction) + 4 (multi-entity) + 3 (stale versions) = 10 queries, but the section title and precision numbers imply 27 misses (100 - 73). The categories sum to 10, not 27 (possibly intentional if multiple misses per query, but unexplained)."
+      ],
+      "citation_issues": [
+       "Bibitems `wu2024longmemeval` and `locomo2024` are defined but never \\cite'd anywhere in the text (LongMemEval and LoCoMo are mentioned in the Introduction without citations)."
+      ],
+      "orphaned_figures": [],
+      "duplicates": [
+       "Reproducibility section: the sentence 'All measurements are reproducible from the production SQLite database:' appears twice in a row (once before the verbatim intro, once immediately repeated)."
+      ],
+      "formatting_issues": [
+       "No \\includegraphics/figures exist in the paper at all; all visuals are tables — not an error, but nothing to orphan-check."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 20367,
+    "out": 4867,
+    "secs": 66.2
+   },
+   "raw_len": 18420,
+   "z": 0.0
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify arithmetic consistency of Table 1 (tab:dead): do the per-type Active counts (378+1005+11+188+388+11) sum to 1,981 and Dead counts (55+102+1+11+20+0) sum to 189, and do the stated dead rates (e.g., 55/378=14.6%, 102/1005=10.1%, 189/1981=9.5%) match the printed percentages?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check that the memory accounting in Section 2 is internally consistent: 2,378 writes + 316 retrieval write-backs + 349 corrections + 200 retirements should reconcile with 1,981 active memories at analysis time (2,378 writes − 200 retirements ≈ 2,178 ≠ 1,981, a gap of ~197 that must be explainable, e.g., by corrections superseding writes or double counting).",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Verify the injection coverage ratio: 825,032 characters total and mean of 416 chars/memory must be mutually consistent (1,981 × 416 = 824,096, not 825,032 — check rounding or an off-by-one), and 3,980 / 825,032 = 0.48%.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Confirm the headline numbers in the abstract match the body: 9.5% never-retrieved, 0.48% coverage, top-5% = 40% of retrievals, precision@10 28%→73%, net −268, and that Table 4 (tab:powerlaw) row '100 memories, 5.1%' is consistent with the abstract's 'top 5%' claim.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Verify the power-law table arithmetic: 10/1,981 ≈ 0.505% (stated 0.5%), 100/1,981 ≈ 5.05% (stated 5.1% — check rounding), and that the retrieval counts implied by the % column are non-decreasing and plausible given 316 retrieval write-backs over 30 days (note: Table 4 percentages imply many more than 316 retrievals — reconcile with Section 9's '0.16 retrievals per memory per day').",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Check the entity-aware retrieval evaluation (Table 3): per-query scores must sum to stated totals (baseline 1+2+2+1+9+5+2+3+2+1=28/100; entity-aware 10+10+10+10+10+9+8+4+2+0=73/100), and confirm the 100-pair labeled ground truth methodology is described enough to rule out label leakage (queries are system/entity names like 'packy', 'memory_hub').",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Verify the central 'retrieval is not the binding constraint' claim's logic: the paper claims 28%→73% precision doesn't change the 0.48% injection coverage — check whether precision@10 on 10 queries with a ~4K-char injection limit actually supports this architectural claim, or whether the benchmark queries are orthogonal to injection behavior.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-08",
+   "item": "Check the type-prior gate net-effect arithmetic (Table 5): 55 dead prevented − 323 retrieved lost = −268; verify 55 matches the experience dead count in Table 1 and 378 matches the experience active count; verify the Combined row (425 blocked, 80 prevented, 341 lost, −261) is consistent with a union of the three individual gates.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Assess the speculative intent-gate estimate in Section 6.1: the '+200 net effect' simulation assumes 80% of retrieved experience memories pass an intent check, but the inline arithmetic (55 + 240 vs 323) is presented inconsistently — check whether the numbers add up and whether this unvalidated estimate is appropriately hedged everywhere it is cited (abstract says 'retrospective simulation reveals a net −268' for the naive gate only).",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-10",
+   "item": "Verify source-waste consistency (Table 6): Active counts (1053+559+257+44+68=1,981) and Dead counts (43+100+38+6+2=189) sum correctly; check 'Write share' column sums to ~100% and matches the text (codex 54% vs 53.2%, workbuddy 28% vs 28.2%, workbuddy_ai 13% vs 13.0%).",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-11",
+   "item": "Check the temporal decay claim: first-week dead rate 19.2% vs last-week 2.4%, and 'excluding the first week, the dead rate is 6.8%' — verify this is consistent with the ≥7-day corrected overall rate of 9.3% (Section 3.2) and the stated date ranges (09-13 start vs Section 2's 09-14 deployment start — off-by-one-day discrepancy).",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-12",
+   "item": "Verify the length-predictor statistics: dead 535 vs retrieved 415 chars (Mann-Whitney p<0.01, d=0.21), and that the paper's own text (Section 3.1 '416 mean in Table 4 is the average across all 1,981') is internally consistent with 535 being dead-only and 415 retrieved-only — the overall mean implied by mixing them must land near 416.",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-13",
+   "item": "Check the Q-value finding: 74% default retention, 316 retrieval write-backs vs '0.16 per active memory per day' (316/1,981/30 ≈ 0.0053, not 0.16 — verify whether the denominator should be retrieved-relevant memories or whether the figure is wrong).",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Assess the B1 gate section (Section 10): it claims 100% precision/recall on a synthetic benchmark and p50=0.037ms — check whether a Chinese-only parser on synthetic data with zero real-world conflicts (stated: 'production database contains zero uncorrected contradictions') supports any load-bearing claim, or whether this section is decorative and should be marked as such.",
+   "category": "method",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-15",
+   "item": "Verify reproducibility claims: the SQL snippets in Section 12 must produce the stated expected values (189 dead via use_count=0; 825,032 total chars), and check whether 'use_count' as the dead-memory definition conflates injection-eligible retrievals with retrieval write-backs (only 316 write-backs in 30 days vs Table 4 implying thousands of retrievals — is 'never retrieved' actually measured as 'never written back'?).",
+   "category": "reproducibility",
+   "load_bearing": true
+  }
+ ],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [
+    "Table tab:dead: column spec is `lccccc` (6 columns) but only 5 columns are used (Type, Active, Dead, Dead rate, Avg content len). Overly-specified tabular; cosmetic but a mismatch."
+   ],
+   "number_inconsistencies": [
+    "Section 'The 27% Retrieval Gap': residual misses are categorized as 3 (extraction) + 4 (multi-entity) + 3 (stale versions) = 10 queries, but the section title and precision numbers imply 27 misses (100 - 73). The categories sum to 10, not 27 (possibly intentional if multiple misses per query, but unexplained)."
+   ],
+   "citation_issues": [
+    "Bibitems `wu2024longmemeval` and `locomo2024` are defined but never \\cite'd anywhere in the text (LongMemEval and LoCoMo are mentioned in the Introduction without citations)."
+   ],
+   "orphaned_figures": [],
+   "duplicates": [
+    "Reproducibility section: the sentence 'All measurements are reproducible from the production SQLite database:' appears twice in a row (once before the verbatim intro, once immediately repeated)."
+   ],
+   "formatting_issues": [
+    "No \\includegraphics/figures exist in the paper at all; all visuals are tables — not an error, but nothing to orphan-check."
+   ],
+   "pass": false
+  }
+ },
+ "cross_challenges": [
+  {
+   "challenger": "E1",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-04",
+      "challenge": "E4-04's claim that 'every evaluated gate is net-negative or noise' is factually incorrect for the novelty gate. Table 7 shows the novelty gate (embedding sim > 0.95) blocks 57 writes, prevents 4 dead memories, and loses ZERO retrieved memories (net +4, with 0 collateral damage). This is a genuinely positive, zero-false-positive gate, not 'noise.' A gate that removes near-duplicates with zero retrieval loss is a deployable win in any production system — deduplication at admission time is exactly the kind of write-governance primitive competitors do not expose. E4-04 also undervalues the negative result framing: the paper's actual contribution is the demonstration that base-rate gating (type-prior at 14.6% vs 9.5% prior) is insufficient — a 1.5x lift over base rate still yields 86% false blocks. That is a real scientific constraint on the whole design space of admission gates, not merely 'my gates don't work.' The +200 intent-gate estimate is admittedly unsimulated, but the paper labels it 'rough' and 'requires empirical validation' explicitly — this is honest hedging, not an unsupported claim.",
+      "evidence": "Table 7 (tab:gates): 'Novelty (sim > 0.95) | 57 | 4 | 0 | +4 net' — Retrieved lost = 0. Section 'Retrospective Gate Evaluation': 'The novelty gate would have blocked 57 near-duplicate writes (detected by remember_dup and remember_near_dup operations in the audit log).' Section 'Type-Prior Gate: Retrospective Evaluation': 'though this estimate requires empirical validation' — explicit epistemic hedge on the +200 figure."
+     },
+     {
+      "challenged_finding_id": "E4-03",
+      "challenge": "E4-03 overstates the sensitivity-analysis gap and mischaracterizes the bottleneck claim. First, the paper DOES provide a sensitivity point: Section 'The Injection Bottleneck' states 'doubling the limit to 7,960 characters would raise coverage to 0.97% but still leave 99% of stored content unreachable per turn' — so the 'no sensitivity analysis' claim is partially wrong. Second, E4-03 conflates context window size with per-turn injection budget. A Zep/Letta deployment at 128K tokens does not inject 128K of memory per turn; it still retrieves top-k into a small injection slot. The 3,980-char figure is the configured injection budget of a real production system, and Table 7 shows DBMS buffer pools operate at 0.01–10% coverage — placing 0.48% squarely within the normal operating range of working-set-constrained systems, not at 'the smallest plausible budget.' Third, the Finding's 'architectural, not algorithmic' claim is about the ratio of stored content to per-turn injectable content, which is structural for ANY fixed injection budget as the store grows — the paper's Discussion ('as context windows grow, the bottleneck will ease') concerns the future, not a contradiction of the current measurement. A full sensitivity sweep would strengthen the paper, but E4-03's 'fails cross-system relevance' verdict is too strong given the buffer-pool coverage range anchors the result.",
+      "evidence": "Section 'The Injection Bottleneck': 'The 0.48% ratio is specific to the 3,980-character injection limit; doubling the limit to 7,960 characters would raise coverage to 0.97% but still leave 99% of stored content unreachable per turn.' Table 7 (tab:analogy): 'Coverage ratio | 0.01–10% (buffer pool) | 0.48% (agent memory).' Finding 2: 'the bottleneck is architectural (context window size), not algorithmic (retrieval quality).'"
+     }
+    ],
+    "agreement_note": "I agree with E4-01, E4-02, and E4-05. E4-01 is correct that the Discussion's blanket claim ('mem0, Zep, and Letta all encourage remember everything without admission control') is unmeasured and technically imprecise — Zep's temporal invalidation and Letta's archival paging are lifecycle governance, and the defensible narrow claim (no pre-storage admission rejection) is never stated; no competitor baseline is run. E4-02 is correct that the headline numbers are single-operator, single-deployment statistics: WorkBuddy + workbuddy_ai produce 138/189 (73%) of dead memories from 41% of writes, and the 4.4x dead-rate spread between clients (Codex 4.1% vs WorkBuddy 17.9%) demonstrates the magnitude is client-prompt-dependent — the Limitations section concedes this but the abstract generalizes it. E4-05 is a sharp point the paper invites on itself: its own Table 7 shows DBMSs solved the analogous problem with eviction (LRU/LFU/ARC), its own power-law data (top 5% = 40% of retrievals) favors hot/cold eviction as the first intervention, and yet no eviction/Q-value-based retirement baseline is ever simulated against the admission gates — an odd omission given Section 'Q-Value Learning Effectiveness' documents that the existing Q-value mechanism is 74% inert. What I would add beyond E4: (a) the abstract's framing '12–15% write reduction while maintaining retrieval quality' (Finding 4) is unsupported by Table 7, where the combined gate loses 341 retrieved memories — internal inconsistency worth flagging; (b) the retrieval benchmark is only 10 queries with manual labels by the operator, making the 28%→73% precision claim fragile; (c) the B1 gate's synthetic benchmark (100% precision/recall on self-authored patterns) provides no evidence about real-world conflict density, which the paper itself admits is zero in production."
+   }
+  },
+  {
+   "challenger": "E4",
+   "challenged": "E1",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E1-02",
+      "challenge": "I agree the wording overreaches, but the 'major' severity is overstated because the paper's qualitative claim survives any plausible sensitivity analysis. E1 asks for 32K/128K sensitivity, but this is computable from the paper's own numbers: at 825,032 total characters, a 32K-character limit yields ~3.9% coverage and a 128K-character limit yields ~15.7% — still far from saturation, and the power-law concentration (top 5% of memories = 40% of retrievals) independently establishes that a small working set carries utility regardless of the injection constant. The Discussion section also explicitly concedes the parameter-dependence ('As context windows grow (100K→1M tokens), the injection bottleneck will ease but the write waste problem will worsen'), and the paper already added the doubling sentence (0.97% at 7,960). So the finding is real but is a framing/rewording fix ('configurational under current deployment' is a fine suggestion), not a major validity threat to the bottleneck claim. I would downgrade to minor, contingent on the rewording being applied.",
+      "evidence": "Section 4 (injection table: 825,032 total characters, 3,980 limit) and the doubling sentence; Section 3.2 power-law table (top 5.1% = 40.1% of retrievals); Discussion 'Generality' paragraph conceding context-window growth eases but does not eliminate the problem."
+     },
+     {
+      "challenged_finding_id": "E1-03",
+      "challenge": "Agree the number is wrong, but the diagnosis is narrower than E1 states: 316/1,981 = 0.16 exactly, so the paper's figure is correct as 'write-backs per active memory per 30-day period'; the error is only the '/day' unit (the correct per-day figure is 316/1,981/30 ≈ 0.0053). This is a one-word fix, not a computational error.",
+      "evidence": "Section 8: 'only 316 retrieval write-backs occurred over 30 days (0.16 per active memory per day)'; Section 2: 316 write-backs, 1,981 active memories, 30 days."
+     }
+    ],
+    "agreement_note": "I agree with E1-01 and E1-05 in full. The paper describes 15 clients writing to a single SQLite file (Section 2) but reports no journal mode, busy_timeout, lock-error counts, or synchronous pragma, and the hash-chain defense in SECURITY.md is explicitly forensic ('detects tampering') and cannot detect dropped/silently failed write-backs — which would inflate the apparent dead rate and Q-value inactivity (the 74% default-Q finding), exactly as E1 argues. E1-05's point that the DB is withheld (memory.db is .gitignored per SECURITY.md, and the paper's single-operator limitation) making the Reproducibility SQL decorative is also correct — the commands assume a database readers cannot obtain, and the section even contains a duplicated sentence ('All measurements are reproducible...' appears twice), further signaling it was not carefully executed. E1-04's arithmetic is verifiable from the paper itself: Section 2 says 2,378 writes, 30 days (09-14 to 10-14), while Table 5 dates the window 09-13 to 09-19 vs 10-07 to 10-13, and the combined-union row (425 blocked / 2,378 ≈ 17.9%) contradicts the 12–15% claim in the Admission Control finding; the 09-13 vs 09-14 window-start mismatch confirms CK-11. All three minor bookkeeping issues should be fixed; E1-02 should be reworded and downgraded; E1-01 and E1-05 remain the major issues requiring revision before acceptance."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

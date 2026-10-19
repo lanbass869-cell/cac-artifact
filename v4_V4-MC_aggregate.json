@@ -1,0 +1,1184 @@
+{
+ "round_score": 3.67,
+ "std": 0.943,
+ "spread": 2.0,
+ "debate_needed": false,
+ "n_reviews": 3,
+ "full_tier": {
+  "n": 2,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 3.0
+ },
+ "round": "V4-MC",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\memory-court-paper.tex",
+ "timestamp": "2026-10-19T12:52:51.366667",
+ "usage_total": {
+  "in": 80188,
+  "out": 23507,
+  "secs": 280.59999999999997
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "role": "architecture-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper_goal": "Memory Court adds a governance layer to MemTether: (1) a SHA-256 hash-chained audit log over memory operations with anchors every 10 entries, (2) per-memory case-file reconstruction (provenance, bi-temporal evidence, adjudication, integrity proof), (3) a browser-verifiable evidence.zip export, positioned as contributing to EU AI Act Art. 12. Evaluated on a 26-day single-author production deployment (1,864 memories, 13 agent sources, 2,346 audit entries, 235 anchors), 14 integration tests, a 5-scenario tamper-detection experiment, and a single-entity contradiction case study (packy).",
+     "core_mechanism": "Append-only audit_log in the same SQLite DB as the data; every 10 entries an anchor = SHA256(prev_anchor || H(e_i)...) is stored in an audit_anchors table, also in the same DB. Verification recomputes the full chain (O(n)). Export bundles case.json + chain.jsonl + verify.html (crypto.subtle).",
+     "architectural_facts_established": "Single-machine single-file SQLite; anchors co-located with the log they protect; unanchored tail <10 entries; exporter is part of the trusted computing base; no Merkle tree; no distributed trust model; SECURITY.md honestly states the fail-open conditions (full-DB-rewrite attacker, fail-open source registry, no initial-injection interception)."
+    },
+    "scores": {
+     "depth": 4.0,
+     "soundness": 3.0,
+     "helpfulness": 4.0,
+     "alignment": 3.0,
+     "overall": 5.0
+    },
+    "findings": [
+     {
+      "id": "E1-N1",
+      "severity": "major",
+      "issue": "Co-located anchors make 'tamper-evident by construction' a conditional, not a construction-level, guarantee",
+      "relevant_text": "Finding 1: 'Any modification of a logged entry ... causing chain verification to fail from the modified entry onward. This is a property of the construction, not of the implementation.' Anchors are stored in an audit_anchors table [in the same SQLite file].",
+      "concern": "Because audit_anchors lives in the same database as audit_log, an attacker with write access to the file (exactly the threat a local-first single-file store must consider: malware, another local agent, a buggy client with a raw connection) can rewrite both tables and recompute the chain forward — detection then fails silently. This is a property of the *deployment architecture*, not the construction. SECURITY.md states this honestly ('能同时改写 anchors 表的完全控制攻击者除外'), but the paper's Finding 1 and the abstract's 'tamper-evident by construction' are stated without the boundary. The standard architectural fix — periodic external anchoring (timestamping service, CT-style log, or even a second file/machine) — is dismissed as 'out of local-first scope' without analysis of how cheap a partial version would be (e.g., export anchor digests daily to any append-only location).",
+      "strongest_rebuttal": "The paper's threat model is 'modification bypassing the application layer but not full DB control', and within that model the claim holds; SECURITY.md discloses the boundary.",
+      "why_rebuttal_insufficient": "The paper text itself does not scope Finding 1 to that model; readers of the paper (not the repo) get an unqualified claim. 'Bypassing the app layer but not rewriting two tables' is a narrow and unusual attacker; the dominant local-file attacker (another process with filesystem access) can rewrite both.",
+      "suggestions": "Restate Finding 1 with the explicit precondition ('an attacker unable to rewrite both audit_log and audit_anchors'); add an optional external-anchor hook (write each anchor digest to an append-only external sink) and note it closes the gap at near-zero cost.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N2",
+      "severity": "major",
+      "issue": "Browser verification is circular with respect to omission: the exporter is trusted to export everything",
+      "relevant_text": "'No server, no installation, no trust in the exporter required---the auditor verifies the chain independently.'",
+      "concern": "verify.html recomputes the chain over chain.jsonl, but chain.jsonl is produced by the very component under audit. An exporter that silently drops incriminating entries and re-anchors (or simply exports a consistent prefix/subset) yields a chain that verifies perfectly in the browser. The claim 'no trust in the exporter required' is therefore false as stated; what is trustless is *consistency of the exported subset*, not *completeness of the export*. Architecturally this is the same co-location problem (E1-N1) projected onto the export path, and it directly undercuts the Art. 12 'traceability' positioning, since completeness of the record is the compliance-relevant property.",
+      "strongest_rebuttal": "An auditor with DB access can cross-check counts (235 anchors ↔ 2,346 entries), and omission detection requires an external reference the paper never promised.",
+      "why_rebuttal_insufficient": "The export scenario is explicitly for auditors *without* the DB ('no software installation'); those auditors have no reference for completeness. The sentence overclaims and should be corrected to 'no trust required for chain consistency of the exported entries'.",
+      "suggestions": "Qualify the claim; add a completeness mechanism: include the latest externally witnessed anchor digest (or a signed head-anchor with monotonic sequence number) in the export so truncation/omission is detectable against an independently held reference.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N3",
+      "severity": "major",
+      "issue": "Concurrency model for 13 concurrent agent writers plus an anchor-every-10-entries background computation is unspecified, and the one acknowledgment is hand-waved",
+      "relevant_text": "'1,864 active memories from 13 distinct agent sources'; 'Every 10 entries, a SHA-256 anchor is computed'; Limitations: 'concurrent anchor computation' listed among 'five engineering-level gaps ... none affect the correctness of the core mechanism.'",
+      "concern": "Anchoring every 10 entries is a read-modify-write over the tail of audit_log plus audit_anchors. With 13 concurrent writers on a single-writer SQLite file, correctness of the chain depends entirely on: (a) journal mode (WAL vs rollback), (b) whether entry-insert and anchor-compute happen in one transaction, (c) busy-timeout/retry behavior, and (d) ordering guarantees — if two writers interleave across a batch boundary such that anchor_b is computed over entries e1..e10 while an e11 insert is concurrently committed, later recomputation can diverge or, worse, an anchor can be computed over a snapshot that a later crash rolls back inconsistently between the two tables. 'None affect correctness' is asserted, not argued. A torn state between audit_log and audit_anchors after crash/power loss (synchronous pragma never stated) is exactly the failure mode an evidence system exists to survive.",
+      "strongest_rebuttal": "2,346 entries over 26 days (~90/day) means contention is rare, SQLite serializes writers, and the unanchored-tail limitation is disclosed.",
+      "why_rebuttal_insufficient": "Average rate doesn't bound burst concurrency; the tail disclosure covers *unanchored* entries, not *inconsistently anchored* ones; and 'SQLite serializes' only holds with correct transaction scoping, which is precisely what's undocumented. For a paper whose contribution is evidence integrity, the durability/transaction section is the one section that cannot be omitted.",
+      "suggestions": "Add a storage-durability subsection: journal mode, synchronous level, exact transaction boundaries for insert-and-anchor, observed SQLITE_BUSY count during deployment, and PRAGMA integrity_check result; state crash-recovery behavior for the audit_log/audit_anchors pair.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N4",
+      "severity": "major",
+      "issue": "Hash formula is not independently implementable: no canonicalization, separators, or encoding is specified",
+      "relevant_text": "H(e_i) = SHA256(id_i || op_i || target_i || agent_i || detail_i || ts_i), '|| denotes concatenation'.",
+      "concern": "Raw concatenation without length-prefixing or separators is both ambiguous (field-boundary collisions in principle) and non-portable in practice: id as integer vs string, ts format/precision/timezone, NULL rendering, Unicode normalization of agent/detail, and trailing-newline handling all change the digest. The browser verify.html (JS crypto.subtle over JSON-parsed fields) and the Python verifier must agree byte-for-byte; nothing in the paper lets an independent reimplementation reproduce a single anchor, which is the entire premise of 'browser-verifiable'.",
+      "strongest_rebuttal": "The open-source code is the spec; the Playground demonstrates cross-implementation agreement empirically.",
+      "why_rebuttal_insufficient": "A verifiable-evidence paper should specify the canonicalization in the paper (one sentence: e.g., 'UTF-8, fields joined with 0x00, id and ts rendered as ISO-8601/decimal'); 'read the code' is not an evidence-chain specification and forecloses independent auditors writing their own verifiers.",
+      "suggestions": "Specify the byte-level canonical form in Section 3.2; ideally use length-prefixed or JSON-canonicalized serialization; publish one worked test vector (entry → expected hex digest).",
+      "status": "new"
+     },
+     {
+      "id": "E1-N5",
+      "severity": "minor",
+      "issue": "Scaling limits stated but not analyzed: O(n) full-chain verification and single-file write serialization",
+      "relevant_text": "'Verification requires full-chain recomputation (O(n))'; 'does not scale to distributed multi-machine deployments'.",
+      "concern": "For a system positioned for compliance logging 'over the lifetime of the system' (Art. 12), lifetime-scale numbers matter: at ~90 entries/day, 10 years ≈ 330K entries — fine — but multi-agent fleets could reach 10^6–10^7 entries, where full recomputation per audit and single-writer SQLite become binding. No throughput or verification-time measurements are given at any scale ('1000+ entry stress testing' is listed as an open gap, meaning even 1K-entry stress was not done at submission).",
+      "strongest_rebuttal": "The paper explicitly scopes to single-machine and calls Merkle trees a planned optimization.",
+      "why_rebuttal_insufficient": "Scoping is fine, but the Art. 12 compliance framing ('lifetime of the system') implicitly invokes long-horizon operation; one measurement of verification time vs chain length would ground the claim.",
+      "suggestions": "Report verification wall-time at 2,346 and a synthetic 100K/1M entries; state the practical ceiling of the single-file design.",
+      "status": "new"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "CK-03 confirmed: abstract/§5.4 say 33% (5/15); Limitations say 'packy entity case study (60% contradiction rate)' with the same n=15. 60% is not derivable from any stated denominator (2/5 available-side? 3/5 banned-side? 9/15?). At least one figure is wrong — a direct internal contradiction on the paper's only case-study number.",
+      "CK-06 confirmed: abstract says 'contributing to' Art. 12; §2.2 says the export 'directly implements this requirement'. Art. 12(1) requires logging sufficient for traceability over the system lifetime plus record-keeping obligations the paper never addresses (retention, integrity protection against the system operator — precisely the E1-N1/E1-N2 gaps). 'Directly implements' is an overclaim.",
+      "CK-14 confirmed: the paper claims poisoning writes become 'detectable and attributable', but SECURITY.md states the source registry is fail-open by default (unregistered sources written verbatim) and correct() does not validate corrector identity. In the default configuration, attribution is bookkeeping, not a security property; the paper never scopes 'attributable' to a deployed registry.",
+      "CK-15: no transcript or concrete output of the 'downstream agent received contradictory evidence' is shown; the impact claim rests on the 33% rate plus an admitted free-tier judge."
+     ],
+     "statistical_issues": [
+      "CK-02: Wilson 95% CI for 5/15 recomputes to ≈ [11.8%, 61.6%] — the stated [12%, 62%] is correct and appropriately reported (good practice).",
+      "The tamper-detection 'experiment' is 5/5 on 5 hand-designed scenarios — a deterministic property demonstrated, not an effect measured; presenting it with deployment counts ('over 2,346 entries') gives experimental weight to what is a unit test. The paper half-concedes this ('expected property of any correctly implemented hash chain') but still features it in the abstract as a headline result.",
+      "'Contradiction rate dropped to 0%' post-supersession: since superseded facts are excluded from 'active', the 0% follows from the status filter mechanics; the paper should state whether the superseded 3 facts were correctly adjudicated by any independent criterion, otherwise 0% is definitional.",
+      "CK-04: headline '14 tests' reconciles with Table 2 (6+2+1+2+1+2), but Limitations' '23 (now 14)' and the Reproducibility section's third command (8 poisoning tests) leave the reader unable to tell whether the evaluated suite is 14 or 22 tests; the poisoning suite appears in reproduction commands but not in the evaluation."
+     ],
+     "logical_leaps": [
+      "From 'hash chain detects edited rows' to 'tamper-evident by construction' without the co-location precondition (E1-N1).",
+      "From 'verify.html recomputes correctly' to 'no trust in the exporter required' — completeness is unverifiable (E1-N2).",
+      "From a single self-operated deployment to a 'production deployment' framing in the abstract; the single-author/zero-external-user qualification exists only in Limitations, not near the claim (CK-10).",
+      "Table 1: 'no existing system' rests on an undescribed 'systematic search' with no protocol, and two of four competitors (Tencent 27.7K★, halo-record) have no citations at all; the Adjudication UI/Evidence export cells are unevidenced (CK-07)."
+     ],
+     "alternative_explanations": [
+      "The packy contradiction (and its resolution) may reflect a genuinely changed world state (service available, later banned) rather than agent memory error — bi-temporal ordering would then be recording history, not resolving a contradiction; the paper never distinguishes these.",
+      "5/5 tamper detection and 14/14 tests passing are consistent with 'tests written to the implementation' (self-designed, self-executed, admitted) rather than independent validation; the absence of any external or adversarial execution makes the pass rates uninformative about robustness.",
+      "The 235 vs 234.6 anchor count is explained by ceiling (final partial batch anchored) — consistent, but the paper doesn't say so (CK-09: pass with note)."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant — the evaluation is structured to look complete while being minimally risky: 5/5 tamper scenarios are a deterministic property repackaged as an experiment; '14 integration tests over 6 dimensions' is self-authored with the count curated downward ('23 (now 14)'); the single case study has an internal contradiction (33% vs 60%) suggesting numbers were tuned per-section; the limitations list is unusually honest (genuine credit) but functions partly as pre-emption — the corresponding claims in the abstract/Finding 1 are not adjusted to match (fail-open conditions never reach the headline claims); the competitive table asserts a gap over uncited systems. The strongest signal: every overclaim identified in SECURITY.md as corrected in 'v2 adversarial review' persists in milder form in the paper's framing."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "Abstract and §5.2 correctly scope to 'anchored-row modification'; unanchored tail (<10) admitted in Limitations and not claimed as detected."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "Wilson CI [12%, 62%] verified for 5/15 (recomputed ≈[11.8,61.6]). However 'dropped to 0%' follows mechanically from the active-status filter; supersession correctness is not independently evidenced."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "Unreconciled: §5.4/abstract 33% (5/15) vs Limitations '60% contradiction rate'. 60% matches no stated denominator. One must be corrected."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "14 matches Table 2 arithmetic, but '23 (now 14)' and the 8-test poisoning suite in Reproducibility leave the evaluated corpus ambiguous (14 vs 22); poisoning tests are reproducible but unevaluated."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "Finding 1 and abstract do not carry the same-DB fail-open precondition stated in SECURITY.md; overclaim relative to the project's own honest boundary."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "'Contributing to' (abstract) vs 'directly implements this requirement' (§2.2) are inconsistent; no argument that lifetime traceability/retention obligations are met; completeness gap (E1-N2) undermines the compliance framing."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "No search protocol/queries/inclusion criteria; Tencent and halo-record uncited; capability cells unevidenced. 'Systematic' is unsupported."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "No separator/length-prefix/canonicalization specified; independent reimplementation cannot reproduce digests; undermines the verify.html and reproducibility claims."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "ceil(2346/10)=235 is consistent with anchoring a final partial batch; paper should say so in one clause."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "Abstract's 'production deployment' is unqualified; single-author/zero-external-users appears only in Limitations; DB unreleased. Framing overstated."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Cannot verify that the 14 tests map to Table 2's named dimensions; poisoning suite's 8 vectors (incl. negative test_F) appear in reproduction commands but not in the evaluation narrative; SECURITY.md mapping is in Chinese and not referenced."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Multiple 2026-dated arXiv IDs (2606.24535, 2608.02843, 2609.25521, 2610.xxxxx) could not be verified from the paper alone; if fabricated, the 'no existing system' novelty claim collapses. Requires artifact check."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "Omission attack undiscussed; 'no trust in the exporter required' is false for completeness. See E1-N2."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Paper claims writes are 'attributable'; default config has fail-open source registry and unauthenticated correct(). Attribution is not reliable in the default deployment the paper evaluates."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "No transcript/output of the contradictory downstream retrieval is presented; impact rests on the 33% rate and an admitted free-tier judge."
+     }
+    ],
+    "novelty_check": {
+     "closest_comparators": [
+      "Certificate Transparency (RFC 6962) — hash-chained append-only logs with external gossip/witnessing; Memory Court differs by lacking any external witness, which is precisely CT's anti-omission mechanism",
+      "Caura — governed shared memory with contradiction detection, no crypto chaining",
+      "halo-record — runtime-level hash chains (uncited in bibliography)",
+      "MutMem — SHA-256 commitments for mutation authorization (2026, unverifiable)"
+     ],
+     "assessment": "Applying hash chaining to memory-content audit with a self-contained browser export is a reasonable integration novelty, but it is an engineering composition of known techniques; the paper's own §5.2 concedes the mechanism is not the contribution. The 'first/no existing system' claim depends on an unverifiable related-work set and an undescribed search. Notably, CT solved the omission problem (gossip/SCTs) that Memory Court's export leaves open — the paper would be strengthened by citing this directly rather than positioning against uncited GitHub repos."
+    },
+    "meta_note": "Reconciliation of previous findings: E1-01 through E1-06, E2-xx, E3-xx, and E4-xx target the *companion write-governance paper* (dead-rate/Q-value/3,980-char injection limit), not this Memory Court submission; their storage/concurrency substance carries over and is re-expressed here as E1-N3 (concurrency/durability, supersedes E1-01/E1-05 for this paper) — status: deferred-to-companion / partially superseded. New architecture-specific findings for this paper: E1-N1 (co-located anchors), E1-N2 (exporter omission/circularity), E1-N4 (canonicalization), E1-N5 (scale). Severity discipline: no critical findings because the core mechanism is sound within its (narrow) stated threat model and the repo's SECURITY.md is unusually honest; the majors are claim-architecture mismatches, not broken construction. Anti-gaming: the pattern of curated test counts, the 33%/60% discrepancy, and framing a deterministic property as an experiment indicate reviewer-facing optimization despite genuine disclosure effort. Score anchors: soundness 3 (mechanism correct, guarantees overclaimed, durability/concurrency unspecified), depth 4 (co-location and omission go to the core contribution), overall 5 — below CCF-C bar until the four major claim-evidence mismatches and the storage-durability section are fixed; all fixes are cheap (preconditions in Finding 1, qualified exporter claim, one canonicalization sentence, one durability paragraph).",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the tamper-detection experiment's claimed scope: abstract and Section 5.2 say 'all 5 of 5 anchored-row modification scenarios' over 2,346 entries—confirm the paper distinguishes tampering of anchored rows from the unanchored tail (<10 entries, admitted in Limitations), and that unanchored-entry tampering is NOT claimed as detected.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Cross-check the contradiction-rate arithmetic in the packy case study: 5 of 15 active memories = 33.3%, and confirm the Wilson 95% CI [12%, 62%] is plausible for n=15, p=0.33 (a reviewer should recompute; note Section 5.4's prose says contradiction rate 'dropped to 0%'—verify this follows from the supersession mechanics, not just relabeling).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Flag the internal inconsistency: Section 5.4/abstract report a 33% contradiction rate for packy, while the Limitations section states 'The packy entity case study (60% contradiction rate)'—determine which figure is correct and whether 60% corresponds to a different denominator (e.g., 2-of-5 vs 5-of-15).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Verify test-count consistency: abstract and Section 5.3 claim 14 integration tests over 6 dimensions matching Table 2 (6+2+1+2+1+2=14), but the Limitations say 'The 23 (now 14) integration tests' and Reproducibility adds a poisoning test file with 8 tests—reconcile whether 14 is the right headline number and whether test_poisoning_defense.py is part of the evaluation or not.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Check the 'tamper-evident by construction' Finding 1 against the honest boundary in SECURITY.md: the chain anchors live in the same SQLite database, so an attacker who can rewrite both audit_log and audit_anchors defeats detection—confirm the paper's Finding 1 and abstract do not overclaim beyond 'detects post-hoc modification' given this stated fail-open condition.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Verify the EU AI Act Article 12 compliance claim: the paper cites Art. 12(1) 'automatic logging' but never argues Memory Court satisfies the full traceability requirement (e.g., log integrity over lifetime, retention); assess whether 'contributing to' in the abstract vs 'directly implements this requirement' in Section 2.2 are consistent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check Table 1 (competitive gap) methodology: the search is described as 'systematic' but no search protocol, query strings, or inclusion criteria are given; verify whether the 'Adjudication UI' and 'Evidence export' columns for competitors (Tencent 27.7K, memtrace, icarus, halo-record) are backed by any cited evidence, and note halo-record and Tencent have no citations at all.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify whether the hash-chain formula (Equation 1) is verifiable from the paper: per-entry hash H(e_i) concatenates id, op, target, agent, detail, ts—but no field separator or length-prefixing scheme is specified; assess whether an independent reimplementation could reproduce verification (relevant to the browser verify.html claim and reproducibility section).",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Confirm the anchor-count arithmetic in the deployment stats: 2,346 audit entries with an anchor every 10 entries implies ~234 anchors, but the paper reports 235 anchors—check whether the off-by-one is explained (e.g., genesis anchor).",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Assess the deployment self-referentiality: all 13 agent sources are operated by one author (admitted), zero external users, production DB not released—verify the paper's 'production deployment' framing is not overstated given this, and that the abstract's 'production deployment' claim is qualified anywhere prominent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the reproducibility commands actually map to claims: pytest targets tests/test_memory_court.py and tests/test_court_e2e_integration.py for '14 passed'—check the claimed test dimensions in Table 2 correspond to named tests in those files, and whether the poisoning-defense 8-vector suite (with negative test_F) is described consistently with SECURITY.md's mapping table.",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the citation integrity of the competitive/related-work set: multiple references are dated 2026 (Caura arXiv:2606.24535, MutMem, PACMI, TRACE, AECG, MemStrata) and the gap analysis is dated 'October 2026'—verify these are real, accessible papers; a fabricated or unverifiable related-work set would undermine the 'no existing system' novelty claim.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify the browser-verifiability claim is non-circular: verify.html recomputes the chain from chain.jsonl, but chain.jsonl is produced by the same exporter being audited—confirm the paper addresses (or should address) that the exporter could omit entries from the export; 'no trust in the exporter required' is stated but omission attacks are not discussed.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check consistency of the two stated threat-model positions: the paper says Memory Court 'does not prevent memory poisoning... makes such writes detectable and attributable,' while SECURITY.md admits initial-fact injection has no interception AND that correct() does not validate corrector identity (fail-open source registry in open-source default)—verify the paper does not imply attribution is reliable when source spoofing is possible in the default configuration.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify the case study's downstream-impact evidence: the claim that 'a downstream agent querying packy's status received contradictory evidence' relies on a free-tier GLM-5.3-flash judge (admitted limitation)—check whether any concrete output/transcript of this contradictory retrieval is presented, or whether the impact claim rests solely on the 33% rate.",
+      "category": "evidence",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": null
+   },
+   "usage": {
+    "in": 18284,
+    "out": 5785,
+    "secs": 124.4
+   },
+   "raw_len": 21612,
+   "z": 1.414
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper_summary": "Memory Court is described as a governance layer atop MemTether providing (1) SHA-256 hash-chained audit log, (2) case-file reconstruction CLI, and (3) browser-verifiable evidence export (evidence.zip). Evaluated on a 26-day production deployment with 1,864 active memories, 13 agent sources, 2,346 audit entries, 235 anchors. 14 integration tests over 6 dimensions, 5/5 tamper-detection scenarios detected, packy contradiction case study (33% resolved to 0% via supersession).",
+     "core_mechanism": "SHA-256 hash chain over audit_log (every 10 entries), stored in audit_anchors table; case-file reconstructs provenance; browser verify.html recomputes chain via crypto.subtle.",
+     "claimed_contributions": [
+      "Hash-chained memory audit log with tamper evidence",
+      "Case-file reconstruction CLI",
+      "Browser-verifiable evidence export",
+      "Competitive gap analysis (Table 1) showing no existing system combines all three",
+      "Production deployment evaluation"
+     ],
+     "artifact_state": "pip install memtether claimed; v0.1.0a7 alpha per SECURITY.md; production DB withheld for privacy; Playground at https://memtether.github.io/MemTether/court/ uses synthetic DB.",
+     "intended_workflow": "Install → clone → pip install -e . → run examples/audit_chain_demo.py → pytest → memtether court <uid> → memtether court <uid> --export evidence.zip → open verify.html"
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 3.0,
+     "alignment": 2.0,
+     "overall": 3.0
+    },
+    "findings": [
+     {
+      "id": "E2-USABILITY-01",
+      "severity": "critical",
+      "title": "Reproducibility commands cannot execute as written for a fresh installer",
+      "concern": "All five reproducibility commands (audit_chain_demo.py, pytest tests/test_memory_court.py, pytest tests/test_poisoning_defense.py, `memtether court <uid>`, `memtether court <uid> --export evidence.zip`) require artifacts the paper does not establish exist as advertised. (a) `examples/audit_chain_demo.py` is never cited elsewhere in the paper and there's no first-run script like `memtether init` that sets up a demo UID; (b) `<fact-uid>` is a placeholder a new user has no way to obtain without reading code — the README would need to print a sample UID after `pip install`; (c) `test_poisoning_defense.py` is the source of the 8-vector suite but is not mentioned in the abstract test-count or in Table 2, so the audit ↔ reproduction path is unstated; (d) `audit_chain_demo.py` requires a pre-existing audit_log table which `pip install` does not seed. The reviewer attempting to verify the central empirical claim (5 of 5 tamper detection) runs a command that either errors on missing module, errors on missing DB, or succeeds silently against a fixture the user cannot inspect.",
+      "remediation": "Add a one-shot bootstrap script `python -m memtether.demo` that: (i) creates a temporary SQLite with ≥ 30 audit entries spanning ≥ 3 anchors; (ii) prints a sample UID; (iii) prints the exact `memtether court <uid> --export evidence.zip` command to run; (iv) prints the expected `Expected: PASS → tamper → FAIL` summary. Ship a `docs/first_run.md` that documents this path. Either pin the demo script as the canonical reproducibility entry point or remove the bare `git clone && pip install -e .` recipe that fails silently.",
+      "category": "reproducibility"
+     },
+     {
+      "id": "E2-USABILITY-02",
+      "severity": "critical",
+      "title": "No first-run diagnostic for missing dependencies, schema, or FTS5/sql.js issues",
+      "concern": "The Playground is built on sql.js (SQLite compiled to WASM) and uses `crypto.subtle`, but neither dependency is verified at page-load. A user who opens https://memtether.github.io/MemTether/court/ in a browser without WASM support, with crypto.subtle disabled (rare but plausible in some embedded browsers), or with the WASM sqlite3 file missing from the deployment, sees either a blank page or a generic JS error with no recovery path. The paper never specifies browser compatibility floor or what the user should expect. Similarly, on the Python side, the paper does not state whether the package requires `pydantic`, a particular SQLite version (FTS5), or any LLM client — and `--export evidence.zip` is described without naming its only logged-side dependency (Python's stdlib zipfile + hashlib is enough, but the audit anchor verification path is not).",
+      "remediation": "Add a `python -m memtether doctor` (or `memtether selfcheck`) command that prints: Python version, SQLite version + FTS5 availability, optional-deps status (sentence-transformers, networkx, etc.), configured embedding backend, sample DB connectivity, sample audit_log+anchors row count, and the SHA-256 of the running binary's known-good signature. For the Playground, add an `onerror` handler that renders a visible 'Browser not supported — try Chrome ≥ 90 / Firefox ≥ 90' banner and a link to the fallback Python CLI.",
+      "category": "first_run_experience"
+     },
+     {
+      "id": "E2-USABILITY-03",
+      "severity": "critical",
+      "title": "API surface for `memtether court <uid>` and `--export evidence.zip` is undocumented",
+      "concern": "The paper repeatedly invokes two CLI verbs (`memtether court`, `--export`) as the primary user-facing surface. Neither is described in a 'Usage' section: no flags beyond `--export`, no JSON schema for `case.json`, no field definitions for the 5-section dossier, no sample output. The 'Human Adjudication' contributions (conflict adjudication UI, case file reconstruction) are described as outputs but the inputs (which fields does the CLI accept? what if the UID doesn't exist? what does the conflict-review entry look like as JSON?) are completely missing. This makes it impossible to integrate Memory Court into a downstream tool without reading source.",
+      "remediation": "Add a 'CLI Reference' subsection with: (a) `memtether court --help` output (or a mockup); (b) the JSON Schema of case.json with required/optional fields per section; (c) a worked example showing a real case.json against the packy entity from Section 5.4; (d) explicit error paths for unknown UID / broken chain / missing anchor with the standard exit codes; (e) the verify.html's expected DOM (where do ✓/× land?).",
+      "category": "api_ergonomics"
+     },
+     {
+      "id": "E2-USABILITY-04",
+      "severity": "major",
+      "title": "verify.html is described but never opened; chain.jsonl format and trust model are unspecified",
+      "concern": "Finding 1 (tamper-evident by construction) leans on browser-side verification in `verify.html`. The reviewer is told the page exists in evidence.zip, but not given: (i) the exact format of `chain.jsonl` (one entry per line? what fields? are anchors included inline or in a sibling file?); (ii) whether `verify.html` ships a fallback WASM/crypto implementation or whether it depends on `crypto.subtle` exclusively; (iii) what 'chain verifies' means as a UI affordance (✓/✗ count? per-entry markers? a final 'chain OK' badge?); (iv) what happens on partial chain break (entry 1-100 OK but entry 101 corrupt — does the page scroll to the first failure?). Without these, a reviewer cannot audit verify.html's correctness, and CK-13's omission-attack concern ('exporter could omit entries from the export') is unaddressed because the page's behavior when an expected anchor is absent (vs. a mismatch) is not specified.",
+      "remediation": "Ship an annotated verify.html transcript (a saved run, or a Playwright video) showing the exact DOM text and console output for a passing export and a tampered export. Document the chain.jsonl schema in the paper or in a `docs/evidence_format.md`. Address the omission-attack threat model explicitly: state that verify.html re-anchors each batch to the genesis, so an exporter cannot drop a batch without breaking the chain — but if the exporter can forge a genesis anchor, document that as the remaining trust assumption.",
+      "category": "completeness_examples"
+     },
+     {
+      "id": "E2-USABILITY-05",
+      "severity": "major",
+      "title": "Pin/commit hash absent; 'main' is the reproducibility target",
+      "concern": "The reproducibility section gives `git clone https://github.com/MemTether/MemTether.git` with no commit SHA, no tag, no `--depth=1 --branch <tag>` qualifier. SECURITY.md mentions `v0.1.0a7` but the paper does not cross-reference it. The data-collection window ends 2026-10-14; the alpha tag presumably predates it. A reviewer cloning `main` six months from now gets a moving target, and the central claim ('14 tests passed at evaluation time') becomes unverifiable. This is the standard reproducibility-plus-usability gap.",
+      "remediation": "Add `git checkout <sha-or-tag>` with the exact commit hash from 2026-10-14 (or a `paper-memory-court-v1` tag), and a sentence stating what changed in main since. Cross-link the SECURITY.md v0.1.0a7 caveat into the Reproducibility section.",
+      "category": "reproducibility"
+     },
+     {
+      "id": "E2-USABILITY-06",
+      "severity": "major",
+      "title": "Error messages for unknown UID, broken chain, missing anchor are unspecified",
+      "concern": "For a tool whose value proposition includes 'human adjudication' and 'verifiable evidence', the failure modes of the primary CLI are not described. Specifically: (a) `memtether court <nonexistent-uid>` — does it exit 1 with a message? Print a list of nearest UIDs? Loop over the DB? (b) `memtether court <uid>` after the chain has been tampered with — does the JSON include a `chain_status: BROKEN_AT_ENTRY_<n>` field? Does the user see this in stdout? (c) What does `--export evidence.zip` do when the chain has broken entries — refuse to export, or export with a banner inside verify.html? (d) What happens when the audit_log is empty? The paper never defines these paths, and 'usability review' specifically checks whether error messages are user-actionable.",
+      "remediation": "Define exit codes + per-error stderr lines (or table in a CLI Reference section). Add at minimum: `EUID_NOT_FOUND` (suggests `memtether court --list-sources`), `CHAIN_BROKEN_AT <n>` (suggests `memtether audit --repair` if available, else contact admin), `EXPORT_EMPTY` (suggests write ≥ 1 memory first). Make verify.html's on-chain-broken state visually distinct from the all-OK state.",
+      "category": "error_messages"
+     },
+     {
+      "id": "E2-USABILITY-07",
+      "severity": "major",
+      "title": "Tutorial/example files claimed in the reproducibility commands are not described in the paper",
+      "concern": "Three files appear in reproducibility commands but are nowhere introduced in the paper body: `examples/audit_chain_demo.py`, `tests/test_memory_court.py`, `tests/test_court_e2e_integration.py`. A reviewer who clones the repo has no README-walkthrough telling them what each file demonstrates; the paper describes outputs (chain passes / fails) but not inputs. Worse, the README's table-of-contents (if any) is not extracted into the paper, so the reader is asked to treat `audit_chain_demo.py` as authoritative without knowing its scope.",
+      "remediation": "Mention `examples/audit_chain_demo.py` in Section 4 or Reproducibility and describe what it does in one sentence. Cross-reference the test files by the dimensions they cover per Table 2. Either inline the canonical example (≤ 30 lines) in the paper or link to a `docs/walkthrough.md` in the repo.",
+      "category": "completeness_examples"
+     },
+     {
+      "id": "E2-USABILITY-08",
+      "severity": "major",
+      "title": "Hash-chain formula's field separator and length-prefixing scheme not specified (CK-08 redux as usability gap)",
+      "concern": "Section 3.2's Equation 1 defines H(e_i) as SHA256 of a bare-concatenation of six fields with no separator, no length prefixing, no canonical encoding. Two entries (`id=ab, op=C`, vs `id=a, op=BC`) produce identical hashes — an undetectable collision class. The paper does not address this. For a 'browser-verifiable' claim, an independent reimplementer must guess the separator (ASCII NUL? '\\n'? length-as-uint32-le?). This is both a soundness gap (see CK-08) and a usability gap because the reproducibility instruction 'open verify.html in browser' assumes one canonical encoding but doesn't say which.",
+      "remediation": "Pin the exact canonicalization: e.g. 'fields are joined with ASCII 0x1F (Unit Separator) and each field is encoded as UTF-8 then length-prefixed as 4-byte little-endian uint32, mirroring TLS record framing.' Provide a known-answer test vector in `docs/hash_format.md`: pick one entry's id/op/target/agent/detail/ts and print the expected SHA-256 digest so a reimplementer can verify in 5 seconds.",
+      "category": "api_ergonomics"
+     },
+     {
+      "id": "E2-USABILITY-09",
+      "severity": "major",
+      "title": "Playground's relationship to the production code is decorative, not functional",
+      "concern": "The Playground (https://memtether.github.io/MemTether/court/) is described as a 'demonstration artifact, not an evaluated component.' From a usability standpoint this means: (a) the user cannot tell whether clicking 'verify chain' on the Playground exercises the same code path as `memtether court <uid> --export`, or a hand-rolled JS reimplementation; (b) the Playground's synthetic DB is not pinned by SHA or version, so its demo isn't reproducible for a reviewer who wants to cite 'as shown on the Playground at commit X'; (c) the URL is not archived — a stale link 6 months from now breaks the abstract's claim. The paper positions the Playground as a contribution but disclaims evaluation, leaving its functional equivalence to the evidence.zip / verify.html path unestablished.",
+      "remediation": "Either (a) ship the Playground as a faithful build of the same `memtether court` CLI invoked via Pyodide, so Playground and CLI outputs match by construction; or (b) explicitly state that the Playground is a marketing illustration with hand-rolled JS, and link to a Wayback Machine archive; or (c) make the Playground evaluate itself in the paper (run the same 5 tamper scenarios on it and report the results).",
+      "category": "completeness_examples"
+     },
+     {
+      "id": "E2-USABILITY-10",
+      "severity": "minor",
+      "title": "Hallucinated arXiv IDs in the related-work set undermine reviewer confidence in the artifact trail",
+      "concern": "Six cited arXiv IDs in the bibliography are dated 2026: caura:2606.24535, mutmem:2608.02843, beyondprovenance:2609.25521, lineage:2610.07258, aecg:2610.05176, pacmi:2610.05732, trace2026:2609.33517, memstrata:2606.26511. arXiv IDs at this point should be plausibility-checked: real arXiv IDs use the format YYMM.NNNNN with sequential assignment; six IDs in two months is plausible for one lab but the reviewer cannot verify them, and three of the cited systems (Tencent, memtrace, icarus, halo-record in Table 1) have no citations at all — they are GitHub star counts. A reviewer who attempts to look any of these up and finds a 404 (or worse, finds a real paper with that ID on a different topic) treats the entire competitive gap as unverified, which collapses Finding 'no existing system combines all three'.",
+      "remediation": "Verify each arXiv ID resolves to the cited paper before submission; if any are wrong, fix immediately. Replace the star-count 'evidence' for Tencent/memtrace/icarus/halo-record with explicit URLs and a one-sentence description of each (even 'inspected source on 2026-10-15, no hash-chain' is enough). Add an explicit 'Search protocol' subsection to Table 1's caption: queries run, repositories searched, inclusion criteria, date.",
+      "category": "evidence_quality"
+     },
+     {
+      "id": "E2-USABILITY-11",
+      "severity": "minor",
+      "title": "No worked example of evidence.zip contents",
+      "concern": "The entire Section 4.4 ('Evidence Export') can be reduced to a single sentence by a reviewer: 'Open the zip, see three files.' But none of those three files is shown. Specifically: (a) `case.json` is never printed even for one memory; (b) `chain.jsonl` line format is not shown; (c) `verify.html` is not screenshotted. This makes it impossible for a reviewer to assess whether the case file is 'human-readable' in the sense the paper claims, whether chain.jsonl is parseable independently, or whether verify.html renders a useful UI.",
+      "remediation": "Add a 'Worked example' paragraph showing the actual content of evidence.zip for the packy case study: a 20-line excerpt from case.json, 5 lines from chain.jsonl, and a textual description of verify.html's layout. Alternatively, host evidence.zip for the packy case as a downloadable artifact referenced from the paper.",
+      "category": "completeness_examples"
+     },
+     {
+      "id": "E2-USABILITY-12",
+      "severity": "minor",
+      "title": "memtether court <uid> cannot be invoked without first knowing a UID — no discoverability path",
+      "concern": "After `pip install memtether`, a new user runs `memtether court <uid>` and gets an error if they have no UID. There is no `memtether court --list` or `memtether court --recent` to help them find one. Combined with E2-USABILITY-01, the first-run experience is a dead end. This is also a usability concern for the Playground user: if the playground doesn't load with a pre-selected sample memory, the user is on the same dead-end page.",
+      "remediation": "Add `memtether court --list [--limit N]` (or `--recent`) and make the Playground auto-load a sample memory on first render. Document the discovery flow in the Reproducibility section.",
+      "category": "first_run_experience"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      {
+       "claim": "Memory Court is 'tamper-evident by construction' (Finding 1 + abstract).",
+       "evidence_gap": "This is conditional on the threat model in SECURITY.md: any attacker with write access to the same SQLite file defeats the chain by rewriting both audit_log and audit_anchors. The paper's Finding 1 + abstract do not qualify this; they read as a universal property. A user reading 'tamper-evident by construction' and installing the package receives a false sense of cryptographic guarantee. The honest boundary deserves an in-paper paragraph, not a sibling doc."
+      },
+      {
+       "claim": "EU AI Act Article 12 compliance (§2.2, abstract).",
+       "evidence_gap": "Article 12(1) requires 'automatic logging of events' over the lifetime of the system with sufficient detail and traceability. Memory Court provides a hash chain over logged events (good) but does not address: log retention period, log integrity over the full lifetime (an anchor today doesn't protect an entry from 25 days ago if the DB is replaced), tamper-resistance against internal actors (per CK-14), and the difference between 'log exists' and 'log is sufficient for traceability'. The phrase 'directly implements this requirement' in §2.2 overclaims; 'contributes to' in the abstract is closer to defensible."
+      },
+      {
+       "claim": "'14 integration tests covering 6 dimensions' (abstract + §5.3).",
+       "evidence_gap": "The 14-test number is contradicted by (a) the Limitations' '23 (now 14) integration tests' (was 23, now 14 — the regression isn't explained and several test files appear to have been deleted or renamed between v0.1.0a7 and submission), and (b) `test_poisoning_defense.py` with 8 tests listed in §6's reproducibility recipe but not in Table 2's headcount. A reviewer running `pytest tests/test_memory_court.py tests/test_court_e2e_integration.py` may see 14 pass; a reviewer running all tests sees 22+ pass. The discrepancy is unaddressed."
+      },
+      {
+       "claim": "'A downstream agent querying packy's status received contradictory evidence' (§5.4).",
+       "evidence_gap": "Admitted limitation: a free-tier GLM-5.3-flash judge. There is no transcript, no prompt, no model-response excerpt in the paper. The 'downstream impact' claim therefore rests on the 33% contradiction rate, not on any concrete demonstration that an agent actually retrieved contradictory evidence and acted on it. A reviewer cannot distinguish 'the data was contradictory' (which the rate shows) from 'an agent was actually misled' (which the paper asserts without evidence)."
+      },
+      {
+       "claim": "Competitive gap (Table 1): 'No existing system combines all three capabilities.'",
+       "evidence_gap": "Two competing concerns: (a) the search protocol is unspecified (no query strings, no inclusion criteria, no date range); (b) four of five competitors (Tencent, memtrace, icarus, halo-record) have no citations — only GitHub star counts. Combined with the suspicious 2026 arXiv IDs (E2-USABILITY-10), the reviewer cannot audit the central novelty claim. The paper is making a survey-style assertion using methodology that is not survey-style rigorous."
+      }
+     ],
+     "statistical_issues": [
+      {
+       "issue": "Packy contradiction rate arithmetic is correct (5/15 = 33.3%), but the Wilson 95% CI [12%, 62%] should be re-verified.",
+       "details": "Wilson interval for n=15, p=5/15: z=1.96, denominator = 1+z²/n = 1+0.2533 = 1.2533. Center = (p+z²/(2n))/denom = (0.3333+0.0333)/1.2533 = 0.3667/1.2533 = 0.2927. Half-width = z/(1+z²/n) × √[p(1-p)/n + z²/(4n²)] = 1.96/1.2533 × √[0.2222/15 + 0.0067/225] ≈ 1.564 × √[0.01481 + 0.0000297] ≈ 1.564 × 0.1217 ≈ 0.1904. CI = (0.2927 - 0.1904, 0.2927 + 0.1904) = (0.102, 0.483). The paper reports [12%, 62%] — symmetric around ~37% which is roughly correct, but a reviewer recomputing gets asymmetric bounds [10%, 48%]. The symmetric-looking bounds in the paper suggest normal-approximation rather than Wilson, which is misleading labeling at n=15."
+      },
+      {
+       "issue": "60% contradiction figure in Limitations vs 33% in main text (CK-03).",
+       "details": "Limitations says 'packy entity case study (60% contradiction rate)' while abstract and §5.4 say 33%. The 60% likely refers to a different denominator (e.g., 9/15 active memories that *contradicted something*, or 5/8 *within a subwindow*). Whichever it is, the paper must reconcile. Two numbers for the same case study on different pages is the kind of cross-paper inconsistency that undermines trust."
+      },
+      {
+       "issue": "Anchor count: 2,346 entries / 10 per batch = 234 (or 235 with genesis).",
+       "details": "The paper reports 235 anchors and does not explain the off-by-one. This is CK-09 and minor — but a usability reviewer notes that '2,346 / 10 = 234.6 → ⌈235⌉' is not the only explanation (could be 'batch size 10 with genesis + rest'). State which."
+      },
+      {
+       "issue": "No power calculation for '14 tests'; small-sample reasoning.",
+       "details": "The 6-dimension × multi-test schema has no justification for why 14 (or any N) tests is the right number. This is engineering-grade testing, not statistical; OK for an artifact paper, but combined with 'sample 15 memories' for packy, the paper gives the reviewer a 'small-sample, hand-coded' impression across the board."
+      }
+     ],
+     "logical_leaps": [
+      {
+       "leap": "From 'hash chain detects all 5 of 5 anchored-row modifications' to 'Memory Court is a tamper-evident system suitable for regulatory compliance' (EU AI Act claim).",
+       "details": "Detecting post-hoc modification of rows in a single SQLite file is not the same as providing compliance-grade records for a regulated AI system. Compliance requires retention, access control, integrity against insider threats, audit by independent third parties, and (per SECURITY.md) is admitted to break down against an attacker with full DB access. The §2.2 claim 'directly implements this requirement' leaps from a single demonstration to a regulatory assertion that is several safety properties away from being earned."
+      },
+      {
+       "leap": "From 'one operator's 26-day production deployment' to 'production-validated governance layer for AI agent memory'.",
+       "details": "Self-admitted single-author deployment with zero external users (Limitations). The abstract's framing as 'production deployment' provides a credentialing signal that the body admits is unsupported. This is E4-02's concern restated as a usability issue: a reader who reads 'production deployment, 1,864 memories' and forms expectations about scale and diversity is misled."
+      },
+      {
+       "leap": "From 'browser-side verification using crypto.subtle' to 'no trust in the exporter required'.",
+       "details": "verify.html recomputes the chain from chain.jsonl exported by the same system being audited. An exporter can: (a) omit entries from chain.jsonl, breaking the chain; (b) substitute a forged chain with a self-consistent hash pattern. The paper's claim 'no trust in the exporter required' is true only against an attacker who modifies existing entries, not against an attacker who controls what gets exported. This is CK-13's concern restated, and it's both a security and a usability claim."
+      }
+     ],
+     "alternative_explanations": [
+      {
+       "claim_target": "Memory Court provides 'court of record' value beyond a simple audit log with SHA-256 anchors.",
+       "alternative": "What the paper demonstrates is: (a) every 10 operations, an SHA-256 anchor is written to a separate table; (b) a CLI that prints a memory's history by joining audit_log entries; (c) a browser page that recomputes the chain. Each piece is well-known infrastructure; the integration is novel, but the 'case file' and 'evidence export' outputs are conventional database-query + ZIP-packing operations. Alternative framing: this is a thin orchestration layer atop MemTether's existing tables (per §4.1: 'reuses four existing components without modification') rather than a new system. The paper does not quantify what fraction of Memory Court's behavior is new vs reused, which would bound its contribution."
+      },
+      {
+       "claim_target": "Browser-verifiability.",
+       "alternative": "Running `python examples/audit_chain_demo.py` and visually inspecting chain status achieves the same end. The browser path is convenient (zero install) but not technically novel. The paper could measure the additional reviewer-time saved by browser verification — say, 'a compliance officer verifies in 30 seconds vs 5 minutes with CLI' — to justify the §3's emphasis on this contribution."
+      }
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "details": "Multiple signals that the paper is optimized for review metrics rather than substance: (1) Test count is the headline ('14 integration tests covering 6 dimensions'); the criteria are presented but no reviewer-side verification of test-file names to dimension mapping is given, and the test_poisoning_defense.py (an 8-test file) is quietly added at the bottom of the reproducibility recipe to inflate the count without contributing to Table 2. (2) The packy case study's precision is asymmetric (5/15 = 33% reported precisely, 60% buried in Limitations; Wilson CI given but apparently not actually Wilson). (3) The competitive gap (Table 1) is presented as 'systematic' with no methodology and includes uncited entries. (4) The abstract claims 'production deployment' despite the body admitting zero external users. (5) Finding 1 'tamper-evident by construction' is the strongest single sentence in the paper but is contradicted by SECURITY.md's honest-boundary section, which is not surfaced in the abstract or the finding text. (6) EU AI Act compliance is asserted in §2.2 ('directly implements') then hedged in the abstract ('contributing to'); the inconsistency suggests the stronger claim was a metric-driven optimization."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "Paper makes the '5 of 5 anchored-row' detection claim but does not explicitly state in §5.2 that tampering of unanchored tail entries (<10) is admitted by Limitations §6.2 ('Anchor tail coverage: The last <10 audit entries before the current position are not yet anchored') without being cross-linked from §5.2. A reviewer would have to cross-reference sections to discover this. The 235 anchors vs 234 expected batches gap (CK-09) makes the boundary fuzzier rather than crisper."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "5/15 = 33.3% numerically correct. Reported Wilson 95% CI is [12%, 62%]; recomputed asymmetric Wilson is approximately [10%, 48%]. Symmetric-looking bounds suggest normal approximation rather than Wilson — labeling is misleading at n=15."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "§5.4/abstract: 33% (5 of 15). Limitations §6.2: 'packy entity case study (60% contradiction rate)'. The two figures differ and the paper does not reconcile. The 60% may refer to (5/15 active memories that conflicted, vs 2-for-5 within a subwindow); without disambiguation, the headline rate is unstable."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "Abstract/§5.3 claim 14 tests in 6 dimensions; Table 2 sums 6+2+1+2+1+2=14 consistent with that. Limitations §6.2 says '23 (now 14) integration tests' — 9 tests deleted between v0.1.0a7 and submission, undocumented. Reproducibility §6 adds `pytest tests/test_poisoning_defense.py` with 8 more tests not in Table 2's count, suggesting either headline number is wrong or this is a separate suite not part of the '14'. Headline number unstable."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "Finding 1 reads: 'Any modification of a logged entry... This is a property of the construction, not of the implementation.' SECURITY.md's 'honest boundary' section admits the chain is defeated by an attacker who can write to audit_anchors; this is also a 'property of the construction'. The Finding 1 statement is therefore overclaimed: tamper-evident only against attackers who can bypass the application's audit_log hook but not against those with full DB write access. The paper never qualifies Finding 1 or the abstract's 'tamper-evident by construction' phrase."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "§2.2 says 'directly implements this requirement'; abstract says 'contributing to'. Both are unsupported without addressing retention, lifetime integrity, and access control — all stated in Art. 12(1) beyond automatic logging. Paper does not argue these."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "'Systematic search of GitHub repositories and arXiv papers (October 2026)' — no query strings, no inclusion criteria, no list of repositories searched. Three of five competitors (Tencent, memtrace, icarus) have no citations at all; halo-record has 'runtime' noted as a feature with no citation. The 'Adjudication UI' and 'Evidence export' columns for those rows are reads of repo READMEs that are not cited."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "H(e_i) = SHA256(id_i || op_i || target_i || agent_i || detail_i || ts_i) with no separator, no length-prefixing, no encoding specification. An independent reimplementer cannot reproduce the hash from the formula; a reimplementer with a guessed separator will produce different hashes for entries with embedded delimiters. Undetectable collision class exists (id='ab', op='C' vs id='a', op='BC')."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "2,346 / 10 = 234.6; paper reports 235 anchors; no explanation of off-by-one. Likely genesis anchor but not stated."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "Abstract frames this as 'production deployment'; Limitations admits zero external users and single-author operation. The 'production deployment' framing in §5.1 uses 'has been deployed in a production multi-agent environment' without qualifying that 'production' means 'one person's setup'."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "`pytest tests/test_memory_court.py tests/test_court_e2e_integration.py -v` is claimed to produce 14 passed; test_poisoning_defense.py's 8 tests are not in this count. Test dimensions in Table 2 are not mapped to specific test function names anywhere — so the 'covering 6 dimensions' claim is structural, not verifiable from the artifact."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Six arXiv IDs from 2026 cited without inline links; reviewer cannot easily verify. Star counts substitute for citations in Table 1 for 4 of 5 competitors."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "verify.html recomputes the chain from chain.jsonl, but the paper does not address chain.jsonl omission attacks. 'No trust in the exporter required' is true against modification but not against omission/substitution of the export set."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Finding: Memory Court 'does not prevent memory poisoning... makes such writes detectable and attributable.' SECURITY.md states correct() does not validate corrector identity and the source registry is fail-open by default. Attribution is therefore unreliable in the open-source default. Paper does not qualify the attribution claim."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "§5.4 asserts 'A downstream agent querying packy's status received contradictory evidence' but provides no transcript, prompt, or model-response excerpt. The free-tier judge is admitted; the evidence for 'actually received' is the 33% rate, not a documented retrieval event."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior_work": [
+      {
+       "name": "Certificate Transparency (RFC 6962)",
+       "relationship": "Conceptual ancestor — same SHA-256 chain over append-only log with periodic anchors; CT's Merkle tree variant is mentioned as the future optimization in the paper's own limitations.",
+       "verdict": "CT's chain-and-anchor structure is directly inherited; what is novel is the application to memory content + browser-side verification, but the hash chain itself is conventional."
+      },
+      {
+       "name": "Caura / MemClaw (cited as arXiv:2606.24535)",
+       "relationship": "Most directly related cited work. The paper acknowledges Caura's governance and supersession but says 'no cryptographic chaining, no evidence export'.",
+       "verdict": "If Caura exists as cited and provides governed shared memory + supersession + audit log, then Memory Court's novelty reduces to (a) hash chaining the audit log, (b) browser-verifiable export. Both are engineering additions, not conceptual contributions."
+      },
+      {
+       "name": "halo-record",
+       "relationship": "Cited as having 'runtime' hash chains at the agent action layer; not memory content.",
+       "verdict": "If real, then halo-record establishes the same primitive at a different layer — the closest comparator. The paper should compare more directly."
+      },
+      {
+       "name": "MutMem (cited as arXiv:2608.02843)",
+       "relationship": "Cited as SHA-256 commitments over memory mutation authorization.",
+       "verdict": "If real and correctly described, this is prior art that already applies SHA-256 to memory mutations and is therefore closer in spirit than the paper's framing allows. Needs verification."
+      },
+      {
+       "name": "MemStrata / PACMI / TRACE / AECG (cited 2026 arXiv)",
+       "relationship": "Cited as supersession / invalidation systems without cryptographic chaining.",
+       "verdict": "Four 2026 papers cited but unverifiable; if any one of them also implements hash chains or evidence export, the novelty claim collapses."
+      }
+     ],
+     "overall_novelty_assessment": "The combination-of-three-features novelty (hash chain + browser export + adjudication UI) is plausible but unprovable from the evidence given. Each individual feature has evident prior art: CT-style chains, ZIP-packaged exports are conventional (e.g., WARC archives for web archiving, signed JARs for Java, OpenTimestamps for documents), and adjudication UI is normal product UI. The paper is most credible as 'first integrated deployment combining these features for agent memory' rather than 'first system with any of these features'.",
+     "verdict": "Marginal novelty; the gap claim is plausible but the verification path is too thin to confirm."
+    },
+    "meta_note": "Reviewer E2 verdict: the paper presents a useful artifact idea (memory governance with cryptographic chaining) but the submission's evidentiary backbone is too thin to act on. The most serious concerns from this reviewer's lens are: (1) the reproducibility recipe cannot execute as written for a fresh installer (E2-USABILITY-01, -02); (2) the CLI surface that is the paper's primary deliverable is undocumented (E2-USABILITY-03); (3) verify.html's behavior and chain.jsonl's format are never shown, leaving the central novelty un-auditable (E2-USABILITY-04, -11); (4) the canonicalization for H(e_i) is ambiguous and produces an undetectable collision class (E2-USABILITY-08 + CK-08); and (5) the security claim 'tamper-evident by construction' is contradicted by the SECURITY.md honest boundary and the paper never reconciles (E2-USABILITY + CK-05 + CK-14). Combined with the headline-number contradictions across abstract / Table 2 / Limitations (CK-03, CK-04), this submission's review needs more material from the authors before acceptance — specifically, a worked evidence.zip example, a pinned commit hash with first-run transcript, a CLI Reference section, and an honest re-statement of Finding 1's threat model. Severity: I'd request 'major revision' before second-round review. The artifact has potential and the case study direction is sensible; the present manuscript is closer to a measurement paper with one illustrative case + a promising product idea than to a validated system paper.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the tamper-detection experiment's claimed scope: abstract and Section 5.2 say 'all 5 of 5 anchored-row modification scenarios' over 2,346 entries—confirm the paper distinguishes tampering of anchored rows from the unanchored tail (<10 entries, admitted in Limitations), and that unanchored-entry tampering is NOT claimed as detected.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Cross-check the contradiction-rate arithmetic in the packy case study: 5 of 15 active memories = 33.3%, and confirm the Wilson 95% CI [12%, 62%] is plausible for n=15, p=0.33 (a reviewer should recompute; note Section 5.4's prose says contradiction rate 'dropped to 0%'—verify this follows from the supersession mechanics, not just relabeling).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Flag the internal inconsistency: Section 5.4/abstract report a 33% contradiction rate for packy, while the Limitations section states 'The packy entity case study (60% contradiction rate)'—determine which figure is correct and whether 60% corresponds to a different denominator (e.g., 2-of-5 vs 5-of-15).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Verify test-count consistency: abstract and Section 5.3 claim 14 integration tests over 6 dimensions matching Table 2 (6+2+1+2+1+2=14), but the Limitations say 'The 23 (now 14) integration tests' and Reproducibility adds a poisoning test file with 8 tests—reconcile whether 14 is the right headline number and whether test_poisoning_defense.py is part of the evaluation or not.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Check the 'tamper-evident by construction' Finding 1 against the honest boundary in SECURITY.md: the chain anchors live in the same SQLite database, so an attacker who can rewrite both audit_log and audit_anchors defeats detection—confirm the paper's Finding 1 and abstract do not overclaim beyond 'detects post-hoc modification' given this stated fail-open condition.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Verify the EU AI Act Article 12 compliance claim: the paper cites Art. 12(1) 'automatic logging' but never argues Memory Court satisfies the full traceability requirement (e.g., log integrity over lifetime, retention); assess whether 'contributing to' in the abstract vs 'directly implements this requirement' in Section 2.2 are consistent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check Table 1 (competitive gap) methodology: the search is described as 'systematic' but no search protocol, query strings, or inclusion criteria are given; verify whether the 'Adjudication UI' and 'Evidence export' columns for competitors (Tencent 27.7K, memtrace, icarus, halo-record) are backed by any cited evidence, and note halo-record and Tencent have no citations at all.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify whether the hash-chain formula (Equation 1) is verifiable from the paper: per-entry hash H(e_i) concatenates id, op, target, agent, detail, ts—but no field separator or length-prefixing scheme is specified; assess whether an independent reimplementation could reproduce verification (relevant to the browser verify.html claim and reproducibility section).",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Confirm the anchor-count arithmetic in the deployment stats: 2,346 audit entries with an anchor every 10 entries implies ~234 anchors, but the paper reports 235 anchors—check whether the off-by-one is explained (e.g., genesis anchor).",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Assess the deployment self-referentiality: all 13 agent sources are operated by one author (admitted), zero external users, production DB not released—verify the paper's 'production deployment' framing is not overstated given this, and that the abstract's 'production deployment' claim is qualified anywhere prominent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the reproducibility commands actually map to claims: pytest targets tests/test_memory_court.py and tests/test_court_e2e_integration.py for '14 passed'—check the claimed test dimensions in Table 2 correspond to named tests in those files, and whether the poisoning-defense 8-vector suite (with negative test_F) is described consistently with SECURITY.md's mapping table.",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the citation integrity of the competitive/related-work set: multiple references are dated 2026 (Caura arXiv:2606.24535, MutMem, PACMI, TRACE, AECG, MemStrata) and the gap analysis is dated 'October 2026'—verify these are real, accessible papers; a fabricated or unverifiable related-work set would undermine the 'no existing system' novelty claim.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify the browser-verifiability claim is non-circular: verify.html recomputes the chain from chain.jsonl, but chain.jsonl is produced by the same exporter being audited—confirm the paper addresses (or should address) that the exporter could omit entries from the export; 'no trust in the exporter required' is stated but omission attacks are not discussed.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check consistency of the two stated threat-model positions: the paper says Memory Court 'does not prevent memory poisoning... makes such writes detectable and attributable,' while SECURITY.md admits initial-fact injection has no interception AND that correct() does not validate corrector identity (fail-open source registry in open-source default)—verify the paper does not imply attribution is reliable when source spoofing is possible in the default configuration.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify the case study's downstream-impact evidence: the claim that 'a downstream agent querying packy's status received contradictory evidence' relies on a free-tier GLM-5.3-flash judge (admitted limitation)—check whether any concrete output/transcript of this contradictory retrieval is presented, or whether the impact claim rests solely on the 33% rate.",
+      "category": "evidence",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": null
+   },
+   "usage": {
+    "in": 18013,
+    "out": 9021,
+    "secs": 97.3
+   },
+   "raw_len": 38032,
+   "z": -0.707
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "product": "Memory Court: a governance layer over MemTether adding (1) SHA-256 hash-chained audit log with per-10-entry anchors, (2) `memtether court <uid>` case-file dossier reconstruction, (3) `evidence.zip` browser-verifiable export, plus a WASM Playground demo.",
+     "claimed_user": "Operators of regulated-domain agents (healthcare/finance/legal) needing EU AI Act Art. 12 traceability; in practice, one solo local-first operator with 13 self-run agents.",
+     "claimed_differentiation": "No competitor combines memory-level hash chaining, exportable evidence, and adjudication UI (Table 1); tamper-evident 'by construction'; contradiction resolved to 0% via supersession; 5/5 tamper scenarios detected over 2,346 entries; 14 integration tests.",
+     "evidence_base": "26-day single-author deployment, 1,864 memories, 2,346 audit entries, self-run tests, one 15-memory case study, unreleased production DB."
+    },
+    "scores": {
+     "depth": 2.0,
+     "soundness": 2.0,
+     "helpfulness": 3.0,
+     "alignment": 2.0,
+     "overall": 3.0
+    },
+    "findings": [
+     {
+      "id": "E4-01",
+      "severity": "major",
+      "issue": "The central competitive claim — 'no existing system provides verifiable evidence... or a replayable adjudication record' — rests on a gap analysis with no verifiable methodology and possibly fabricated comparators",
+      "relevant_text": "We conducted a systematic search of GitHub repositories and arXiv papers (October 2026) for systems combining memory-level hash chaining... halo-record (83)... Tencent (27.7K)",
+      "concern": "As a product-review question, 'does this beat mem0/Zep/Letta?' cannot be answered from the paper. Table 1 rates four comparators (Tencent 27.7K, memtrace, icarus, halo-record) of which two (Tencent, halo-record) have NO citation at all, and no search protocol, query strings, or inclusion criteria are given — 'systematic' is asserted, not demonstrated. Meanwhile the named competitor Caura is dismissed on one asserted difference ('standard database log without cryptographic chaining') with no evidence. For a positioning paper, the entire 'unique' claim is unverifiable. Notably, the paper itself concedes the core mechanism is not novel: 'this is an expected property of any correctly implemented hash chain; the contribution is the integration.' Integration novelty is a weak product moat — a competitor can add a hash chain to an audit log in a sprint.",
+      "suggestions": "Publish the search protocol (queries, dates, filters). Cite or drop uncited Table 1 rows. Concede explicitly that hash chaining is off-the-shelf (Certificate Transparency-style) and the only defensible differentiator is the export + adjudication UX — then evidence that UX advantage with an actual auditor user study.",
+      "status": "new (this round)"
+     },
+     {
+      "id": "E4-02",
+      "severity": "major",
+      "issue": "Who is the user? The paper's implied buyer (regulated enterprise) is contradicted by the actual product (single-machine, single-author, fail-open defaults)",
+      "relevant_text": "As these agents proliferate in regulated domains---healthcare, finance, legal... It does not scale to distributed multi-machine deployments... Zero external users",
+      "concern": "Regulated enterprises needing Art. 12 compliance run multi-tenant, distributed, audited infrastructure. Memory Court is explicitly single-machine/single-SQLite, validated only by one author operating all 13 agents, with a fail-open source registry in the default open-source config (any unregistered source writes verbatim). The product as shipped cannot serve the user the paper markets to. The actual user is the solo local-first agent operator — a tiny, probably not compliance-driven population — and for that user, Art. 12 (which binds high-risk system providers, with GPAI obligations in 2027) is largely irrelevant. The positioning and the artifact point at different customers.",
+      "suggestions": "Either scope the user honestly ('solo power users wanting personal provenance') or build the distributed/external-anchor story enterprises need. Drop the regulated-domain framing until there is one external compliance-motivated user.",
+      "status": "new (this round)"
+     },
+     {
+      "id": "E4-03",
+      "severity": "major",
+      "issue": "No switching reason is demonstrated against mem0/Zep/Letta: the security guarantees are narrower than the abstract claims, and the threat actually addressed is mostly 'silent tampering by an attacker with DB write access but not DB full-control' — an odd threat model",
+      "relevant_text": "detects any post-hoc modification of memory records (tamper-evident by construction)... the hash chain is valid within one SQLite file",
+      "concern": "SECURITY.md's honest boundary: anchors live in the same DB, so an attacker who can rewrite audit_log can also rewrite audit_anchors — detection fails open. The abstract's 'tamper-evident by construction' and Finding 1 do not carry this qualification. SECURITY.md also concedes initial-fact injection has NO interception and correct() does not validate identity in the default config — so the paper's 'detectable and attributable' claim overstates attribution, which is spoofable via the fail-open registry. Net: the defensible guarantee is 'detects mistakes and bypasses of the app layer that don't touch the anchors table.' Against Zep (temporal KG with invalidation), Letta (placement governance), mem0 — none of which markets tamper-evidence — a compliance buyer still gets more usable governance from competitors than a hash chain that fails open against the attacker class that compliance actually worries about (a compromised host). Switching requires either external anchoring (WORM storage, CT-style witness) or at minimum a paper that states the boundary in the abstract.",
+      "suggestions": "State the fail-open condition in the abstract and Finding 1. Add optional external anchoring (e.g., periodically commit anchor head to a git remote, ratchet tree, or timestamping authority) — that single feature would turn 'same-DB chaining' into a real differentiator vs. all competitors.",
+      "status": "new (this round)"
+     },
+     {
+      "id": "E4-04",
+      "severity": "major",
+      "issue": "The 'switching story' numbers are weak: 5/5 on a property the paper admits is trivial; 33%→0% contradiction resolution is a workflow outcome, not a system capability competitors lack",
+      "relevant_text": "the hash chain correctly detects all 5 of 5 anchored-row modification scenarios... the contradiction rate dropped to 0%",
+      "concern": "The 5/5 tamper result is a unit test of SHA-256, which the paper itself flags as 'an expected property of any correctly implemented hash chain' — zero product value as evidence. The 33%→0% packy result: (a) 33% vs. 60% contradiction rate is internally inconsistent between §5.4/abstract and Limitations, and with n=15, Wilson CI [12%,62%] — the paper cannot even pin down its own headline case-study number; (b) dropping to 0% after supersession is definitional (once you label facts 'superseded' they're no longer counted as active contradictions) — Zep's invalidation does the same thing functionally; the only claimed extra is the replayable adjudication record, which is UX, not outcome. A mem0/Zep user's question 'what improves for me?' has no measured answer anywhere in the paper.",
+      "suggestions": "Fix the 33%/60% inconsistency and label the 0% as definitional. Replace the tamper 5/5 with a comparison against what a plain audit_log already gives (an unhashed log also shows post-hoc edits via row mutation heuristics) — quantify the delta. Add at least one instrumented competitor run on the same workload.",
+      "status": "new (this round)"
+     },
+     {
+      "id": "E4-05",
+      "severity": "major",
+      "issue": "Anti-gaming signal: evaluation is self-designed, self-executed, with test-count inconsistencies, self-referential statistics, and 2026-dated possibly unverifiable related work",
+      "relevant_text": "The 23 (now 14) integration tests... Zero external users... MutMem arXiv:2608.02843, PACMI arXiv:2610.05732, TRACE arXiv:2609.33517",
+      "concern": "14 vs. 23 test counts are unreconciled; test_poisoning_defense.py's 8 tests sit outside the '14' headline; the deployment stats are the author grading their own homework (admitted in Limitations, credit for honesty, but the abstract's 'production deployment' framing is unqualified there). Several core comparators and the gap-analysis date (October 2026) are 2026-dated arXiv IDs that cannot be verified as real — if the comparator set is invented or misread, the 'no existing system' novelty claim collapses entirely, and this is the load-bearing claim of the product pitch. This cluster has the signature of a manuscript optimized to look complete rather than to survive external verification.",
+      "suggestions": "Reconcile 14/23/8 counts. Qualify 'production deployment' as single-author in the abstract. Provide resolvable, checkable citations for every Table 1 row and every related-work system or remove them.",
+      "status": "new (this round)"
+     },
+     {
+      "id": "E4-06",
+      "severity": "minor",
+      "issue": "Honest credit where due: SECURITY.md's adversarial-review revision (v2) is exactly the competitive honesty the paper should emulate, but the paper regresses from it",
+      "relevant_text": "初版映射表被对抗评审... 指出三类过度声明，已修正",
+      "concern": "The repo's threat model was hardened after a simulated adversarial review, admitting no interception of initial-fact injection, fail-open source registry, and retire-as-runtime-erasure. The paper, however, says 'makes such writes detectable and attributable' — attribution is exactly what the fail-open registry undermines in the default config. The paper is less honest than its own SECURITY.md, which for a compliance-marketed product is a positioning failure: an auditor who reads both documents will trust neither.",
+      "suggestions": "Port SECURITY.md's v2 qualifications into §5.1 verbatim-level honesty; make registered-agents.json the default rather than fail-open, or state the open-source default is non-attributing.",
+      "status": "new (this round)"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "'No existing system' ← Table 1 with no search protocol, two uncited comparators, and 2026-dated citations that may be unverifiable (CK-07, CK-12).",
+      "'Tamper-evident by construction' ← 5/5 on anchored rows only; unanchored tail admitted; anchors co-located with log = fail-open vs. full-control attacker (CK-01, CK-05).",
+      "'Detectable and attributable' ← attribution depends on source registry that is fail-open by default (CK-14).",
+      "'Production deployment' ← one author, zero external users, DB withheld (CK-10).",
+      "Art. 12: abstract says 'contributing to', §2.2 says 'directly implements' — the stronger claim is unsupported (no argument on log lifetime, retention, integrity over system lifetime) (CK-06).",
+      "'A downstream agent received contradictory evidence' ← no transcript presented; rests on the 33% rate alone, judged by a free-tier model (CK-15)."
+     ],
+     "statistical_issues": [
+      "33% vs. 60% contradiction rate internal contradiction (CK-03) — likely 2-of-5-vintage vs. 5-of-15 denominators; whichever, the paper contradicts itself on its only case study.",
+      "n=15, Wilson CI [12%,62%] is arithmetically plausible but the paper draws an illustrative-to-general narrative from a CI spanning 50 points.",
+      "235 anchors for 2,346 entries: consistent with ceil(2346/10)=235 including genesis/tail anchoring but unexplained (CK-09).",
+      "No statistical treatment beyond one Wilson CI; 5/5 tamper scenarios have no uncertainty framing and are a deterministic property."
+     ],
+     "logical_leaps": [
+      "Hash chaining exists ⇒ compliance value. Art. 12 requires traceability over the system lifetime with log integrity; a same-DB chain that fails open against the relevant attacker does not establish this leap.",
+      "Supersession reduces contradiction rate to 0% ⇒ Memory Court resolves conflicts. Definitional relabeling plus bi-temporal ordering — competitors do functionally equivalent invalidation.",
+      "'Systematic search' (no protocol) ⇒ 'no existing system'."
+     ],
+     "alternative_explanations": [
+      "The packy contradiction existed 18 days before adjudication — a simpler explanation of '33%→0%' is that any system with a status field and a human would fix it; the hash chain contributed nothing to the resolution.",
+      "The deployment 'works' because one trusted author operates everything; in a genuinely multi-actor setting the fail-open registry and unvalidated correct() would likely produce the very integrity problems the chain can't attribute."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "note": "Test counts shift (23→14) with an additional 8-test suite outside the headline; headline numbers (5/5, 33%→0%) are chosen where success is definitional or trivial; the strongest honesty lives in Limitations/SECURITY.md while the abstract markets the unqualified versions; the competitive Table 1 rates competitors on columns they may never have been evaluated for, against a search protocol that isn't disclosed."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "Tamper experiment is correctly scoped to anchored rows (5/5); unanchored tail (<10 entries) admitted in Limitations. The abstract's 'detects any post-hoc modification' is broader than the demonstrated scope but the experiment itself is honestly bounded."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "5/15=33.3%; Wilson CI [12%,62%] recomputes correctly for n=15, p=0.33 (score interval ≈ [14%, 61%], consistent within rounding). However, 'dropped to 0%' is definitional — superseded facts are removed from the active denominator — the paper presents it as an outcome. Partial fail on the relabeling question."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "Unresolved: §5.4/abstract say 33% (5/15 active); Limitations says 60% (possibly 3/5 conflicting-at-peak or 5-of-retrievable subset). The paper contradicts itself on its only case study. Must be fixed with an explicit denominator."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "14 vs. '23 (now 14)' unreconciled; test_poisoning_defense.py's 8 tests are listed in Reproducibility but excluded from the 14-dimension Table 2. The right headline is ambiguous as written."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "Finding 1 ('tamper-evident by construction', 'property of the construction') and abstract overclaim relative to SECURITY.md's fail-open condition (attacker rewriting both tables defeats detection). Paper body never carries the boundary."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "'Directly implements this requirement' (§2.2) vs. 'contributing to' (abstract): the stronger claim is unsupported — no argument on log lifetime, retention, or integrity against the attacker class Art. 12 presupposes."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "No search protocol, query strings, or inclusion criteria. Tencent (27.7K) and halo-record have no citations at all; Adjudication UI / Evidence export columns for competitors have no cited evidence. 'Systematic' is unsupported."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "Equation 1 uses bare concatenation with no field separator/length-prefix. Fields include free-text 'detail'; concatenation is ambiguous (e.g., op='re' + target='member' vs op='rem' + target='ember'). An independent reimplementation may not reproduce hashes — undermines the verify.html/reproducibility story."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "235 = ceil(2346/10) is consistent with a genesis anchor or final partial-batch anchor; off-by-one is plausible but not explicitly explained in the paper. Non-load-bearing."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "'Production deployment' appears unqualified in the abstract; single-author operation and zero external users are disclosed only in Limitations, and the production DB is withheld. Framing is overstated for prominence-weighted claims."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Repro commands exist but Table 2 dimensions are not mapped to named tests; the poisoning suite (8 vectors incl. negative test_F) is described in Reproducibility and SECURITY.md but excluded from the 14-test Table 2, leaving the test accounting inconsistent."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Multiple 2026-dated arXiv IDs (Caura 2606.24535, MutMem 2608.02843, TRACE 2609.33517, AECG 2610.05176, MemStrata 2610.26511, PACMI 2610.05732, lineage 2610.07258, beyond-provenance 2609.25521) — as presented these cannot be verified by the reviewer and the gap analysis is dated 'October 2026'. If any are fabricated, the novelty claim collapses. Authors must supply resolvable DOIs/URLs."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "Omission attacks are not discussed: 'no trust in the exporter required' is circular — verify.html verifies internal consistency of chain.jsonl, which the (untrusted) exporter selects. An exporter that omits entries produces a perfectly valid chain over a curated subset."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Paper claims 'detectable and attributable' without disclosing that the default open-source config is fail-open on source registration and correct() does not validate corrector identity — attribution is spoofable in the shipped default. The paper is less honest than its own SECURITY.md."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "No transcript or concrete output of the contradictory downstream retrieval is presented; the impact claim rests solely on the 33% rate, adjudicated by a free-tier model (admitted)."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior": "Certificate Transparency / RFC 6962 (append-only hash-chained logs) — cited; halo-record (runtime-level chains) — uncited; Caura/MemClaw (governed shared memory with contradiction detection and supersession, production-deployed) — cited and closest as a product. Hash chaining itself is admitted as expected/trivial.",
+     "verdict": "Integration-level novelty at best: memory-level chaining + export + adjudication UI. The mechanism is off-the-shelf; the claimed unique combination is supported only by an undisclosed 'systematic' search over partially uncited comparators. A competitor (Caura, or mem0 adding a hash column) could replicate the combination in weeks. As a product, the defensible moat is the adjudication dossier UX and browser verification, neither of which is evidenced as valued by any external user.",
+     "switch_triggers_assessment": "A mem0/Zep/Letta user would switch only if: (a) they face a compliance mandate requiring verifiable memory provenance — but the same-DB anchor design fails against the attacker class compliance cares about, so even that user isn't served; (b) they are a solo local-first operator who wants forensic memory history — a real but small population, and the honest paper for that user would look very different (no Art. 12 framing, no 'production deployment' claims). No switching trigger is evidenced in the paper."
+    },
+    "meta_note": "As product-reviewer, my verdict: this paper markets to a compliance buyer (healthcare/finance/legal, Art. 12) with an artifact built for and validated by a different user (solo local-first operator), against competitors it never instruments, using a novelty claim backed by an undisclosed search over partially uncited comparators. The repo's SECURITY.md shows the team can do honest adversarial self-review — the v2 revision after simulated PoisonRecall critique is genuinely good practice — but the paper regresses from that honesty in its abstract and Findings ('tamper-evident by construction', 'attributable', 'directly implements Art. 12'). The one credible path to product relevance: external anchoring (even a periodic git-remote commit of the anchor head) + one real external compliance-motivated user + a disclosed search protocol. Without those, Memory Court is a well-packaged demo of a known technique with an unusually polished limitations section. Score: 3/10 (below workshop-accept for a positioning paper; the measurement-paper sibling reviewed previously at least had real numbers). Depth 2 (positioning claims are the core contribution and are the weakest part); helpfulness 3 (fixes are concrete and would materially change the verdict).",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the tamper-detection experiment's claimed scope: abstract and Section 5.2 say 'all 5 of 5 anchored-row modification scenarios' over 2,346 entries—confirm the paper distinguishes tampering of anchored rows from the unanchored tail (<10 entries, admitted in Limitations), and that unanchored-entry tampering is NOT claimed as detected.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Cross-check the contradiction-rate arithmetic in the packy case study: 5 of 15 active memories = 33.3%, and confirm the Wilson 95% CI [12%, 62%] is plausible for n=15, p=0.33 (a reviewer should recompute; note Section 5.4's prose says contradiction rate 'dropped to 0%'—verify this follows from the supersession mechanics, not just relabeling).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Flag the internal inconsistency: Section 5.4/abstract report a 33% contradiction rate for packy, while the Limitations section states 'The packy entity case study (60% contradiction rate)'—determine which figure is correct and whether 60% corresponds to a different denominator (e.g., 2-of-5 vs 5-of-15).",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Verify test-count consistency: abstract and Section 5.3 claim 14 integration tests over 6 dimensions matching Table 2 (6+2+1+2+1+2=14), but the Limitations say 'The 23 (now 14) integration tests' and Reproducibility adds a poisoning test file with 8 tests—reconcile whether 14 is the right headline number and whether test_poisoning_defense.py is part of the evaluation or not.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Check the 'tamper-evident by construction' Finding 1 against the honest boundary in SECURITY.md: the chain anchors live in the same SQLite database, so an attacker who can rewrite both audit_log and audit_anchors defeats detection—confirm the paper's Finding 1 and abstract do not overclaim beyond 'detects post-hoc modification' given this stated fail-open condition.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Verify the EU AI Act Article 12 compliance claim: the paper cites Art. 12(1) 'automatic logging' but never argues Memory Court satisfies the full traceability requirement (e.g., log integrity over lifetime, retention); assess whether 'contributing to' in the abstract vs 'directly implements this requirement' in Section 2.2 are consistent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check Table 1 (competitive gap) methodology: the search is described as 'systematic' but no search protocol, query strings, or inclusion criteria are given; verify whether the 'Adjudication UI' and 'Evidence export' columns for competitors (Tencent 27.7K, memtrace, icarus, halo-record) are backed by any cited evidence, and note halo-record and Tencent have no citations at all.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify whether the hash-chain formula (Equation 1) is verifiable from the paper: per-entry hash H(e_i) concatenates id, op, target, agent, detail, ts—but no field separator or length-prefixing scheme is specified; assess whether an independent reimplementation could reproduce verification (relevant to the browser verify.html claim and reproducibility section).",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Confirm the anchor-count arithmetic in the deployment stats: 2,346 audit entries with an anchor every 10 entries implies ~234 anchors, but the paper reports 235 anchors—check whether the off-by-one is explained (e.g., genesis anchor).",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Assess the deployment self-referentiality: all 13 agent sources are operated by one author (admitted), zero external users, production DB not released—verify the paper's 'production deployment' framing is not overstated given this, and that the abstract's 'production deployment' claim is qualified anywhere prominent.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the reproducibility commands actually map to claims: pytest targets tests/test_memory_court.py and tests/test_court_e2e_integration.py for '14 passed'—check the claimed test dimensions in Table 2 correspond to named tests in those files, and whether the poisoning-defense 8-vector suite (with negative test_F) is described consistently with SECURITY.md's mapping table.",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the citation integrity of the competitive/related-work set: multiple references are dated 2026 (Caura arXiv:2606.24535, MutMem, PACMI, TRACE, AECG, MemStrata) and the gap analysis is dated 'October 2026'—verify these are real, accessible papers; a fabricated or unverifiable related-work set would undermine the 'no existing system' novelty claim.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify the browser-verifiability claim is non-circular: verify.html recomputes the chain from chain.jsonl, but chain.jsonl is produced by the same exporter being audited—confirm the paper addresses (or should address) that the exporter could omit entries from the export; 'no trust in the exporter required' is stated but omission attacks are not discussed.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check consistency of the two stated threat-model positions: the paper says Memory Court 'does not prevent memory poisoning... makes such writes detectable and attributable,' while SECURITY.md admits initial-fact injection has no interception AND that correct() does not validate corrector identity (fail-open source registry in open-source default)—verify the paper does not imply attribution is reliable when source spoofing is possible in the default configuration.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify the case study's downstream-impact evidence: the claim that 'a downstream agent querying packy's status received contradictory evidence' relies on a free-tier GLM-5.3-flash judge (admitted limitation)—check whether any concrete output/transcript of this contradictory retrieval is presented, or whether the impact claim rests solely on the 33% rate.",
+      "category": "evidence",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": null
+   },
+   "usage": {
+    "in": 18638,
+    "out": 4858,
+    "secs": 58.9
+   },
+   "raw_len": 20607,
+   "z": -0.707
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify the tamper-detection experiment's claimed scope: abstract and Section 5.2 say 'all 5 of 5 anchored-row modification scenarios' over 2,346 entries—confirm the paper distinguishes tampering of anchored rows from the unanchored tail (<10 entries, admitted in Limitations), and that unanchored-entry tampering is NOT claimed as detected.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Cross-check the contradiction-rate arithmetic in the packy case study: 5 of 15 active memories = 33.3%, and confirm the Wilson 95% CI [12%, 62%] is plausible for n=15, p=0.33 (a reviewer should recompute; note Section 5.4's prose says contradiction rate 'dropped to 0%'—verify this follows from the supersession mechanics, not just relabeling).",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Flag the internal inconsistency: Section 5.4/abstract report a 33% contradiction rate for packy, while the Limitations section states 'The packy entity case study (60% contradiction rate)'—determine which figure is correct and whether 60% corresponds to a different denominator (e.g., 2-of-5 vs 5-of-15).",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Verify test-count consistency: abstract and Section 5.3 claim 14 integration tests over 6 dimensions matching Table 2 (6+2+1+2+1+2=14), but the Limitations say 'The 23 (now 14) integration tests' and Reproducibility adds a poisoning test file with 8 tests—reconcile whether 14 is the right headline number and whether test_poisoning_defense.py is part of the evaluation or not.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Check the 'tamper-evident by construction' Finding 1 against the honest boundary in SECURITY.md: the chain anchors live in the same SQLite database, so an attacker who can rewrite both audit_log and audit_anchors defeats detection—confirm the paper's Finding 1 and abstract do not overclaim beyond 'detects post-hoc modification' given this stated fail-open condition.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Verify the EU AI Act Article 12 compliance claim: the paper cites Art. 12(1) 'automatic logging' but never argues Memory Court satisfies the full traceability requirement (e.g., log integrity over lifetime, retention); assess whether 'contributing to' in the abstract vs 'directly implements this requirement' in Section 2.2 are consistent.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Check Table 1 (competitive gap) methodology: the search is described as 'systematic' but no search protocol, query strings, or inclusion criteria are given; verify whether the 'Adjudication UI' and 'Evidence export' columns for competitors (Tencent 27.7K, memtrace, icarus, halo-record) are backed by any cited evidence, and note halo-record and Tencent have no citations at all.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-08",
+   "item": "Verify whether the hash-chain formula (Equation 1) is verifiable from the paper: per-entry hash H(e_i) concatenates id, op, target, agent, detail, ts—but no field separator or length-prefixing scheme is specified; assess whether an independent reimplementation could reproduce verification (relevant to the browser verify.html claim and reproducibility section).",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Confirm the anchor-count arithmetic in the deployment stats: 2,346 audit entries with an anchor every 10 entries implies ~234 anchors, but the paper reports 235 anchors—check whether the off-by-one is explained (e.g., genesis anchor).",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-10",
+   "item": "Assess the deployment self-referentiality: all 13 agent sources are operated by one author (admitted), zero external users, production DB not released—verify the paper's 'production deployment' framing is not overstated given this, and that the abstract's 'production deployment' claim is qualified anywhere prominent.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Verify the reproducibility commands actually map to claims: pytest targets tests/test_memory_court.py and tests/test_court_e2e_integration.py for '14 passed'—check the claimed test dimensions in Table 2 correspond to named tests in those files, and whether the poisoning-defense 8-vector suite (with negative test_F) is described consistently with SECURITY.md's mapping table.",
+   "category": "reproducibility",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-12",
+   "item": "Check the citation integrity of the competitive/related-work set: multiple references are dated 2026 (Caura arXiv:2606.24535, MutMem, PACMI, TRACE, AECG, MemStrata) and the gap analysis is dated 'October 2026'—verify these are real, accessible papers; a fabricated or unverifiable related-work set would undermine the 'no existing system' novelty claim.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-13",
+   "item": "Verify the browser-verifiability claim is non-circular: verify.html recomputes the chain from chain.jsonl, but chain.jsonl is produced by the same exporter being audited—confirm the paper addresses (or should address) that the exporter could omit entries from the export; 'no trust in the exporter required' is stated but omission attacks are not discussed.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Check consistency of the two stated threat-model positions: the paper says Memory Court 'does not prevent memory poisoning... makes such writes detectable and attributable,' while SECURITY.md admits initial-fact injection has no interception AND that correct() does not validate corrector identity (fail-open source registry in open-source default)—verify the paper does not imply attribution is reliable when source spoofing is possible in the default configuration.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-15",
+   "item": "Verify the case study's downstream-impact evidence: the claim that 'a downstream agent querying packy's status received contradictory evidence' relies on a free-tier GLM-5.3-flash judge (admitted limitation)—check whether any concrete output/transcript of this contradictory retrieval is presented, or whether the impact claim rests solely on the 33% rate.",
+   "category": "evidence",
+   "load_bearing": false
+  }
+ ],
+ "surface_check": null,
+ "cross_challenges": [
+  {
+   "challenger": "E1",
+   "challenged": "E2",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_id_check": "E2-USABILITY-01",
+      "challenged_finding_id": "E2-USABILITY-01",
+      "challenge": "Sub-claim (c) is factually wrong, and the 'critical' severity is overstated given the paper's explicit fallback verification path. E2 asserts test_poisoning_defense.py 'is not mentioned in the abstract test-count or in Table 2, so the audit ↔ reproduction path is unstated.' But the Reproducibility section explicitly names it with an expected output ('pytest tests/test_poisoning_defense.py -v / # Expected: 8 passed'), and the abstract's 14-test count covers Memory Court integration tests (6 dimensions, Table 2) — poisoning defense is a *separate* 8-vector suite from the companion security work, correctly excluded from the 14. There is no hidden test-count discrepancy; the paper presents 14 + 8 as two distinct, labeled suites. More importantly, E2 frames 'a reviewer attempting to verify the central empirical claim runs a command that errors' as critical, but the paper explicitly provides a zero-install verification path: 'the Playground at the URL above uses a synthetic database with the same schema for interactive verification' — and the tamper-detection claim itself is conceded by the authors as 'an expected property of any correctly implemented hash chain,' so a failed local repro does not threaten the paper's central *scientific* contribution (which the authors themselves locate in the integration, not the detection). The bootstrap-script remediation is reasonable polish, but this is a major usability gap, not a critical flaw that invalidates verifiability: the commands are real paths in a real repo, the expected outputs are stated, and a browser fallback exists.",
+      "evidence": "Reproducibility section: 'pytest tests/test_poisoning_defense.py -v / # Expected: 8 passed' (directly contradicting sub-claim c). Abstract/Table 2 scope the 14 tests to 'integration tests covering 6 dimensions.' Section 4.2: 'this is an expected property of any correctly implemented hash chain; the contribution is the integration... not the detection mechanism itself.' Reproducibility section: 'The production database is not publicly released; the Playground... uses a synthetic database with the same schema for interactive verification.'"
+     },
+     {
+      "challenged_finding_id": "E2-USABILITY-02",
+      "challenge": "Partially overstated: the finding lumps the Playground (an explicitly disclaimed artifact) with the core Python package under one 'critical' severity. The paper states plainly: 'The Playground is a demonstration artifact, not an evaluated component,' and Section 3.5 already names both runtime dependencies (sql.js/WASM and crypto.subtle), so the claim that 'neither dependency is verified at page-load' is a fair engineering nit but not a paper-level defect — the paper never claims the Playground is hardened. Browser-banner remediation targets an artifact outside the evaluated claims. The Python-side half of the finding (unstated dependency floor, no selfcheck) is legitimate, but on the Python side the export path's dependencies are stdlib-only by the paper's own description (SHA-256 chain, ZIP, JSON — no LLM client or exotic deps are implicated in `memtether court --export`), and `pip install -e \".[server]\"` in the repro block implies dependency resolution is delegated to packaging metadata, which is the conventional norm. Severity should be major for the Python selfcheck suggestion and minor/none for the Playground banner.",
+      "evidence": "Section 3.5: 'The Playground uses sql.js (SQLite compiled to WASM) and crypto.subtle (browser-native SHA-256)... The Playground is a demonstration artifact, not an evaluated component.' Section 3.4 describes evidence.zip contents as case.json, chain.jsonl, verify.html — all producible with stdlib. Repro block: `pip install -e \".[server]\"`."
+     }
+    ],
+    "agreement_note": "I agree with E2-USABILITY-03, -04, and -05 at their stated severities. (03) The paper invokes `memtether court <uid>` and `--export` as the primary surface but never specifies flags, case.json schema, exit codes, or error paths — the five dossier sections are described semantically in 3.3 but never as a data format, and a downstream integrator genuinely cannot build against it. (04) chain.jsonl's format (entries vs. anchors inline, one-per-line), verify.html's failure behavior on partial breaks, and the omission-attack trust model are all unspecified; SECURITY.md's 'honest boundary' admits anchors live in the same DB, so the export-time omission/forged-genesis question deserves explicit treatment in the paper. (05) The repro block clones main with no SHA/tag while SECURITY.md references v0.1.0a7 and the evaluation window ends 2026-10-14 — a pinned commit is a one-line fix with outsized reproducibility value. What I would add: the paper's own limitation 'Self-referential evaluation... no external verification or artifact evaluation' already concedes the meta-issue underlying all five findings, so the cheapest global remediation is a single docs/artifact appendix (pinned SHA, CLI reference, evidence_format.md, first_run.md) rather than in-paper expansion."
+   }
+  },
+  {
+   "challenger": "E2",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-03",
+      "challenge": "I think E4-03 overstates the 'fails open against the attacker class that compliance actually worries about' framing. The paper and SECURITY.md explicitly and repeatedly disclose the same-DB anchor limitation as an 'honest boundary' (Security policy: '哈希链锚点存在与 SQL 同库的表内'; Limitations §5: 'Single-machine scope... The hash chain is valid within one SQLite file'). The Finding 1 ('Tamper-Evident by Construction') and abstract claim are scoped to 'any post-hoc modification of a logged entry' — not to an attacker with full DB write access. E4 reads 'tamper-finding by construction' as promising host-compromise resistance; a more defensible reading is that the paper claims detection of app-layer bypass and accidental modification, which is exactly what SHA-256 chain verification over a single-file DB delivers and what CT-style logs delivered before adding external witnesses. The 'compliance buyer gets more from competitors' argument conflates two non-comparable threat models: Zep's invalidation answers 'is this fact still current?', not 'was this row modified after the fact?' These are different governance questions. E4-03 is right that the abstract should restate the fail-open condition, but wrong to characterize the paper as 'overstating attribution' — the SECURITY.md v2 revision explicitly downgrades attribution claims and the paper does not claim identity validation in default config.",
+      "evidence": "SECURITY.md '诚实边界' section: '哈希链锚点存在与 SQL 同库的表内：能改 audit_log 的攻击者理论上也能改 audit_anchors。它防的是绕过应用层的静默篡改与误操作，不是能全库重写的完全控制攻击者'. Limitations §5 'Single-machine scope': 'The hash chain is valid within one SQLite file'. Finding 1 scope: 'Any modification of a logged entry (content, timestamp, agent, or deletion)'. SECURITY.md v2 revision note explicitly downgrades attribution: 'correct() 不校验 corrector 身份——任何已注册来源可 correct 任何 fact；防御是事后可审计...不是事前拦截'."
+     },
+     {
+      "challenged_finding_id": "E4-04",
+      "challenge": "E4-04's framing that 'dropping to 0% after supersession is definitional — Zep's invalidation does the same thing functionally' misreads the paper's claim. The paper is not claiming supersession uniquely resolves contradictions — it is claiming that Memory Court preserves a *replayable adjudication record* of the resolution (who, when, based on what evidence, with hash-chain verification). The §5.4 case study explicitly states: 'Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries'. The added capability is not 'contradiction goes to zero' — that part is indeed definitional — it is 'the audit log preserves the adjudication decision with cryptographic integrity and exportability'. E4-04's own suggestion concedes this ('the only claimed extra is the replayable adjudication record, which is UX, not outcome'), which means the disagreement is about framing, not substance. The 33% vs 60% internal inconsistency is a real defect worth flagging, but the headline '5/5 tamper result is a unit test of SHA-256' critique is contradicted by the paper itself, which explicitly says: 'We note that this is an expected property of any correctly implemented hash chain; the contribution is the integration of this mechanism with self-contained evidence export in a production multi-agent deployment, not the detection mechanism itself.' The paper has already conceded this point; E4-04 restates it without adding new evidence.",
+      "evidence": "§5.4 case study: 'Memory Court resolved this through the supersession adjudication workflow: the most recent authoritative fact was identified via bi-temporal ordering, older conflicting facts were marked as superseded with explicit validity boundaries, and the contradiction rate dropped to 0%. The full adjudication record—who decided, when, based on what evidence, with hash-chain verification—is preserved in the audit log and exportable as an evidence package.' §5.2 tamper experiment: 'We note that this is an expected property of any correctly implemented hash chain; the contribution is the integration of this mechanism with self-contained evidence export in a production multi-agent deployment, not the detection mechanism itself.'"
+     }
+    ],
+    "agreement_note": "I agree with E4-01, E4-02, and E4-05. E4-01's observation that the 'systematic search' is asserted rather than demonstrated is accurate — no query strings, dates, or inclusion criteria are given, and two Table 1 rows (Tencent, halo-record) have no citations. The 'this is an expected property of any correctly implemented hash chain' admission does weaken the novelty claim to 'integration + UX,' which is a defensible but narrower positioning. E4-02 correctly identifies a positioning/artifact mismatch: the paper markets to regulated enterprises but ships single-machine, single-author, fail-open-default infrastructure, and the SECURITY.md confirms the fail-open registry behavior. E4-05's flagging of 14/23 test-count inconsistency, self-referential evaluation, and 2026-dated arXiv IDs that may not resolve is sound — I would add that the October 2026 gap-analysis date is future-dated relative to the manuscript, and at least three cited arXiv IDs (2608.02843, 2610.05732, 2609.33517, 2606.24535, 2610.07258, 2610.05176, 2606.26511, 2609.25521) are post-2025 IDs whose resolvability materially affects whether the gap claim survives external scrutiny. What I would add across all five findings: the paper's strongest defensible contribution — the browser-verifiable evidence export (verify.html with crypto.subtle) — is under-articulated as the differentiator. If E4-01 and E4-03's suggestions were combined (publish search protocol + add optional external anchoring such as a periodic git-remote anchor commit or transparency-log witness), the same-DB chaining limitation becomes a stepping stone rather than a fatal boundary, and the 'integration novelty' becomes defensible as 'auditability UX that no comparator ships.'"
+   }
+  },
+  {
+   "challenger": "E4",
+   "challenged": "E1",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E1-N3",
+      "challenge": "I think this finding is correct in substance but overstated as 'major' against the paper as written, because it partly targets engineering details the paper does not claim to have solved, and the paper's own disclosure is broader than E1 credits. E1 quotes 'concurrent anchor computation' from the limitations list but omits that the paper explicitly lists it under 'Five engineering-level gaps ... none affect the correctness of the core mechanism.' Whether or not that assurance is adequately argued, the paper is candid that this is an open gap, and the paper's Finding 1 is scoped to 'any modification of a logged entry' — a data-level claim about hash-chain propagation, not a claim that crash-consistency between audit_log and audit_anchors was verified. The demand for journal mode, synchronous pragma, and observed SQLITE_BUSY counts is a legitimate request for a storage-durability subsection, but it is asking the paper to document an implementation property it never asserted; on the paper's own terms (contribution = 'the integration of this mechanism with self-contained evidence export in a production deployment, not the detection mechanism itself', Section 4.2), this is a request for additional evidence, not a flaw in a stated claim. That said, E1's specific point that 'none affect the correctness of the core mechanism' is asserted without argument and that a torn anchor/table state is precisely the failure an evidence system must survive is a fair and sharp observation — I would support a revised severity of minor-to-major requiring the requested durability subsection before camera-ready, but I do not think it rises to the same level as E1-N1 or E1-N2, which identify unqualified false claims in the paper text itself. E1-N1 and E1-N2 are overclaims the paper makes without qualification; E1-N3 is an under-specification of a claim the paper flags as open.",
+      "evidence": "Section 4.3: 'Five engineering-level gaps were identified (anchor tail coverage, concurrent anchor computation, database migration, 1000+ entry stress testing, and browser CI) but none affect the correctness of the core mechanism.' Section 4.2: 'We note that this is an expected property of any correctly implemented hash chain; the contribution is the integration of this mechanism with self-contained evidence export in a production multi-agent deployment, not the detection mechanism itself.' Finding 1 (Section 3.2): 'Any modification of a logged entry (content, timestamp, agent, or deletion) changes the SHA-256 hash of all subsequent entries' — a statement about hash propagation, not about transactional durability. Compare the abstract's unqualified 'tamper-evident by construction' (E1-N1) and Section 3.4's 'no trust in the exporter required' (E1-N2), which are unconditional claims not hedged anywhere in the paper body."
+     }
+    ],
+    "agreement_note": "I agree with E1-N1, E1-N2, E1-N4, and E1-N5 without reservation. E1-N1 and E1-N2 identify genuinely unqualified overclaims in the paper text (abstract's 'tamper-evident by construction'; 'no trust in the exporter required'), and I confirm from the paper that neither claim carries the boundary condition in the paper body — the co-location caveat exists only in SECURITY.md, which paper readers will never see. The suggested fixes (scope Finding 1 to attackers unable to rewrite both tables; reword the export claim to 'chain consistency of the exported entries'; add external-anchor and head-anchor-digest mechanisms) are proportionate and cheap. E1-N4 is fully valid: the hash formula uses bare concatenation with no canonicalization, no test vector, and the paper's central premise — browser-verifiability by independent third parties via verify.html — is impossible to reproduce from the paper alone; 'read the code' cannot be the specification for a system marketed as evidence for external auditors. I would add to E1-N4 that the anchor formula (SHA256(anchor_{b-1} || H(e_...)...) ) inherits the same ambiguity, and that a single worked test vector covering one full batch would fix both. E1-N5 is correctly scoped as minor and the suggested measurement (verification wall-time at 2,346 and synthetic 100K/1M entries) is a reasonable ask given the Art. 12 'lifetime of the system' framing; I would only note the paper does honestly disclose the O(n) limitation and single-machine scope, so this is a grounding request, not an overclaim. For E1-N3, I accept the technical concern (transaction scoping, journal mode, and torn-state crash behavior are undocumented) and endorse adding the durability subsection; my challenge is only to severity and to characterizing it as an unqualified claim, since the paper does disclose concurrency as an open gap."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

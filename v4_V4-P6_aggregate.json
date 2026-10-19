@@ -1,0 +1,574 @@
+{
+ "round_score": 3.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 1,
+ "full_tier": {
+  "n": 0,
+  "mean": null
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 3.0
+ },
+ "round": "V4-P6",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\cac-artifact\\paper6_crossbenchmark.tex",
+ "timestamp": "2026-10-19T13:34:30.072044",
+ "usage_total": {
+  "in": 25185,
+  "out": 8225,
+  "secs": 68.1
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": false,
+   "error": "HTTP Error 504: Gateway Timeout"
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "claimed_contributions": [
+      "First paired per-question McNemar analysis across three memory benchmarks (LongMemEval, LoCoMo, LME-V2) and two systems (MemTether, mem0)",
+      "Demonstration that the strict-judge gap direction reverses between benchmarks (LongMemEval/LME-V2 judge>strict, LoCoMo strict>judge)",
+      "Formalization of the strict applicability condition (α = n_S/N < 1) and proof that this is necessary but not sufficient for Simpson's Paradox inflation",
+      "Practical recommendation: paired per-question McNemar analysis as the default evaluation protocol"
+     ],
+     "claimed_methodology": [
+      "Identical-question paired comparison using 2×2 contingency tables with exact McNemar test",
+      "Strict applicability rate α as a diagnostic",
+      "Bootstrap 95% CIs (10,000 resamples) on non-paired gaps",
+      "Per-type decomposition to identify heterogeneity drivers",
+      "Composition-effect ablation (same-denominator vs different-denominator gap)"
+     ],
+     "key_results": {
+      "LongMemEval+MemTether": "NonP -5.4pp (CI includes 0), Paired -7.1pp, McNemar p<0.001, 9.8× Simpson inflation on multi-session",
+      "LongMemEval+mem0": "NonP +5.1pp, Paired +5.2pp, McNemar p=0.120 (n.s.), 1.0× inflation",
+      "LME-V2+MemTether": "NonP -3.3pp (CI includes 0), Paired -9.6pp, McNemar p=0.058 (marginal)",
+      "LoCoMo+MemTether": "NonP +4.9pp (CI includes 0), Paired +4.9pp, McNemar p=0.344 (n.s.)",
+      "Composition ablation": "Same-denom +6.7pp vs different-denom +18.6pp (Table 7), but Table 1 reports -5.4pp non-paired for the same system-benchmark pair"
+     },
+     "what_would_be_needed_to_reproduce": [
+      "MemTether v0.1.0a30 (commit 33715a9) — but PyPI says v0.1.0a7 per SECURITY.md",
+      "bge-m3 (int8 quantization) embeddings",
+      "DeepSeek-V4-Flash judge (or glm-4-flash for LoCoMo/LME-V2)",
+      "LongMemEval, LoCoMo, LME-V2 datasets",
+      "Three evaluation runs on LongMemEval (Sept 27, Oct 2, Oct 5 2026) with deliberately varying strict scores"
+     ]
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 3.0,
+     "alignment": 2.0,
+     "overall": 3.0
+    },
+    "findings": [
+     {
+      "id": "E2-R01",
+      "severity": "critical",
+      "issue": "Central 'direction reversal' claim is not statistically supported and the paper overstates it",
+      "evidence": "LoCoMo gap +4.9pp has McNemar p=0.344 (n.s.) and bootstrap CI [-4.9, +14.6] that includes zero; abstract contribution #1 explicitly calls it a 'direction reversal' when the same paper's limitations show the gap is not significant and LongMemEval+MemTether non-paired gap CI [-12.5,+1.8] also includes zero. The abstract elevates a non-significant nominal direction to a finding.",
+      "strongest_rebuttal": "The paper does mark it as 'not significant' and explicitly says 'nominal' direction reversal; the methodological recommendation (paired analysis) stands regardless.",
+      "why_rebuttal_insufficient": "The abstract's phrasing 'direction reversal' is the contribution title. If the reversal is non-significant and driven by incomparable strict definitions across benchmarks (LoCoMo strict checks retrieved evidence, not output), it cannot headline a paper. The Statistical Inference section (3.3) explicitly says 'none of the non-paired gaps are statistically significant after accounting for sampling variability', which contradicts the contribution list.",
+      "category": "claim_evidence_gap"
+     },
+     {
+      "id": "E2-R02",
+      "severity": "critical",
+      "issue": "Table 7 composition ablation contradicts Table 1 main results — no explanation provided",
+      "evidence": "Table 1: LongMemEval+MemTether non-paired gap = -5.4pp (judge > strict). Table 7: 'LongMemEval non-paired gap +18.6pp' (strict > judge). These cannot both be headline numbers for the same system-benchmark pair unless derived from different evaluation runs. The paper never discloses which run produced which table. Limitations reports non-paired gaps ranging from -9.6pp to +11.2pp across three runs, which would not produce either table deterministically.",
+      "strongest_rebuttal": "Table 7 is a 'composition effect ablation' on the paired comparison itself (different metric construction), not a re-statement of Table 1.",
+      "why_rebuttal_insufficient": "Table 7 column header is 'Diff. denom. (n=500)' with '+18.6pp' for overall — this is the same 'non-paired gap' Table 1 reports as -5.4pp. The sign reversal is not a methodology choice; it's a contradiction.",
+      "category": "internal_inconsistency"
+     },
+     {
+      "id": "E2-R03",
+      "severity": "critical",
+      "issue": "Abstract, Table 1, and Table 5 disagree on the LME-V2 gap and the 'judge exceeds strict' claim",
+      "evidence": "Abstract contribution #1: 'LME-V2 (-3.3pp), judge scores exceed strict scores'. Table 1: non-paired -3.3pp, paired -9.6pp. Table 5 (McNemar): b=20, c=35, p=0.058 (marginally significant). The paired gap in Table 1 is -9.6pp, not -3.3pp; the significance is marginal, not established. The 'judge exceeds strict' headline is the non-paired gap whose CI [-9.5,+3.1] includes zero.",
+      "strongest_rebuttal": "The paper presents both non-paired and paired gaps; the headline uses non-paired by convention with the McNemar as the test of the paired equivalent.",
+      "why_rebuttal_insufficient": "The paper's own Statistical Inference section then says the non-paired gap is not significant after sampling variability. The abstract should reflect that the LME-V2 finding is also marginal/non-significant.",
+      "category": "internal_inconsistency"
+     },
+     {
+      "id": "E2-R04",
+      "severity": "major",
+      "issue": "LongMemEval strict applicability arithmetic has two conflicting exclusion accounts",
+      "evidence": "Table 2: α=62.6% (313/500), implying 187 excluded. Section 4.2 says '30 single-session-preference questions have prose-type golds' alone account for it. Section 4.3 (Cross-benchmark consistency) says 'excluded 37.4% of questions (preference + prose)'. The 30 vs 187 discrepancy is never resolved. LME-V2: 156 excluded questions vs only 'abstention/gotchas' LLM-based checks (128+28=156) — that one reconciles, but LongMemEval's does not.",
+      "strongest_rebuttal": "The other 157 exclusions are prose-type golds across non-preference categories, which the prose-exclusion rule (>120 chars or ≥2 sentence-ending punctuation) catches.",
+      "why_rebuttal_insufficient": "The paper never enumerates the 187 exclusions; a single table listing (type, n_excluded, reason) for LongMemEval would close this.",
+      "category": "reproducibility"
+     },
+     {
+      "id": "E2-R05",
+      "severity": "major",
+      "issue": "mem0 alpha inflation claim of 1.0× is suspicious: same alpha (66.8%) as Table 1's n_S=334/500",
+      "evidence": "Section 4.3 says 'LongMemEval+mem0, α=66.8%'. Table 1 reports n_S=334, N=500 → α=66.8%. But the abstract's paired gap for mem0 is +5.2pp while non-paired is +5.1pp — calling this '1.0× inflation' is just stating the two gaps are equal, not measuring any inflation. The claim is trivially true and the cited inflation-factor framework (9.8× on multi-session) is not applicable here.",
+      "strongest_rebuttal": "The paper's intent is to show that denominator mismatch does not mechanically imply inflation; the 1.0× number is the negative-control observation.",
+      "why_rebuttal_insufficient": "The prose frames it as 'inflation factor' but reports no inflation; readers may interpret it as evidence for the 'necessary but not sufficient' claim only if the same definition of inflation is applied to both. The Simpson's-paradox context still requires a clearer accounting of what 'inflation' means in the positive case.",
+      "category": "method"
+     },
+     {
+      "id": "E2-R06",
+      "severity": "critical",
+      "issue": "LoCoMo strict metric is incomparable to LongMemEval/LME-V2 strict, undermining the 'direction reversal' conclusion",
+      "evidence": "Section 4.1: 'low absolute scores on LoCoMo reflect the strict evidence-based matching criterion, which checks whether gold terms appear in the retrieved evidence rather than the generated answer; this differs from the substring-on-output criterion used on LongMemEval'. The paper acknowledges this but does not exclude LoCoMo from the cross-benchmark direction-reversal claim. The 'reversal' may be entirely an artifact of using two different strict definitions across benchmarks.",
+      "strongest_rebuttal": "The paper notes this in Section 4.1 ('differs from the substring-on-output criterion'); readers can see the methodological caveat.",
+      "why_rebuttal_insufficient": "A direction reversal caused by changing what 'strict' means is not a benchmark property. If the paper's headline finding (contribution #1) survives only by acknowledging the strict metric itself differs, it is not the cross-benchmark finding the abstract claims. The Limitations section should explicitly say so; it doesn't.",
+      "category": "method"
+     },
+     {
+      "id": "E2-R07",
+      "severity": "major",
+      "issue": "Proposition 1's algebraic decomposition has a sign-consistency error",
+      "evidence": "Proposition 1 proof: 'S - J = s/|S| - j/|Q| = s/|S| - j/|S| - j(1/|Q| - 1/|S|)'. The second equality requires adding and subtracting j/|S|. This is fine as algebra. But the conclusion 'only paired analysis isolates effect 1' requires that the first term equals the paired difference. With J = j/|S| (rather than j/|Q|), the paired difference would be (s - j_pairs)/|S∩Q|. The proposition conflates the paired-vs-non-paired accounting with the metric difference (strict vs judge), but the second term in the decomposition is a denominator-mapping artifact, not a metric difference. The formalization elides this.",
+      "strongest_rebuttal": "The proposition is illustrative; the formal proof is in Proposition 2.",
+      "why_rebuttal_insufficient": "Proposition 1 is presented as a labeled theorem with a proof; if the algebra is imprecise, the 'formal condition' Contribution #2 is weakened. The 2nd Proposition in Section 6 then re-derives the same thing in per-type form, which is more correct but says 'denominator mismatch condition' again without distinguishing it from Proposition 1.",
+      "category": "method"
+     },
+     {
+      "id": "E2-R08",
+      "severity": "major",
+      "issue": "Two near-identical subsection headers ('The Denominator Mismatch Condition' appears twice in Section 4) and a duplicated unnumbered Proposition in Section 6",
+      "evidence": "Methodology section has two consecutive '\\subsection*{The Denominator Mismatch Condition}' headers. Section 6 (Production Longitudinal Analysis) contains an unnumbered 'Proposition [Denominator Mismatch Condition]' with the same content as Proposition 1. The numbering is inconsistent and the same content appears twice with subtle differences (Proposition 1 cites Simpson's, Section 6 Proposition does not).",
+      "strongest_rebuttal": "LaTeX editing artifact from merging sections; trivially fixed.",
+      "why_rebuttal_insufficient": "For a reproducibility-critical paper that is loaded with arithmetically evaluated quantities, duplicated structure signals incomplete editorial pass. Section 6's 'Proposition' is not numbered and appears in the middle of a Production Analysis section, which violates the convention established earlier and would confuse a reader checking which proposition is which.",
+      "category": "reproducibility"
+     },
+     {
+      "id": "E2-R09",
+      "severity": "major",
+      "issue": "EAF ablation table (Table 8) is on a different basis than the headline EAF result",
+      "evidence": "Headline: 'EAF improves strict matching from 43.2% to 56.4% (+13.2pp, McNemar p=3.03e-9, n=303 strict-applicable questions in the paired comparison)'. Table 8 ablation: Baseline 32.5%, +ECO 48.8%, +SSI 60.0%, +AFN 75.7%. The +13.2pp improvement starts from 43.2% but the ablation baseline is 32.5% — these are different starting points. Either the headline is measured on a different question subset than the ablation, or the ablation includes different configurations not described.",
+      "strongest_rebuttal": "Table 8 may be on the multi-session subset (where strict matching starts lower) while the headline is on the 303-question paired set.",
+      "why_rebuttal_insufficient": "The paper never says so. Ablation tables should match the headline sample unless explicitly footnoted; the absence of that note means readers cannot reconcile 32.5% baseline with 43.2% headline starting point.",
+      "category": "internal_inconsistency"
+     },
+     {
+      "id": "E2-R10",
+      "severity": "minor",
+      "issue": "Cross-validation model name inconsistency: 'GPT-6' vs 'GPT-5.6'",
+      "evidence": "Abstract: 'Judge scores were cross-validated with GPT-6 (OpenAI) (96.6% agreement, 470 questions)'. Limitations: 'Cross-model agreement was 96.6% (454/470), with GPT-5.6 scoring 48.5% vs DeepSeek-V4-Flash scoring 48.5%'. Reproducibility Statement: 'GPT-6 (2025-11 snapshot)'. The model is called GPT-6, GPT-5.6, and 'DeepSeek-V4-Flash scoring 48.5%'. The agreement arithmetic 454/470 = 96.5957% rounds to 96.6%, which is correct. But the model name flip is unresolved.",
+      "strongest_rebuttal": "GPT-5.6 vs GPT-6 is a minor typo; DeepSeek-V4-Flash 'scoring 48.5%' matches the primary judge number.",
+      "why_rebuttal_insufficient": "Two distinct model names in the same paper, both used as the cross-validation reference. Either is a real model, neither is publicly documented at the cited version. This is a minor but consistent pattern with the rest of the paper's quality issues.",
+      "category": "evidence"
+     },
+     {
+      "id": "E2-R11",
+      "severity": "critical",
+      "issue": "Production longitudinal analysis is disconnected from benchmark claims and uses undefined 'zero data drift'",
+      "evidence": "Section 6 claims '2,095 facts, 917K writes, zero data drift, 347 supersession events' across '23 days' (vs the 31-day window mentioned in the Limitations and earlier '30-day' framing elsewhere). The numbers don't match the headline paper claim about evaluation. 'Zero data drift' is asserted without a metric: hash-anchor verification? row count stability? schema invariants? There is no test or table for it. The Memory Court description is in SECURITY.md prose, not benchmarked.",
+      "strongest_rebuttal": "Section 6 is contextual material showing production validation, separate from the benchmark claims.",
+      "why_rebuttal_insufficient": "If the production section contributes zero to the methodology claim (which it does — nothing in Sections 4–5 depends on it), then it is unsupported marketing content in a measurement paper. The 23 vs 30/31 day inconsistency across sections is another arithmetic slip. 'Zero data drift' without a defined metric is a positive claim without evidence.",
+      "category": "claim_evidence_gap"
+     },
+     {
+      "id": "E2-R12",
+      "severity": "major",
+      "issue": "First-run/install path is not validated: SECURITY.md flags v0.1.0a7, paper claims v0.1.0a30",
+      "evidence": "Reproducibility Statement: 'MemTether v0.1.0a30 (commit 33715a9)'. SECURITY.md: '当前线为 v0.1.0a7'. The PyPI package the paper references is the same package the security policy describes as research prototype at v0.1.0a7. Anonymous repository URL ('anonymous.4open.science/r/memtether-eval') is not a standard installable artifact. No first-run transcript, no `pip install memtether==0.1.0a30` verification, no `memtether --version` output.",
+      "strongest_rebuttal": "Reproducibility Statement gives a commit SHA, which is sufficient for reproduction.",
+      "why_rebuttal_insufficient": "The commit SHA points to a private/anonymized repo that may not be cloneable during review; the SECURITY.md says the package is at v0.1.0a7 with caveat-laden alpha status; no README path was supplied in the paper. Standard reproducibility practice requires the install command + verified output.",
+      "category": "installability"
+     },
+     {
+      "id": "E2-R13",
+      "severity": "major",
+      "issue": "API surface for the proposed Evaluation Methodology is not exposed for reuse",
+      "evidence": "The paper recommends paired McNemar analysis as 'the default protocol'. But it provides neither (a) a function signature for the paired comparison (e.g. `paired_mcnemar(strict_labels, judge_labels)`), (b) a CLI command (`memtether eval paired`), nor (c) a worked example showing the 2×2 contingency table construction from per-question labels. The released data is at the URL but the paper does not show what `memtether eval paired --benchmark longmemeval --system memtether` outputs.",
+      "strongest_rebuttal": "The repository URL contains per-question data and evaluation scripts; readers can derive the API.",
+      "why_rebuttal_insufficient": "For a methodology paper whose central recommendation is 'change your protocol', the recommendation should be usable in under 10 lines of code without reading the repository. The paper does not enable that.",
+      "category": "api_ergonomics"
+     },
+     {
+      "id": "E2-R14",
+      "severity": "major",
+      "issue": "Error handling for judge failures, missing gold terms, and category mismatches is undocumented",
+      "evidence": "The paper does not specify what happens when: (a) the judge model returns malformed JSON or non-binary output, (b) the strict scorer encounters a gold answer containing only stopwords or only terms <3 chars, (c) a question has no gold answer (LoCoMo conv0 has some), (d) the embedding model fails to load. These are the actual error paths a new user will hit. None are described; none have example error messages.",
+      "strongest_rebuttal": "The codebase is the source of truth; the paper is about methodology.",
+      "why_rebuttl_insufficient": "Even methodology papers should describe how missing/edge-case inputs are handled in the reported analysis; otherwise the reader cannot tell whether reported n_J numbers include or exclude failed judge calls.",
+      "category": "error_messages"
+     },
+     {
+      "id": "E2-R15",
+      "severity": "major",
+      "issue": "Examples completeness: the paper never shows the 2×2 contingency table for the headline finding",
+      "evidence": "Table 5 reports b=40, c=84 for LongMemEval+MemTether but does not show the implied 'both correct' and 'both wrong' cells. Without those, a reader cannot reconstruct the McNemar test from scratch, nor can they apply the same test to their own system's outputs. The cross-table expected under independence is also not given, so the McNemar effect size (b-c |r-n)/n vs (b-c)/n is ambiguous.",
+      "strongest_rebuttal": "Per-question data is released at the anonymized repo.",
+      "why_rebuttal_insufficient": "The methodology paper's contribution is the analytic procedure; the example 2×2 table is the smallest unit of the contribution and should appear in the paper, not just the dataset.",
+      "category": "examples_completeness"
+     },
+     {
+      "id": "E2-R16",
+      "severity": "minor",
+      "issue": "Three different day-counts in the paper (23, 30, 31)",
+      "evidence": "Section 6: 'During the 23-day evaluation window'. Limitations: 'LongMemEval was evaluated at three time points (September 27, October 2, and October 5, 2026)' — Sept 27 to Oct 5 is 8 days, not 23 or 30. The earlier finding source referenced elsewhere in this review session is 30/31 days. The paper itself has at least three different evaluation-window lengths.",
+      "strongest_rebuttal": "Different windows for different analyses.",
+      "why_rebuttal_insufficient": "A measurement paper should pin a single observation window; three different day-counts in the same paper is a consistency failure.",
+      "category": "internal_inconsistency"
+     },
+     {
+      "id": "E2-R17",
+      "severity": "minor",
+      "issue": "Strict applicability rule (>120 chars OR ≥2 sentence-ending punctuation) is opaque and may be benchmark-specific",
+      "evidence": "The rule for excluding 'prose' golds from strict matching is given but not motivated. Why >120 chars and not >100 or >150? Why OR with sentence-ending punctuation? Different thresholds would change n_S. No ablation of the prose rule is provided. The 30 vs 187 exclusion discrepancy on LongMemEval may resolve to the prose rule, but the rule itself is uncalibrated.",
+      "strongest_rebuttal": "The rule is inherited from LongMemEval's reference implementation.",
+      "why_rebuttal_insufficient": "If inherited, cite the source; if novel, motivate it. Either way, show sensitivity.",
+      "category": "method"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "Direction reversal (Contribution #1): headline claim; only LongMemEval+MemTether paired McNemar is significant (p<0.001); LoCoMo reversal is n.s. (p=0.344); LME-V2 is marginal (p=0.058). All non-paired gaps have bootstrap CIs that include zero. The reversal is real in the paired-MemTether-LongMemEval sense but the paper overstates it as cross-benchmark.",
+      "Composition ablation: Table 7 contradicts Table 1 by sign for the same LongMemEval+MemTether non-paired gap (-5.4pp vs +18.6pp). No disclosure of which evaluation run produced which.",
+      "Necessary but not sufficient (Contribution #3): inflation factor 9.8× is asserted only for the multi-session subset of LongMemEval+MemTether, not for the headline. The '1.0×' mem0 figure is trivially true and does not test the heterogeneity claim quantitatively.",
+      "Production 'zero data drift': positive claim with no metric, no table, no test."
+     ],
+     "statistical_issues": [
+      "Multiple comparison problem: McNemar p-values reported for 4 benchmark-system pairs without adjustment; the LoCoMo p=0.344 reversal claim survives only if the four tests are interpreted independently, which is itself questionable given the headline narrative.",
+      "Bootstrap CIs that include zero are presented in the same paper as a 'direction reversal' headline — internal contradiction in statistical inference narrative.",
+      "Inflation factor (e.g., 9.8×, ∞) is a point estimate with no CI; Limitations #9 explicitly notes 'No confidence intervals on inflation factors' as a limitation that the paper does not resolve.",
+      "Cross-run variance (43.1% → 62.6% strict) is substantial (SD 10.4%); the paper acknowledges this but does not report which Table 1 / Table 7 number corresponds to which run.",
+      "n_J varies across rows of Table 1 (470, 397, 451, 82, 82) with no explanation of why judge scoring is omitted for mem0 on LME-V2 and LoCoMo (the footnote says 'pilot data, not complete evaluation' for LME-V2, but no comparable disclosure for LoCoMo)."
+     ],
+     "logical_leaps": [
+      "LoCoMo strict-vs-judge direction reversal is attributed to 'benchmark design' but the paper's own Section 4.1 admits LoCoMo strict is computed on retrieved evidence while LongMemEval strict is computed on generated output — these are different metrics under the same name; calling the reversal a 'benchmark property' conflates metric design with benchmark content.",
+      "Proposition 1's proof conflates two things: (a) the decomposition s/|S| - j/|Q| into paired-vs-denominator terms, and (b) the claim that 'paired analysis isolates effect 1'. The algebra is correct only for the decomposition; the isolation claim requires an additional argument that the paired difference equals the per-question strict-vs-judge metric difference, which is true only for questions in S∩Q (true) but does not require Simpson's-paradox framing.",
+      "Section 6 Proposition duplicates Proposition 1 with weaker content (no reference to Simpson's Paradox); the 'necessity' conclusion is restated but the 'sufficiency' discussion is missing — the reader cannot tell which proposition is canonical."
+     ],
+     "alternative_explanations": [
+      "Direction reversal may be entirely an artifact of LoCoMo's evidence-based strict metric vs LongMemEval's output-based strict metric; the paper acknowledges it but does not exclude LoCoMo from the headline.",
+      "EAF ablation (Table 8) on what appears to be the multi-session subset may simply show that the multi-session subset is where ECO helps most, not that EAF in general produces the +13.2pp headline.",
+      "Composition ablation's +18.6pp non-paired gap may be from a different evaluation run (Sept 27 strict=62.6% was reported) that the paper does not identify; if so, the 'inflation factor' claim is comparing the Oct 5 run's paired gap to the Sept 27 run's non-paired gap, which is not a meaningful inflation measure.",
+      "mem0 '1.0× inflation' may indicate that mem0's per-type performance is already homogeneous (a system property, not a benchmark property) — the paper reads this as evidence for the 'necessary but not sufficient' claim, but it could equally indicate that mem0's strict-vs-judge differences are real metric differences, not artifacts."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "details": "The paper selects three benchmarks whose strict metrics are constructed differently (LoCoMo evidence-based vs LongMemEval output-based vs LME-V2 mixed) and frames the resulting gap direction differences as a benchmark-design finding. The 'direction reversal' is partly an artifact of comparing different metrics. The paper also hand-picks an EAF ablation whose baseline (32.5%) does not match the headline (43.2%) without footnoting the difference, and cites an inflation factor (9.8×) only for a subset (multi-session) while the headline non-paired gap is -5.4pp overall. The composition-effect ablation (Table 7) reports +18.6pp for the same system-benchmark pair whose Table 1 says -5.4pp — this sign flip is not addressed. The Methodology section appears optimized to surface a 'reversal' headline rather than to honestly characterize measurement uncertainty."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "Table 1 numbers (n_S=313, S%=43.1) imply s=135; Table 5 reports b=40, c=84, suggesting n_pair=124 with neither correct: 40+84+both_correct+both_wrong. With 303 paired per headline EAF and 470 judge, the b/c sum 124 < 303 is consistent only if 'neither correct' = 179. The +7.1 paired gap on 313 questions is not directly derivable from b=40, c=84 on n=124. Arithmetically inconsistent."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "Abstract calls LoCoMo a 'direction reversal' but Table 5 p=0.344 and bootstrap CI [-4.9,+14.6] include zero; Limitations #1 confirms direction consistent but not significant. Overstated."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "Abstract says LME-V2 gap -3.3pp; Table 1 paired gap -9.6pp; Table 5 p=0.058 (marginal). The headline uses the non-paired gap whose CI [-9.5,+3.1] includes zero. Significance language inconsistent (abstract says 'judge scores exceed strict scores' as a finding, but Section Statistical Inference says gaps are not significant)."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "LongMemEval: Table 2 attributes 37.4% exclusion (187 questions) but Section 4.2 names only 30 preference questions; the other 157 exclusions are never enumerated. LME-V2 reconciles (128 abstention + 28 gotchas = 156 ≈ 451-295)."
+     },
+     {
+      "id": "CK-05",
+      "pass": true,
+      "note": "α = 334/500 = 66.8% matches; 1.0× inflation for mem0 is trivially true since non-paired +5.1 ≈ paired +5.2, but the prose says 'happens to align with the overall distribution' which is fine."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Table 1 reports -5.4pp non-paired LongMemEval+MemTether; Table 7 reports +18.6pp non-paired for the same pair. Sign reversal never explained; Limitations notes non-paired gaps ranged from -9.6pp to +11.2pp across runs, which would not produce either number deterministically."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "Table 8 baseline 32.5% vs headline EAF baseline 43.2% — different samples. Component increments +16.3, +11.2, +15.7 do not sum to the headline +13.2pp improvement (they sum to +43.2pp from the 32.5% baseline). The +ECO/+SSI/+AFN rows are not labeled cumulative or independent."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "Model name inconsistency: abstract 'GPT-6', Limitations 'GPT-5.6', Reproducibility 'GPT-6'. Agreement arithmetic 454/470 = 96.5957% rounds to 96.6% — math correct, name inconsistency unresolved."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "Section 4.1 admits LoCoMo strict is on retrieved evidence, not output; but the cross-benchmark direction-reversal claim is still headlined in abstract and contribution #1 without exclusion of LoCoMo."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "Proposition 1 algebra is fine; the 'only paired analysis isolates effect 1' claim is true only because the paired analysis uses S∩Q questions. The proposition's framing as a formal condition is weaker than claimed."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Necessity is proved in Section 6 Proposition; sufficiency is not discussed. The 'not sufficient' framing in Section 4.3 is a negative observation, not a proof. The logical claims are used loosely."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "'The Denominator Mismatch Condition' appears twice in Section 4; Section 6 has an unnumbered 'Proposition [Denominator Mismatch Condition]' duplicating Proposition 1."
+     },
+     {
+      "id": "CK-13",
+      "pass": true,
+      "note": "mem0 LME-V2 row is footnoted as pilot data; judge scoring marked 'not applicable' to strict-only comparison. LoCoMo mem0 row has no comparable footnote; n_J='---' is unexplained."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Limitations #1: strict varied 43.2%–62.6% across three runs. Table 1 uses 43.1% strict, paired -7.1pp. Table 7 uses +18.6pp. Which run produced which is not stated. Conclusions about -5.4pp gap not stable given paper's own range -9.6pp to +11.2pp."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "Production 'zero data drift' has no defined metric, no table, no test. Section 6 numbers (23 days, 917K writes, 347 supersessions) do not match earlier framing (30/31 days). Disconnected from benchmark claims."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior_work": [
+      "Anonymous 2026 (cited as [anonymous2026simpson]): 'Denominator Mismatch Inflates Apparent Strict-Judge Gaps in Memory Evaluation' — described as showing 27.5× inflation on LongMemEval single-system. This paper generalizes across benchmarks.",
+      "Wu et al. 2024 (LongMemEval): introduced dual-track strict+judge scoring; this paper analyzes the methodology.",
+      "Anatomy of Agentic Memory (Jiang et al. 2026): compares F1 vs LLM-judge across six systems; closest cross-system methodological comparison.",
+      "MMLU-Redux (Gema et al. 2024): benchmark auditing methodology precedent.",
+      "Simpson's Paradox in RecSys (Jadidinejad et al. 2021): per-user normalization can reverse rankings; closest methodological analogue."
+     ],
+     "novelty_assessment": "The contribution is incremental over [anonymous2026simpson] (single-system → cross-benchmark). The cross-benchmark framing is novel, but the headline 'direction reversal' is partly an artifact of incomparable strict metrics across benchmarks (LoCoMo evidence-based vs LongMemEval output-based). The methodological recommendation (paired McNemar) is sound and adoptable, but the paper does not provide an API for reuse. Novelty rating: low-to-moderate. The Simpson's Paradox framing adds nothing beyond [anonymous2026simpson] except a per-type ablation.",
+     "differentiators_from_prior_work": [
+      "Cross-benchmark scope (LongMemEval + LoCoMo + LME-V2) vs single-benchmark prior",
+      "EAF pipeline proposal (Stage 1 ECO, Stage 2 SSI, Stage 3 AFN) — not in prior work but disconnected from the methodology claim",
+      "mem0 cross-system comparison — partial (LongMemEval + LoCoMo) and not full grid"
+     ]
+    },
+    "meta_note": "Reviewer E2 focused on installability, first-run experience, error messages, API ergonomics, and examples completeness. The paper's headline methodology claim (paired McNemar analysis) is sound in principle, but the paper as a usability artifact fails on multiple axes: (1) install path is unverified (v0.1.0a30 vs SECURITY.md's v0.1.0a7 with alpha caveats), (2) the API surface for the recommended methodology is not exposed, (3) the 2×2 contingency table for the headline finding is not shown in the paper, (4) error paths are undocumented. The methodology recommendation is adoptable from third-party knowledge, but the paper does not make that adoption easy. Combined with the internal inconsistencies (Table 1 vs Table 7 sign flip, duplicated Propositions, three different evaluation-window lengths), the paper reads as a research artifact with methodological ambition but incomplete editorial pass.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify internal consistency of Table 1 (tab:main): for LongMemEval/MemTether, S%=43.1 with n_S=313 implies s=135, and J%=48.5 with n_J=470 implies j=228; check these are compatible with the paired McNemar counts b=40, c=84 in Table 5 (e.g., does 84-40=44 and n_overlap reconcile with the paired gap of -7.1 on 313 questions?).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check the direction-reversal claim against statistical support: the abstract asserts a direction 'reversal' (LoCoMo +4.9pp), but Table 5 shows LoCoMo McNemar p=0.344 and Section on bootstrap CIs shows the LoCoMo CI [-4.9,+14.6] includes zero. Verify the paper does not overstate a non-significant reversal as a finding.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Check whether the LME-V2 'judge exceeds strict' claim survives scrutiny: Table 5 gives p=0.058 (marginal) and the abstract calls the LME-V2 gap -3.3pp while Table 1 reports paired gap -9.6pp. Verify the abstract, Table 1, and Table 5 agree and that significance language is consistent.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check the strict-applicability arithmetic: LongMemEval 313/500 = 62.6% and LME-V2 295/451 = 65.4% as stated in Table 2; also verify that 30 prose-type preference questions plus other prose exclusions actually sum to 500-313=187 excluded questions, since Section 4.2 attributes the LME-V2 gap to 156 LLM-evaluated questions (295+156=451, but 451-295=156, whereas LongMemEval's exclusion is attributed to only 30 prose questions in one place and 187 in another).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Check the mem0 alpha inconsistency: Section 4.3 states 'LongMemEval+mem0, alpha = 66.8%' but Table 1 reports n_S=334/500 = 66.8%—verify this is consistent—and verify the claimed 1.0x inflation factor for mem0 is supported by the paired (+5.2) vs non-paired (+5.1) gaps in Table 1.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check for a contradiction between the composition-effect ablation (Table 7) and the main results: Table 7 reports LongMemEval non-paired gap of +18.6pp and same-denominator gap of +6.7pp (positive, strict>judge), while Table 1 reports -5.4pp non-paired (judge>strict). Verify whether these derive from different evaluation runs and whether the paper explains which run each table uses.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check the EAF claim: strict improves 43.2% to 56.4% (+13.2pp) with McNemar p=3.03e-9 on n=303, but Table 8 (ablation) shows Baseline 32.5% and full pipeline 75.7% on a different (15-question?) basis. Verify the ablation table's basis, sample size, and whether +ECO/+SSI/+AFN rows are cumulative or independent, since 'No single component dominates' must follow from cumulative increments.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the cross-model judge validation described in Limitations: it says agreement 96.6% (454/470) with 'GPT-5.6 scoring 48.5% vs DeepSeek-V4-Flash scoring 48.5%', while the abstract attributes cross-validation to 'GPT-6'. Verify the model name, and note that identical scores (48.5%) with 16 disagreements is internally coherent only if agreement is on per-question labels; verify 454/470 = 96.6%.",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-09",
+      "item": "Check the LoCoMo strict-metric comparability caveat: Section 4.1 admits LoCoMo strict scores are computed on retrieved evidence rather than generated answers, unlike LongMemEval. Verify the direction-reversal claim (contribution 1) explicitly accounts for this—since the reversal may be an artifact of incomparable strict definitions across benchmarks rather than a genuine benchmark property.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Check Proposition 1's proof: the decomposition S - J = s/|S| - j/|S| - j(1/|Q| - 1/|S|) — verify the algebra (j/|Q| = j/|S| + j(1/|Q| - 1/|S|) requires sign consistency) and whether the proposition's conclusion ('only paired analysis isolates effect 1') actually follows, since the claimed identity holds only under specific definitions of j.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Check Proposition 2's proof for the claimed necessity claim: it shows heterogeneity is necessary for non-paired and paired gaps to differ, but the text elsewhere claims heterogeneity is 'not sufficient' for inflation. Verify the paper's logical claims (necessary vs sufficient) are used consistently across Section 1, Section 4.3, and Proposition 2.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the duplicated/contradictory subsection headers in Methodology ('The Denominator Mismatch Condition' appears twice) and whether a second, unnumbered Proposition (Denominator Mismatch Condition) in Section 6 is the same as Proposition 1; verify numbering and content are not duplicated with divergent statements.",
+      "category": "reproducibility",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Check the mem0 LME-V2 pilot (Table 1 footnote): 58 facts from 3,274 messages yielding 36.4% strict on 451 questions—verify the paper clearly marks this as pilot data (as the abstract does) and that the footnote's claim 'judge scoring not applicable' is justified rather than an unexplained omission of the judge track for mem0 on both LME-V2 and LoCoMo (Table 1 has n_J='---' for mem0/LoCoMo too).",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check the evaluation-run variance disclosure (Limitations item 1): strict varied 43.2%–62.6% across three runs (Sept 27, Oct 2, Oct 5, 2026), attributed to 'deliberate system improvements'. Verify the headline Table 1 numbers (43.1% strict, 48.5% judge) correspond to a single identified run, and that conclusions like the -5.4pp gap are stable given the paper itself reports non-paired gaps ranging from -9.6pp to +11.2pp across runs.",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Check whether the production longitudinal analysis (Section 6: 2,095 facts, 917K writes, zero data drift, Memory Court, dates 'since September 13, 2026') is actually connected to any benchmark claim, or is unsupported marketing content; verify the claimed 'zero data drift' has a defined metric and evidence, since it is asserted without a table or test.",
+      "category": "claim",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": null
+   },
+   "usage": {
+    "in": 25185,
+    "out": 8225,
+    "secs": 68.1
+   },
+   "raw_len": 32956,
+   "z": 0.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "unbalanced JSON"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "ok": false,
+   "error": "unbalanced JSON"
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify internal consistency of Table 1 (tab:main): for LongMemEval/MemTether, S%=43.1 with n_S=313 implies s=135, and J%=48.5 with n_J=470 implies j=228; check these are compatible with the paired McNemar counts b=40, c=84 in Table 5 (e.g., does 84-40=44 and n_overlap reconcile with the paired gap of -7.1 on 313 questions?).",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check the direction-reversal claim against statistical support: the abstract asserts a direction 'reversal' (LoCoMo +4.9pp), but Table 5 shows LoCoMo McNemar p=0.344 and Section on bootstrap CIs shows the LoCoMo CI [-4.9,+14.6] includes zero. Verify the paper does not overstate a non-significant reversal as a finding.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Check whether the LME-V2 'judge exceeds strict' claim survives scrutiny: Table 5 gives p=0.058 (marginal) and the abstract calls the LME-V2 gap -3.3pp while Table 1 reports paired gap -9.6pp. Verify the abstract, Table 1, and Table 5 agree and that significance language is consistent.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Check the strict-applicability arithmetic: LongMemEval 313/500 = 62.6% and LME-V2 295/451 = 65.4% as stated in Table 2; also verify that 30 prose-type preference questions plus other prose exclusions actually sum to 500-313=187 excluded questions, since Section 4.2 attributes the LME-V2 gap to 156 LLM-evaluated questions (295+156=451, but 451-295=156, whereas LongMemEval's exclusion is attributed to only 30 prose questions in one place and 187 in another).",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Check the mem0 alpha inconsistency: Section 4.3 states 'LongMemEval+mem0, alpha = 66.8%' but Table 1 reports n_S=334/500 = 66.8%—verify this is consistent—and verify the claimed 1.0x inflation factor for mem0 is supported by the paired (+5.2) vs non-paired (+5.1) gaps in Table 1.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Check for a contradiction between the composition-effect ablation (Table 7) and the main results: Table 7 reports LongMemEval non-paired gap of +18.6pp and same-denominator gap of +6.7pp (positive, strict>judge), while Table 1 reports -5.4pp non-paired (judge>strict). Verify whether these derive from different evaluation runs and whether the paper explains which run each table uses.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Check the EAF claim: strict improves 43.2% to 56.4% (+13.2pp) with McNemar p=3.03e-9 on n=303, but Table 8 (ablation) shows Baseline 32.5% and full pipeline 75.7% on a different (15-question?) basis. Verify the ablation table's basis, sample size, and whether +ECO/+SSI/+AFN rows are cumulative or independent, since 'No single component dominates' must follow from cumulative increments.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-08",
+   "item": "Check the cross-model judge validation described in Limitations: it says agreement 96.6% (454/470) with 'GPT-5.6 scoring 48.5% vs DeepSeek-V4-Flash scoring 48.5%', while the abstract attributes cross-validation to 'GPT-6'. Verify the model name, and note that identical scores (48.5%) with 16 disagreements is internally coherent only if agreement is on per-question labels; verify 454/470 = 96.6%.",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-09",
+   "item": "Check the LoCoMo strict-metric comparability caveat: Section 4.1 admits LoCoMo strict scores are computed on retrieved evidence rather than generated answers, unlike LongMemEval. Verify the direction-reversal claim (contribution 1) explicitly accounts for this—since the reversal may be an artifact of incomparable strict definitions across benchmarks rather than a genuine benchmark property.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-10",
+   "item": "Check Proposition 1's proof: the decomposition S - J = s/|S| - j/|S| - j(1/|Q| - 1/|S|) — verify the algebra (j/|Q| = j/|S| + j(1/|Q| - 1/|S|) requires sign consistency) and whether the proposition's conclusion ('only paired analysis isolates effect 1') actually follows, since the claimed identity holds only under specific definitions of j.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Check Proposition 2's proof for the claimed necessity claim: it shows heterogeneity is necessary for non-paired and paired gaps to differ, but the text elsewhere claims heterogeneity is 'not sufficient' for inflation. Verify the paper's logical claims (necessary vs sufficient) are used consistently across Section 1, Section 4.3, and Proposition 2.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-12",
+   "item": "Check the duplicated/contradictory subsection headers in Methodology ('The Denominator Mismatch Condition' appears twice) and whether a second, unnumbered Proposition (Denominator Mismatch Condition) in Section 6 is the same as Proposition 1; verify numbering and content are not duplicated with divergent statements.",
+   "category": "reproducibility",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-13",
+   "item": "Check the mem0 LME-V2 pilot (Table 1 footnote): 58 facts from 3,274 messages yielding 36.4% strict on 451 questions—verify the paper clearly marks this as pilot data (as the abstract does) and that the footnote's claim 'judge scoring not applicable' is justified rather than an unexplained omission of the judge track for mem0 on both LME-V2 and LoCoMo (Table 1 has n_J='---' for mem0/LoCoMo too).",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Check the evaluation-run variance disclosure (Limitations item 1): strict varied 43.2%–62.6% across three runs (Sept 27, Oct 2, Oct 5, 2026), attributed to 'deliberate system improvements'. Verify the headline Table 1 numbers (43.1% strict, 48.5% judge) correspond to a single identified run, and that conclusions like the -5.4pp gap are stable given the paper itself reports non-paired gaps ranging from -9.6pp to +11.2pp across runs.",
+   "category": "reproducibility",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-15",
+   "item": "Check whether the production longitudinal analysis (Section 6: 2,095 facts, 917K writes, zero data drift, Memory Court, dates 'since September 13, 2026') is actually connected to any benchmark claim, or is unsupported marketing content; verify the claimed 'zero data drift' has a defined metric and evidence, since it is asserted without a table or test.",
+   "category": "claim",
+   "load_bearing": false
+  }
+ ],
+ "surface_check": null,
+ "cross_challenges": [],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

@@ -1,0 +1,780 @@
+{
+ "round_score": 3.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 1,
+ "full_tier": {
+  "n": 0,
+  "mean": null
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 3.0
+ },
+ "round": "V4-RC",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\SGM-RouteC-R72-restore.tex",
+ "timestamp": "2026-10-19T12:37:47.094574",
+ "usage_total": {
+  "in": 26123,
+  "out": 11871,
+  "secs": 75.0
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": false,
+   "error": "HTTP Error 504: Gateway Timeout"
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "core_claim": "MemTether is a local-first agent memory system that combines (1) bi-temporal supersession chains with four proven correctness properties, (2) hash-chained tamper-evident audit with browser-verifiable evidence export, and (3) file-level multi-client sharing via SQLite. It additionally identifies an empirical r^N decay pattern in multi-session memory retrieval (a=0.702, r=0.736, R²=0.85) on LongMemEval-500, validates tamper detection on 2,346 audit entries, and demonstrates competitive retrieval accuracy on LongMemEval and LoCoMo while adding governance.",
+     "central_argument": "Agent memory systems lack governance (admission control, tamper-evident audit, multi-client sharing). MemTether shows this is technically feasible, formally correct, and operationally deployable in a single 26-day production run across 15 AI clients. The r^N decay is presented as an architectural argument for why write-time governance matters more than retrieval optimization.",
+     "contribution_count": 5,
+     "evidence_type": "Single-operator production trace (26 days), formal proofs, third-party benchmark comparison, synthetic B1-gate evaluation, oracle-ceiling diagnostic on 75 multi-session questions"
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 3.0,
+     "alignment": 2.0,
+     "overall": 3.0
+    },
+    "findings": [
+     {
+      "id": "E2-R01",
+      "severity": "critical",
+      "issue": "Schema-to-SQL reproduction gap: the shipped reproducibility snippets reference column/table names that don't all match the schema DDL in Section 4",
+      "relevant_text": "SELECT COUNT(*) FROM facts WHERE status='active' AND use_count=0; ... CREATE TABLE facts (... use_count INTEGER, ...)",
+      "concern": "The paper provides a DDL block but it is illustrative rather than authoritative, and the SQL examples are sprinkled across sections (admissibility, production, reproducibility) without cross-reference. A user pip-installing memtether and pointing the snippets at the produced DB will hit at least three failure modes: (a) the `facts.status` is an enum-stored-as-int in some builds; (b) `use_count=0` does not equal 'never retrieved across the window' as the paper's definition of dead would suggest — a fact retrieved on day 1 and never again has use_count=0 on day 30 yet is technically 'ever-retrieved'; (c) `fact_sources` / `source` join is undocumented. Without a `memtether export-measurements` CLI or a `docs/schema.sql`, the reproducibility section is decorative.",
+      "strongest_rebuttal": "The synthetic data generator at the artifact repo provides a deterministically seeded DB matching the production schema, so a new user runs `memtether generate --seed 42` and the queries return consistent numbers.",
+      "why_rebuttal_insufficient": "Nothing in the paper or SECURITY.md confirms that such a CLI exists at the named tag. The `v0.1.0a80.post2` pin in the paper versus the `v0.1.0a7` referenced in SECURITY.md is a 73-version drift; either the security doc is stale, or the reproducibility version is unstable. The artifact URL also differs from the GitHub URL — different repositories (`lanbass869-cell/cac-artifact` vs `MemTether/MemTether`) imply two packages whose alignment is not asserted.",
+      "suggestions": "Collapse to one canonical repository and one pinned version; ship `docs/schema.sql`; add a `memtether export-measurements --output measurements.csv` CLI; state explicitly that `use_count == 0` means 'never retrieved across the entire observation window' and pin the window.",
+      "reconciled_with": [
+       "E2-02",
+       "E3-01",
+       "E3-05"
+      ]
+     },
+     {
+      "id": "E2-R02",
+      "severity": "critical",
+      "issue": "r^N fit claim is overclaimed: a two-parameter fit with highly-correlated (a, r) is reported without confidence intervals, and the fit is dominated by N≤2 points",
+      "relevant_text": "the fit is dominated by the dense N≤2 points and the small counts at N≥5 (11 and 3 questions) make the tail imprecise; we therefore treat the decay constant as indicative rather than precise. Bootstrap confidence intervals are left as future work.",
+      "concern": "The paper explicitly acknowledges the fit is 'indicative rather than precise' but still reports a single point estimate (a=0.702, r=0.736, R²=0.85) in the abstract and uses 0.736^10 ≈ 4.7% as a load-bearing implication. With 11 questions at N=5 and 3 at N≥6, the tail of the fit is supported by ~14 data points; the model has 2 free parameters and R²=0.85 may be entirely driven by the bulk at N≤2. The 'a and r are not independently identifiable' admission makes the abstract's specific numbers misleading — every alternative (a=0.5, r=0.85) or (a=0.9, r=0.65) fits near N=1.",
+      "strongest_rebuttal": "The figure caption includes 'EXPLORATORY FIT — DO NOT EXTRAPOLATE OR GENERALIZE' and the body says 'indicative rather than precise'.",
+      "why_rebuttal_insufficient": "Indicative framing does not excuse the abstract, contributions list, and Section 4 from leading with precise-looking numbers and using them to argue 'architectural, not parametric'. The redundant sentence ('even at a more conservative point estimate r = 0.736 it is 0.736^10') is a leftover editing artifact that the paper itself notes elsewhere.",
+      "suggestions": "Either (a) report bootstrap CIs (a, r) and the full uncertainty, or (b) collapse the claim to a qualitative statement ('multi-session accuracy declines steeply') supported by the monotonic empirical pattern. Drop the 'a·r^N' decomposition if a and r cannot be uniquely identified.",
+      "reconciled_with": [
+       "CK-01",
+       "CK-02",
+       "CK-03"
+      ]
+     },
+     {
+      "id": "E2-R03",
+      "severity": "critical",
+      "issue": "Tamper-detection count contradicts itself: abstract '5 of 5', Section 5 'six scenarios (five anchored + one unanchored)', abstract parenthetical claims '5 anchored, one unanchored'",
+      "relevant_text": "the hash chain detects all 5 of 5 anchored-row modification scenarios ... we apply six tamper scenarios (five on anchored rows, one on unanchored tail) and re-run verify_chain()",
+      "concern": "Across three locations the count fluctuates: (1) abstract 'all 5 of 5 anchored-row modification scenarios'; (2) Section 5 'six tamper scenarios (five on anchored rows, one on unanchored)' — implying 5+1=6 total but only 5 anchored; (3) abstract parenthetical 'five anchored, one unanchored tail' — which is 5+1=6 total but the framing '5 of 5' only addresses the 5 anchored. This is a counting inconsistency in a load-bearing security claim; reproducibility script `audit_chain_demo.py` is said to create '6 tamper scenarios' which matches the parenthetical, but the abstract '5 of 5' omits the unanchored case. A reviewer reading only the abstract gets a 100% detection claim that disagrees with the unanchored-tail caveat acknowledged in the body.",
+      "strongest_rebuttal": "The 5/5 is a correct statement about the anchored subset, which is what the hash chain is designed to protect; the unanchored tail is documented as a known limitation in both the body and Section 4.4.",
+      "why_rebuttal_insufficient": "The strongest rebuttal concedes that the abstract is silent on the unanchored case; in a security paper, '5 of 5 detected' is misleading without 'and 1 known-undetected'. The contradiction in scenario counts (5 vs 6) must be unified.",
+      "suggestions": "Standardize on '5 of 5 anchored detected; 1 of 1 unanchored-tail undetected (known limitation, ≤9-entry window)' everywhere, including the abstract. Cross-reference Section 4.4 from the abstract sentence.",
+      "reconciled_with": [
+       "CK-05"
+      ]
+     },
+     {
+      "id": "E2-R04",
+      "severity": "major",
+      "issue": "API surface for `remember()` and the three admission gates is unspecified despite being the paper's central proposal",
+      "relevant_text": "Novelty gate: Reject if a semantically equivalent fact is already active (embedding similarity > 0.95). ... Type-prior gate: ... require the writing agent to provide a retrieval intent ... Length gate: Reject or truncate facts exceeding 500 characters that contain more than 3 entities.",
+      "concern": "The paper proposes three admission gates but defines them only in prose. A user who reads the paper and tries to implement or invoke them gets: (1) no function signature (is it `remember(content, type, intent, source)`? does it return the uid or a rejection?); (2) no config keys (where does `0.95` live? is it `memtether.gate.novelty_threshold` or environment variable?); (3) no rejection semantics (silent drop? exception? dead-letter?); (4) no entity-counting method (regex? LLM? fact_entities table?). The release artifacts at `v0.1.0a80.post2` may or may not contain gate logic; without a config reference or signature, the contribution is unfalsifiable.",
+      "strongest_rebuttal": "The paper states the gate logic exists; the code at the pinned version implements it; readers can audit `src/memtether/gates/` (or equivalent) once they clone.",
+      "why_rebuttal_insufficient": "The paper does not link to the file or describe the gate implementation surface. For a usability-driven artifact, the central API is the gate set and it is presented only in prose. Without showing where the gates live in the codebase and how to invoke them, a reader cannot adopt, test, or contest them.",
+      "suggestions": "Add a 'Write Governance API' subsection with the exact `remember()` signature, the typed `AdmissionRejection` return shape, and the config keys; cross-reference the implementation file by path; provide a worked example showing an accepted and a rejected write with structured rejection reason.",
+      "reconciled_with": [
+       "E2-03",
+       "E2-06"
+      ]
+     },
+     {
+      "id": "E2-R05",
+      "severity": "major",
+      "issue": "First-run experience assumes either the production DB or a self-generated fixture, but provides neither",
+      "relevant_text": "The production database contains private operational data and is not publicly released. A synthetic data generator with matching schema is provided at the artifact repository. SQL queries for all reported counts are included in the Reproducibility section above; they can be verified against the synthetic database.",
+      "concern": "A new user running `pip install memtether` and then the listed `sqlite3 memory.db \"SELECT ...\"` snippet gets an empty database with no tables. Three failure modes: (1) no production DB available — the security policy explicitly excludes it from the repo via .gitignore; (2) the synthetic generator at the artifact repo (`cac-artifact`) may not produce a DB named `memory.db`, may require extra arguments, or may have drifted from the production schema; (3) the version pin (`v0.1.0a80.post2`) and the security-doc version (`v0.1.0a7`) disagree by 73 alpha releases. None of the listed reproducibility commands print a success/failure summary that a non-author can match.",
+      "strongest_rebuttal": "The synthetic generator is deterministic and version-pinned; the SQL queries return the published numbers against it.",
+      "why_rebuttal_insufficient": "No first-run smoke test (`memtether doctor` / `memtether selfcheck`) is provided. The version drift between paper and SECURITY.md is itself a reproducibility failure. The dual repository pattern (MemTether/MemTether + lanbass869-cell/cac-artifact) means the user must reconcile two artifacts with no cross-reference.",
+      "suggestions": "Add `memtether doctor` that prints dependency versions, SQLite FTS5 availability, configured embedding backend, and a hello-world remember/query round-trip; pin a single repository and version; ship a self-contained `make reproduce` that runs the full query matrix against the synthetic DB and diffs against expected numbers.",
+      "reconciled_with": [
+       "E2-01",
+       "E2-05"
+      ]
+     },
+     {
+      "id": "E2-R06",
+      "severity": "major",
+      "issue": "Unit ambiguity in injection-coverage calculation: 'characters' is overloaded across storage (bytes? code points? graphemes?) and context (tokens?)",
+      "relevant_text": "Total content: 825,032 characters ... Injection limit per turn: 3,980 characters ... Injection coverage: 0.48%",
+      "concern": "The 0.48% headline rests on 825,032 / 3,980. In SQLite, `LENGTH()` returns characters (code points) by default — but with the default collation under UTF-8, `LENGTH()` returns characters, not bytes, which means Chinese (3 bytes/code point in UTF-8) and English (1 byte/code point) facts mix incommensurate units. The 3,980 'characters' for the LLM context window is almost certainly tokens, not characters. The ratio is meaningless unless both numerator and denominator use the same unit, which they almost certainly do not.",
+      "strongest_rebuttal": "The 825,032 figure is computed by SQLite's `SUM(LENGTH(content))` and the 3,980 figure is the configured injection budget — both in code points as stored.",
+      "why_rebuttal_insufficient": "The LLM budget is in tokens; the comparison is invalid. A reviewer running `SELECT SUM(LENGTH(content)) FROM facts` against the synthetic DB gets a number in code points that does not match the paper's claim once tokenization is applied. The B1 Chinese parser on Chinese facts ensures that at least one of the two ends of the ratio is dominated by Chinese text whose code-point/byte/token ratios differ wildly.",
+      "suggestions": "Pin units: report both code-point and byte lengths for storage, and token count for the injection budget (cl100k_base / o200k_base). Show the formula `coverage = token_budget / token_total_content`. Include a worked example for one Chinese fact and one English fact to make the unit collision visible.",
+      "reconciled_with": [
+       "E2-07"
+      ]
+     },
+     {
+      "id": "E2-R07",
+      "severity": "major",
+      "issue": "EAF pipeline 60.0% / 82.0% inconsistency: the paper references an 'EAF pipeline' without defining it, and the 60.0% figure does not match either Section 3.3 (43.1%) or Section 13 (75.7%)",
+      "relevant_text": "our EAF pipeline's 60.0% strict score likely corresponds to ~84% true capability ... MemTether's EAF pipeline achieves 82.0% under LLM-as-judge scoring on a 50-question multi-session pilot",
+      "concern": "Three different 'EAF' numbers appear: (1) abstract mentions 'overall strict 43.1%' for MemTether; (2) Section 12 metric_bias says 'EAF pipeline's 60.0% strict score' — undefined elsewhere; (3) Section 13 third-party shows 'MemTether EAF 75.7% strict' and '82.0% judge'. The EAF term is undefined in the paper — does it stand for 'Evidence-Augmented Formulation'? The 60.0% in Section 13 (a) does not match the 43.1% in Section 3.3, (b) does not match the 75.7% in Section 14, and (c) is presented as a measured number with no provenance. A reviewer trying to map the term to a defined component cannot.",
+      "strongest_rebuttal": "EAF is a defined retrieval pipeline (Evidence-Augmented Formulation) used in different evaluation settings; the 60.0% number is from an earlier run.",
+      "why_rebuttal_insufficient": "If EAF is a defined pipeline, define it once and reuse the number; if it is a moving target across runs, it is not a number worth citing. The 60.0% vs 43.1% gap is 17pp — far too large for 'run-to-run variance'.",
+      "suggestions": "Define EAF in one place; remove the 60.0% citation from Section 13 unless it can be traced to a specific run with configuration; reconcile against the 75.7% third-party number.",
+      "reconciled_with": [
+       "CK-12"
+      ]
+     },
+     {
+      "id": "E2-R08",
+      "severity": "major",
+      "issue": "B1 Gate benchmark is the only data point in Section 11, but no generator, no test path, and no held-out set separation is documented",
+      "relevant_text": "We evaluate on a synthetic injection benchmark: 50 contradictory writes mixed with 50 non-contradictory writes. ... the gate achieves 100% recall and 100% precision (zero false positives across all four near-miss types)",
+      "concern": "The B1 gate is the paper's only write-time interception mechanism, and it claims 100%/100%. But: (1) no generator script is named in the body — only `scripts/generate_b1_benchmark.py` and `scripts/replay_b1_verdicts.py` are named in the Reproducibility section, with no link to where they live; (2) the v1-v5 progression shows v3 dropped to 80% then v5 hit 100% after 6 iterations on the same benchmark — was v5 evaluated on the same 50/50 it was trained/iterated against? (3) the '20/20 unseen dev set' is claimed but not separated from the 6 refinement iterations; (4) the p50=0.037ms latency cites n=1000 with no machine spec. A reviewer cannot reproduce the headline 100% claim without reconstructing the synthetic generator and the iteration history.",
+      "strongest_rebuttal": "The generator script is deterministic with seed=42; the dev set is held out from the refinement loop.",
+      "why_rebuttal_insufficient": "Seed determinism does not separate train from dev. The paper does not state which 50/50 is the training data, which is dev, and which (if any) is test. With only 50+50=100 examples and v5 reaching 100%, the entire dataset could have been used for tuning.",
+      "suggestions": "Provide a 30-line Python snippet that constructs the benchmark generator, prints one positive and one near-miss, runs the gate, and shows the deterministic verdict; explicitly state the train/dev/test split; report the v1-v5 numbers on each split separately.",
+      "reconciled_with": [
+       "E2-04",
+       "CK-10"
+      ]
+     },
+     {
+      "id": "E2-R09",
+      "severity": "major",
+      "issue": "The 31K+ total operations claim conflates writes and reads without a unified schema, and the parenthetical '26-day vs 30-day snapshot' is never reconciled",
+      "relevant_text": "Combined with 2,346 write operations recorded in audit_log, this yields the 31K+ total operations. ... (Production metrics in this paper reflect a 26-day snapshot; the supersession benchmark uses a 30-day snapshot from the same deployment.)",
+      "concern": "2,346 + 28,807 = 31,153 ≈ '31K+'. But: (1) the audit-log table is documented to have 2,346 entries in Section 5 (tamper-detection), yet Section 7 (Production Deployment) refers to '2,378 writes' for the 26-day window — these are inconsistent; (2) the parenthetical admits two snapshots (26-day vs 30-day) but does not state which metrics come from which snapshot; (3) the '26-day snapshot' is contradicted by abstract's '30-day production deployment' and by Section 3.1's '31 days'. The same paper reports three different time windows (26, 30, 31 days) across four locations.",
+      "strongest_rebuttal": "31,153 ≈ 31K+ rounds correctly; the 2,378 vs 2,346 difference is a tamper-experiment subset (the tamper run used an earlier copy of the DB).",
+      "why_rebuttal_insufficient": "If the tamper experiment used a 2,346-entry subset and the production window has 2,378 entries, neither equals the abstract's combined 31K+ if both are summed with use_count. The 26/30/31-day inconsistency is not acknowledged in the body — it is only flagged in the abstract parenthetical.",
+      "suggestions": "Unify on a single window (e.g., 30 days = 2026-09-15 to 2026-10-14) and use it everywhere; report the exact subset used for the tamper experiment; remove the parenthetical caveat from the abstract and put it in Section 2 as a metric definition.",
+      "reconciled_with": [
+       "CK-04",
+       "E1-04",
+       "E1-05",
+       "CK-15"
+      ]
+     },
+     {
+      "id": "E2-R10",
+      "severity": "major",
+      "issue": "Concurrency model (file lock, journal mode, busy_timeout) is unspecified despite 15 concurrent clients and tamper-experiment claims that depend on no events being lost",
+      "relevant_text": "Concurrent writes are serialized by a file lock (_FileLock).",
+      "concern": "Every load-bearing measurement (31K+ operations, 0 data loss, tamper detection on 2,346 entries) assumes no events were silently dropped. The paper names `_FileLock` but does not specify journal mode (WAL vs rollback), busy_timeout, isolation level, or whether any SQLITE_BUSY errors were logged. With 15 concurrent clients and writes that span multiple tables (facts + fact_entities + audit_log + anchors), a torn write could create a fact without its audit entry, a missing use_count increment, or a missing anchor — none of which the hash chain detects because the chain only covers entries that exist. A reviewer has no way to bound dropped-event rate.",
+      "strongest_rebuttal": "SQLite default settings are ACID; write volume (2,378 writes / 31 days ≈ 77/day) is low; 15 clients writing to a single file with file-level locking is standard practice.",
+      "why_rebuttal_insufficient": "Low average rate does not bound burst concurrency (15 clients can write simultaneously); multi-table writes require explicit transactions, none documented; the paper itself makes Q-value findings load-bearing on retrieval-writeback completeness, which is exactly the kind of write most likely to be lost under contention.",
+      "suggestions": "State the SQLite journal mode (WAL), busy_timeout, transaction scope per remember()/correct()/retire(); report the count of retrieval API calls vs recorded write-backs; add a `tests/test_concurrency.py` that exercises the 15-client scenario with a passed/failed instrumentation error-rate bound.",
+      "reconciled_with": [
+       "E1-01"
+      ]
+     },
+     {
+      "id": "E2-R11",
+      "severity": "major",
+      "issue": "Threat-model honesty is good in Section 4.4 but contradicted by the abstract's 'EU AI Act Article 12 compliance' framing",
+      "relevant_text": "An adversary-aware attack would attempt to recompute the hash chain after modifying entries; our defense relies on the attacker not discovering the anchoring mechanism (security through obscurity for the anchor locations), which is a documented limitation of any locally-stored audit trail.",
+      "concern": "Section 4.4 explicitly acknowledges security-through-obscurity, fail-open source attribution, and the inability to prevent out-of-band writes. The abstract, however, presents the system as 'supporting EU AI Act Article 12 record-keeping requirements' without qualification. An adversarial compliance audit would fail the system on the lack of external attestation; the abstract's framing implies a stronger guarantee than the body delivers.",
+      "strongest_rebuttal": "EU AI Act Article 12 requires record-keeping, not tamper-proofness; MemTether provides records with local verification, which is a defensible interpretation.",
+      "why_rebuttal_insufficient": "A compliance reader sees 'EU AI Act Article 12' in the abstract and assumes the system satisfies the record-keeping obligation. The body caveats are not surfaced in the abstract. If Article 12 requires cryptographic integrity guarantees that exceed local-anchor trust, the framing is overstated.",
+      "suggestions": "Either remove 'EU AI Act Article 12' from the abstract and contributions, or qualify it ('provides a record-keeping substrate suitable for Article 12 evidence export, with documented limitations on external attestation').",
+      "reconciled_with": [
+       "CK-06"
+      ]
+     },
+     {
+      "id": "E2-R12",
+      "severity": "minor",
+      "issue": "Version drift between paper (`v0.1.0a80.post2`, commit `d1c0f99`) and SECURITY.md (`v0.1.0a7`) is unexplained and undermines version-pinning",
+      "relevant_text": "All results in this paper were generated with MemTether v0.1.0a80.post2 (commit d1c0f99, PyPI). SECURITY.md notes that the package is in alpha status; we recommend pinning to this specific version for reproduction.",
+      "concern": "The paper claims `v0.1.0a80.post2` while the security policy cited by the same paper is at `v0.1.0a7` — 73 alpha releases apart. Either (a) the security policy is stale and should be updated, or (b) the alpha counter has inflated without the security review being re-run. Neither is documented. A reviewer pinning `v0.1.0a80.post2` gets no security caveat; pinning `v0.1.0a7` per the SECURITY.md recommendation gets a stale API.",
+      "strongest_rebuttal": "The security policy describes the threat model which is constant across versions; only the version number has drifted.",
+      "why_rebuttal_insufficient": "The threat model may be constant, but the implementation at v0.1.0a80.post2 may have new attack surfaces not covered by v0.1.0a7's policy. Pinning to a version whose security review is 73 releases behind is not a coherent recommendation.",
+      "suggestions": "Either update SECURITY.md to the current version, or add a sentence in the paper noting the alpha counter and the security-policy version-mismatch.",
+      "reconciled_with": [
+       "E2-09"
+      ]
+     },
+     {
+      "id": "E2-R13",
+      "severity": "minor",
+      "issue": "Section 5's orphaned paragraph on cross-system baselines is misplaced inside Tamper-Detection Evaluation",
+      "relevant_text": "LangMem returned NOT_FOUND for 79.2% of questions, indicating a structural bottleneck in its extraction pipeline rather than a retrieval failure ... For highest reported retrieval accuracy on LongMemEval, we refer readers to Memanto (89.8%) and MemStrata (95%)",
+      "concern": "A paragraph comparing cross-system baseline numbers appears inside Section 5 (Tamper-Detection Evaluation), which has no logical connection to extraction-pipeline failure rates. This indicates the manuscript has not had a structural pass — the cross-system numbers (mem0 60.2%, LangMem ~26-27%, MemTether 43.1%) also appear in Section 3.3 and Section 13 but in different combinations and with different framings.",
+      "strongest_rebuttal": "The paragraph is a context-setting remark; the placement is editorial.",
+      "why_rebuttal_insufficient": "Editorial placement of context-setting remarks breaks the reading order and signals incomplete assembly, which (combined with E2-08's duplicated Related Work paragraphs) suggests the camera-ready has not been diff-checked.",
+      "suggestions": "Move the paragraph to Section 13 (Third-Party Benchmark Comparison) or Section 3.3 (Cross-System Evidence); reconcile the numbers across sections.",
+      "reconciled_with": [
+       "CK-07",
+       "E1-06",
+       "E2-08"
+      ]
+     },
+     {
+      "id": "E2-R14",
+      "severity": "minor",
+      "issue": "Reproducibility section lacks the SQL for cross-source dead-rate decomposition (Section 7) and the power-law/median retrieval claims",
+      "relevant_text": "dead memories by source ... Power-law (Section 4.2) ... median memory is retrieved fewer than 5 times",
+      "concern": "Three out of three reproducibility SQL examples use only the `facts` table directly; none joins to `fact_sources` (or equivalent) for the WorkBuddy-vs-other-source decomposition; none produces a use_count distribution for the power-law or median claim. A reader can reproduce the dead-rate by type but not by source.",
+      "strongest_rebuttal": "The source decomposition can be done by extending the provided snippets.",
+      "why_rebuttal_insufficient": "Extending requires knowing the join column (`source` in `facts` vs a separate `fact_sources` table), which the DDL block in Section 4 leaves ambiguous.",
+      "suggestions": "Add a fourth SQL snippet for source breakdown and a fifth for use_count distribution / top-N cumulative share.",
+      "reconciled_with": [
+       "E2-10",
+       "E3-10"
+      ]
+     },
+     {
+      "id": "E2-R15",
+      "severity": "minor",
+      "issue": "Oracle ceiling diagnostic arithmetic: '15 of 31 strict-incorrect are semantically correct' implies 11 LLM counting + 5 NOT-ENOUGH-INFO = 16, not 15",
+      "relevant_text": "Of the 31 questions that strict matching marks as incorrect, 15 (48%) are semantically correct but format-mismatched ... The remaining 16 splits into 11 LLM counting errors and 5 NOT-ENOUGH-INFO responses.",
+      "concern": "75 - 44 = 31 strict-incorrect. Of these, 15 semantically correct → 31 - 15 = 16 remaining, claimed as 11 + 5 = 16. So 11 + 5 = 16 matches. But the text says '15 (48%) are semantically correct' — 15/31 = 48.4%, fine. The +25.3pp claim: 84.0% - 58.7% = 25.3pp, correct. However: 63/75 = 84.0% (not 84.0%); let me check — 63/75 = 0.84, which rounds to 84.0%, fine. 44/75 = 0.5867, rounds to 58.7%, fine. The numbers are internally consistent on close inspection; my initial concern was an arithmetic slip in my own reading. The issue is real but minor: the prose uses '15 of 31 strict-incorrect' which is right, but the reader might assume the 16 remaining is 11+5=16, which is right. So this finding is downgraded — the apparent inconsistency is in my own skim. Recommend a simple clean-up: replace '15 (48%)' with '15 of 31' to make the arithmetic obvious.",
+      "strongest_rebuttal": "The numbers reconcile on close inspection.",
+      "why_rebuttal_insufficient": "The reconciliation requires a careful second pass; a single-pass reader is left to verify arithmetic that the paper itself doesn't verify inline.",
+      "suggestions": "Inline the arithmetic: '44/75 = 58.7% strict; 63/75 = 84.0% semantic; +25.3pp; 15 of 31 strict-incorrect are format-mismatched; 11 are counting errors; 5 are NOT-ENOUGH-INFO'.",
+      "reconciled_with": [
+       "CK-11"
+      ]
+     },
+     {
+      "id": "E2-R16",
+      "severity": "minor",
+      "issue": "Sources/URL drift: paper cites GitHub `MemTether/MemTether` for code and GitHub `lanbass869-cell/cac-artifact` for evaluation artifacts; the relationship is undocumented",
+      "relevant_text": "MemTether is Apache-2.0 open source at https://github.com/MemTether/MemTether ... All benchmark results can be reproduced with ... companion artifact repository at https://github.com/lanbass869-cell/cac-artifact",
+      "concern": "Two separate GitHub URLs are cited with no documentation of which artifact lives in which repo. A reviewer expecting a single repository must reconcile two locations. The `lanbass869-cell/cac-artifact` user suggests an individual maintainer; the `MemTether/MemTether` URL suggests an organization. Whether one is a fork of the other, or they are independently maintained, is unspecified.",
+      "strongest_rebuttal": "Two repositories may be necessary (code vs evaluation scripts).",
+      "why_rebuttal_insufficient": "If two repos are necessary, the paper should say so explicitly and explain which artifact is in which.",
+      "suggestions": "Document the two-repo split explicitly: 'MemTether/MemTether contains the runtime engine; lanbass889-cell/synthetic-data contains the synthetic generator and evaluation scripts.'",
+      "reconciled_with": []
+     },
+     {
+      "id": "E2-R17",
+      "severity": "minor",
+      "issue": "The 'recency correction' numerator/denominator for 153/1,651 = 9.3% is not pinned to a specific date predicate",
+      "relevant_text": "Restricting to memories ≥ 7 days old: 153/1,651 = 9.3% dead rate.",
+      "concern": "'≥ 7 days old' is window-relative to write time or to analysis time? The paper's overall dead rate is 9.5% (189/1,981), and restricting to '≥7 days old at analysis time' gives a smaller denominator and a different fraction than 'memories written ≥7 days ago'. A reviewer running the implied query gets a third number that doesn't match either, and the paper never pins analysis_date (implied as 2026-10-14 but never stated).",
+      "strongest_rebuttal": "≥7 days old is clearly 'memories whose age exceeds 7 days at the analysis date'.",
+      "why_rebuttal_insufficient": "The implied SQL differs depending on whether age is computed at write time or analysis time. Pinning `analysis_date = 2026-10-14` and the exact predicate removes the ambiguity.",
+      "suggestions": "Replace '≥7 days old' with the explicit `WHERE julianday(analysis_date) - julianday(created_at) >= 7`; state analysis_date explicitly.",
+      "reconciled_with": [
+       "E2-11",
+       "E3-11"
+      ]
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      {
+       "claim": "r^N fit with a=0.702, r=0.736, R²=0.85 supports an architectural barrier to multi-session retrieval",
+       "evidence": "LongMemEval-500 per-question results, 75 oracle-ceiling multi-session questions",
+       "gap": "Fit is dominated by N≤2 points; (a, r) not independently identifiable; the model has 2 parameters and R²=0.85 may be entirely bulk-driven; tail (N≥5) has only 14 questions; no bootstrap CI reported. The architectural claim is qualitatively correct but quantitatively unsupported."
+      },
+      {
+       "claim": "Hash chain detects all 5 of 5 anchored tamper scenarios on 2,346 entries",
+       "evidence": "audit_chain_demo.py creating 6 tamper scenarios on a copy of the production DB",
+       "gap": "Abstract says '5 of 5', Section 5 says 'six scenarios (five anchored + one unanchored)', abstract parenthetical says 'five anchored, one unanchored tail' — three framings of the same experiment. The 2,346 figure is for the tamper-experiment subset, but Section 7 production writes are 2,378 — different denominators."
+      },
+      {
+       "claim": "EAF pipeline achieves 60.0% strict / 82.0% judge on LongMemEval",
+       "evidence": "Section 12 metric bias (60.0%); Section 13 third-party (75.7%); Section 14 judge (82.0%)",
+       "gap": "Three different EAF numbers across three sections; 'EAF' is never defined; 60.0% does not match the 43.1% Section 3.3 baseline or the 75.7% Section 13 result. No single experiment accounts for all three."
+      },
+      {
+       "claim": "31K+ operations with zero data loss",
+       "evidence": "2,346 + 28,807 ≈ 31,153 from audit_log + use_count",
+       "gap": "Zero data loss is 'self-reported manual' (Section 7 metric definitions); no automated monitoring; 26/30/31-day window inconsistency across abstract, Section 2, Section 3.1, Section 7; 2,346 vs 2,378 writes inconsistency."
+      },
+      {
+       "claim": "B1 gate achieves 100%/100% on a synthetic injection benchmark",
+       "evidence": "50 contradictory + 50 non-contradictory writes; v5 after 6 refinements",
+       "gap": "Train/dev/test split not documented; v5 may have been tuned on the entire 100-example dataset; 'four near-miss types' are claimed but not enumerated; p50=0.037ms has no machine spec."
+      },
+      {
+       "claim": "MemTether is Apache-2.0 open source at PyPI: pip install memtether",
+       "evidence": "Reproducibility section",
+       "gap": "First-run smoke test not provided; schema DDL partially documented; SECURITY.md vs paper version mismatch (v0.1.0a7 vs v0.1.0a80.post2); two separate GitHub repos with undocumented relationship."
+      }
+     ],
+     "statistical_issues": [
+      "r^N fit lacks confidence intervals despite being load-bearing; the (a, r) non-identifiability is acknowledged but not addressed",
+      "Tail count (N≥5: 11 + 3 = 14 questions) is too small to support a quantitative decay constant; paper acknowledges this but still reports specific numbers",
+      "B1 gate 100%/100% on a 100-example synthetic benchmark with no held-out test set separation",
+      "DistilBERT vs baselines comparison in Table (supersession prediction): no confidence intervals; the +14.2pp lead is large but not bounded",
+      "Admissibility '4/347' stale-window-overlap: small numerator; no significance test",
+      "The +25.3pp metric bias finding: 63/75 - 44/75 = 19/75 = 25.3pp; arithmetic correct but no bootstrap CI",
+      "Dead rate by source: WorkBuddy 53% concentration is reported but without a confidence interval or per-source denominator disclosure",
+      "0.16 per active memory per day rate (E1-03) is arithmetically wrong by 30x; this is acknowledged in the prior reviewer comments",
+      "12-15% write reduction vs 17.9% (425/2,378) implied by tables — E1-04 acknowledged; unreconciled in current paper"
+     ],
+     "logical_leaps": [
+      "From 'embedding retrieval has r^N decay' to 'write-time governance is more important than retrieval quality' — the leap assumes the binding constraint is small injection budget, which is a deployment choice, not an architectural wall (E1-02, E4-03)",
+      "From '4 formal correctness theorems' to 'the implementation is correct under concurrency' — the theorems depend on Definition 2(4) being maintained by correct(), but no theorem proves the implementation preserves it under concurrent correct() calls (CK-13)",
+      "From '5 of 5 tamper scenarios detected' to 'EU AI Act Article 12 compliance' — the abstract jumps over the body caveats (security through obscurity, fail-open source attribution, unanchored tail)",
+      "From '84% recall on Chinese synthetic SGM' to 'schema-grounded retrieval is the right direction' — the negative English result is acknowledged but not integrated into the contribution",
+      "From 'zero data loss in 26 days' to 'the system is production-ready' — manual verification is not automated monitoring; the paper itself flags this",
+      "From '23 client adapters supported' to '15 distinct agents actively wrote' — the gap is acknowledged but the contribution framing uses the larger number"
+     ],
+     "alternative_explanations": [
+      "Low multi-session retrieval accuracy could be explained by LongMemEval question construction (questions that require multi-session synthesis may be inherently harder, not because of embedding decay) rather than by an architectural r^N barrier",
+      "Zero data loss over 26 days could be explained by low write volume (77 writes/day) and SQLite default durability, not by the governance mechanisms; the hash chain's role is forensic, not preventive",
+      "B1 gate 100%/100% could be explained by benchmark construction (synthetic generation may not capture real contradiction density) rather than by the gate's discrimination power; the paper itself says production has zero contradictions",
+      "Higher MemTether retrieval accuracy vs mem0/LangMem could be explained by different judge prompts, different embedding models, or different evidence injection strategies — the 'same judge' claim needs verification",
+      "The 347 supersession events could be driven by a single agent's prompt changes rather than by organic multi-agent contradiction; the per-source decomposition would clarify"
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "evidence": [
+      "The paper presents three numbers in three different ways across sections (EAF 60.0% / 75.7% / 82.0%) — at least one of these is selected to be most flattering",
+      "The r^N fit is presented as 'architectural, not parametric' in the abstract and contributions, but the figure caption includes 'EXPLORATORY FIT — DO NOT EXTRAPOLATE OR GENERALIZE' — the strong claim is hedged in the figure but not in the abstract",
+      "Two quantitative comparisons favor MemTether (+15.5pp vs mem0, +17.9pp on LoCoMo) — both come from the authors' own runs and may reflect favorable configuration choices rather than fundamental advantages",
+      "The 'zero data loss' framing is emphasized in the abstract but qualified as 'self-reported manual verification' only in Section 7",
+      "B1 gate 100%/100% is the only mechanism evaluated on a synthetic dataset, with no equivalent evaluation for mem0/Zep/Letta conflict handling — the asymmetric evaluation favors MemTether",
+      "The cross-system comparison reports MemTether numbers from the paper's own protocol while mem0 numbers are cited from 'its published paper (v2.0.20)' — not the same protocol",
+      "The '534 passing tests' count is prominently featured in the abstract as a quality signal but is never substantiated with what the tests cover"
+     ]
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "r^N fit is acknowledged as imprecise in the body; abstract still leads with specific numbers (a=0.702, r=0.736, R²=0.85) and uses 31.2% single-session strict vs 51.7% implied (a=0.702 at N=1) — these are consistent only because the model is anchored at N=1, but the abstract's 31.2% strict number is reported as 'single-session accuracy' rather than 'probability of correct answer' — the unit shift is unstated. The (a, r) non-identifiability is acknowledged but the specific numbers are still treated as load-bearing."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "0.736^10 = 0.047 is correct arithmetically. The redundant sentence 'even at a more conservative point estimate r = 0.736 it is 0.736^10' is clearly an editing artifact — the two clauses are identical. Should be fixed."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "Section 3 acknowledges 'small counts at N≥5 (11 and 3 questions)' and notes the tail is imprecise. The caveat is present but the quantitative claims (a=0.702, r=0.736) are still reported as point estimates."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "2,346 + 28,807 = 31,153 ≈ '31K+' — arithmetic correct, but the 2,346 is from the tamper-experiment copy, while Section 7 production reports 2,378 writes. The two figures are conflated. The 26/30/31-day window inconsistency is unresolved."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "Abstract '5 of 5' contradicts Section 5 'six scenarios (five anchored + one unanchored)' and abstract parenthetical 'five anchored, one unanchored tail'. Three framings of the same experiment. The 5/5 framing in the abstract omits the unanchored case entirely."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Section 4.4 is honest about security-through-obscurity, fail-open source, and the inability to detect anchor-recomputing adversaries. But the abstract frames the system as 'supporting EU AI Act Article 12 record-keeping requirements' without qualification, which is an overstatement given the documented limitations."
+     },
+     {
+      "id": "CK-07",
+      "pass": false,
+      "note": "Section 5 contains the orphaned LangMem NOT_FOUND paragraph. Cross-system numbers are inconsistent: mem0 60.2% (Section 3.3 and 13), LangMem ~26-27% (Section 3.3) vs 6.6% judge / 21.8% strict (Section 14), MemTether 43.1% (Section 3.3) vs 75.7% strict / 82.0% judge (Sections 13-14)."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "0/383 + 1,699 active + 383 superseded = 2,082 facts with status fields, but Table 4 source attribution says '0/2,269' which implies a different denominator. 347 supersession events vs 383 superseded rows: Section 7's note clarifies that 127 of 383 are migration/backfill rather than correct() events, so 347 + 127 - some overlap? The reconciliation is in Section 7 but the math is not pinned."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "84% = 105/125 across 5 entities × 25 facts each = 125 total — arithmetic correct. F1 = 0.91 with 100% precision: harmonic mean of 1.00 and 0.84 = 0.913, matches. Embedding F1 ≈ 0.78 with comparable precision (say 1.00): harmonic mean of 1.00 and 0.64 = 0.78, matches. The 50× speedup (<1ms vs ~50ms) is plausible for indexed SQLite lookup vs. ONNX inference but no hardware or repetition count is given."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "v1-v5 progression (88% → 88% → 80% → 88% → 100%) over 6 iterations is described but the train/dev/test split is not stated. The '20/20 unseen dev set' is not separated from the 6 refinement iterations in the body; the Reproducibility section mentions seed=42 determinism but not held-out evaluation. Strong potential for overfitting on the entire 100-example set."
+     },
+     {
+      "id": "CK-11",
+      "pass": true,
+      "note": "75 - 44 = 31 strict-incorrect; 31 - 15 = 16 remaining; 11 + 5 = 16; arithmetic reconciles. +25.3pp = 84.0% - 58.7% = 25.3pp. Numbers consistent."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "EAF is undefined; 60.0% does not match 43.1% (Section 3.3) or 75.7% (Section 13). Three different EAF numbers across three sections with no provenance."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "Theorems 1-4 depend on Definition 2(4) (T-axis continuity vt(f_i) = vf(f_{i+1})) being maintained by correct(). Theorem 4 (Concurrency) uses conditional UPDATE but does not prove that the new fact's vf is set to the old fact's vt atomically — if two concurrent calls each compute 'new vf' before either commits, the chain could have a gap or overlap. The Limitations section acknowledges that out-of-band SQL bypasses invariants but does not address the in-band concurrent-correct() race."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "534 tests are referenced in abstract and Reproducibility section; the body does not list what they cover. The artifact repository at anonymous.4open.science is named in Discussion but not in Reproducibility; the Reproducibility section cites GitHub `MemTether/MemTether` and `lanbass869-cell/cac-artifact` instead. Three different URLs, none cross-referenced."
+     },
+     {
+      "id": "CK-15",
+      "pass": true,
+      "note": "Zero data loss is consistently labeled as self-reported manual verification in Section 7; abstract uses 'zero data loss' without the qualifier but the parenthetical ('Production metrics... 26-day snapshot... supersession benchmark uses a 30-day snapshot') flags the inconsistency. 26-day vs 30-day is unresolved for the supersession benchmark."
+     }
+    ],
+    "novelty_check": {
+     "is_novel": "partially",
+     "closest_prior_work": [
+      {
+       "work": "MemStrata (Yadav 2026)",
+       "overlap": "Bi-temporal supersession with deterministic correctness; paper claims 95% on LongMemEval — higher than MemTether's 75.7%. MemTether's contribution is the integration (supersession + hash chain + multi-client) not the bi-temporal mechanism itself."
+      },
+      {
+       "work": "TraceKit (Ghosh 2026)",
+       "overlap": "Tamper-evident auditing at the agent layer; MemTether applies the same principle to the memory layer specifically."
+      },
+      {
+       "work": "Janus (Arslan 2026)",
+       "overlap": "Offline-verifiable provenance for agentic LLMs; MemTether's HTML verifier is a similar idea applied to memory operations."
+      },
+      {
+       "work": "MOSS (Lacasse 2026)",
+       "overlap": "Auditable agentic memory with symbolic retrieval on SQLite; closest architectural analogue, but MOSS is paper-only with no public implementation."
+      },
+      {
+       "work": "MutMem (Saidi 2026)",
+       "overlap": "Cryptographically authorized mutation in persistent agent memory; addresses a stronger threat model (anchor-recomputing adversary) than MemTether claims to handle."
+      },
+      {
+       "work": "Engram (Wang 2026)",
+       "overlap": "Bi-temporal memory model achieving 83.6% on LongMemEval-S; MemTether's supersession chain is structurally similar."
+      },
+      {
+       "work": "Court (Lyu 2026)",
+       "overlap": "Provenance-first memory using the same courtroom metaphor; MemTether's `memtether court` CLI is a parallel naming choice."
+      }
+     ],
+     "novel_claim_assessment": "The r^N decay claim is the strongest novelty candidate — 'no prior work measures write efficiency or proposes admission control for agent memory' is asserted twice (Related Work paragraphs, including the duplicated block). No systematic search (databases, keywords, dates) is described. The novelty gates (N=1 admission at write time) and the r^N empirical validation are presented as new, but neither is benchmarked against an existing system (mem0/Zep/Letta) to confirm the gap is real rather than asserted."
+    },
+    "meta_note": "Reviewer E2 (usability) perspective. The paper's contributions depend critically on a reproducible artifact that a new user can install, run, and audit. Across 17 new findings, the strongest recurring theme is the gap between what the paper claims and what a new user can verify: (1) schema DDL is illustrative, not authoritative; (2) `pip install memtether` may not produce a working first-run experience; (3) the r^N fit is acknowledged as imprecise but the abstract leads with specific numbers; (4) EAF is undefined with three different reported numbers; (5) the tamper-detection count is presented in three contradictory framings; (6) concurrency model and SQLite settings are unspecified; (7) the dual-repository structure is undocumented. The paper has substantial substance — the formal theorems, the supersession/audit integration, the governance framing — but the artifact-to-claim alignment is poor enough that a reviewer attempting to reproduce would likely fail at multiple points without actionable error messages. Recommendations are concrete (ship `memtether doctor`, pin schema DDL, define EAF, unify time-window, provide first-run smoke test) and would substantially improve both the paper and the artifact. Gaming risk: significant — three EAF numbers, asymmetric cross-system evaluation, and the 100%/100% B1 claim on a small synthetic dataset all favor the paper's own system without equivalent rigor for competitors.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the r^N fit claim: does the paper's data actually support a=0.702, r=0.736, R^2=0.85 on log-log scale, and does Table (sec:rn) match the abstract's numbers (31.2% single-session strict accuracy vs. 0.702×0.736=51.7% implied at N=1 — check whether the model and reported N=1 accuracy are consistent)?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check the 0.736^10 ≈ 4.7% claim in Section 3.2: is the arithmetic correct (0.736^10 ≈ 0.047), and does the redundant sentence ('more conservative point estimate r = 0.736... it is 0.736^10') contain a leftover editing artifact that should be fixed?",
+      "category": "claim",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify the tail-count caveat: does Table sec:rn actually show 11 and 3 questions at N≥5, and are the R^2/fit claims derived from binned data consistent with the stated dominance of N≤2 points?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Reconcile the operation counts: 2,346 audit_log writes + 28,807 use_count reads = 31,153 — does this match the '31K+ recorded operations' claim in the abstract and Section 4.1, and is 2,346 used consistently for both the audit experiment and total writes?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Check internal consistency of the tamper-detection experiment: abstract says 'five tamper scenarios (five anchored, one unanchored tail)' — Section 5 says six scenarios (five anchored + one unanchored); do all statements agree, and is the '5 of 5' framing in the abstract consistent with six total scenarios?",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Verify the threat model honesty: does Section 4.4 explicitly acknowledge the 'security through obscurity' limitation and fail-open source attribution, and do the stated claims about EU AI Act Article 12 compliance avoid overstating protection against anchor-recomputing adversaries?",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check Section 5's orphaned paragraph: the paragraph beginning 'LangMem returned NOT_FOUND for 79.2%...' appears inside the Tamper-Detection Evaluation section — is it misplaced, and do the cross-system numbers (mem0 60.2%, LangMem ~26-27%, MemTether 43.1%) match between Section 3.3 and the discussion?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify Table 4 (admissibility) arithmetic: does 0/383 + 1,699 active + 383 superseded reconcile with 2,269 total (source attribution row), and do the 347 supersession events vs. 383 superseded rows vs. abstract's 347 supersession events align with the reconciliation paragraph in Section 6?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Check the SGM Chinese benchmark numbers: 84% recall = 105/125 and 64% = 80/125 across 5 entities × 25 facts; verify F1 computations (0.91 and ~0.78 given stated precision assumptions) and whether the 50× speedup claim (<1ms vs ~50ms) is supported by reported measurements or is an estimate.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Verify the B1 Gate evaluation validity: v1-v5 progression shows v3 dropped to 80% then v5 hit 100% after 6 iterations on the same 100-write benchmark — is the 100%/100% result evaluated on the training iterations' data or a held-out set, and is the '20/20 unseen dev set' claim sufficiently separated from the 6 refinement iterations?",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Check the oracle ceiling diagnostic (Finding 1): do the numbers reconcile — 44/75 strict + 63/75 semantic implies 19 questions gained, but the Finding says 31 strict-incorrect of which 15 semantically correct; verify 75-44=31, 31-15=16 split as 11+5, and whether '+25.3pp' matches (58.7%→84.0%).",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-12",
+      "item": "Verify whether the Section 7 (metric bias) implication that 'EAF pipeline's 60.0% strict score' corresponds to a system/result actually defined elsewhere in the paper — the term 'EAF pipeline' appears without definition, and the 60.0% figure does not match the 43.1% overall strict reported for MemTether in Section 3.3.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Check theorem-proof adequacy: Theorems 1-2 depend on Definition 2(4) (T-axis continuity vt(f_i)=vf(f_{i+1})) being an invariant maintained by correct(), but no theorem proves the implementation maintains this invariant under concurrent correct() — does Theorem 4 (concurrency) prevent a fork that would violate interval partitioning?",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Verify reproducibility artifacts: does the anonymous.4open.science repository claim cover all stated deliverables (per-question results, eval scripts, test_F negative test, HTML verifier, 534 passing tests), and are the 534 tests referenced anywhere in the body beyond the abstract?",
+      "category": "reproducibility",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-15",
+      "item": "Check 'zero data loss' claim qualification: is it clearly labeled as self-reported manual verification (Section 6 metric definitions) in all places it appears (abstract, intro, contributions), and does the 26-day vs 30-day snapshot discrepancy (abstract parenthetical) get consistently applied to the supersession benchmark?",
+      "category": "claim",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Abstract: `$0.702 \\times 0.736\\^N$` and `R\\^2` — `\\^` is an accent command requiring an argument; compiles wrong or errors. Should be `0.736^N` in math mode and `R^2`.",
+       "verbatim block: `old\\_uid` — backslash-escaped underscore inside verbatim prints literal `\\_` (should be `old_uid`).",
+       "Metric definitions paragraph: literal `\\\\emph{events}`, `\\\\texttt{supersessions}`, `\\\\texttt{correct()}`, `\\\\texttt{valid\\\\_to}` — double backslashes will render as raw text, not commands.",
+       "B1 Gate table paragraph: `\\u2192` is a JSON/unicode escape, not a LaTeX command (v1 88% → v2 ...). Compile error.",
+       "CRITICAL: document is truncated mid-sentence ('...or adopt L') — no closing of Finding/section, and there is NO bibliography environment (no \\bibliography or thebibliography) anywhere, so compilation ends incomplete.",
+       "Duplicate \\label{sec:rn} (two consecutive lines at Section 3 start) — 'multiply defined labels' warning.",
+       "\\label{sec:crosssys} and \\label{sec:disc} stacked on one section — suspicious but not an error."
+      ],
+      "number_inconsistencies": [
+       "Abstract says '5 of 5 anchored-row modification scenarios'; tamper section (Sec 6) sets up 'six tamper scenarios (five on anchored rows...)' but is cut off before reporting results — the 5/5 result and the 2,346-entry experiment details appear only in the abstract/contributions, not in a completed evaluation section.",
+       "Abstract: '534 passing tests' and test_F negative test mentioned — never substantiated in the (truncated) body.",
+       "Abstract: '31K+ recorded operations' — body derives it as 28,807 reads + 2,346 writes ≈ 31K ✓ consistent.",
+       "Abstract 347 supersession events ✓ appears in Table admissibility (4/347) and metric definitions.",
+       "Abstract 31.2% single-session, r=0.736, R²=0.85 ✓ all appear in Sec 3/Fig 1 caption.",
+       "Abstract 84%/64% Chinese recall ✓ matches Sec 5.6.",
+       "Minor: abstract says 'detects all 5 of 5 anchored-row modification scenarios' while contributions phrase it redundantly as '5 of 5 anchored anchored-row modification scenarios detected' (also a duplicated-word typo)."
+      ],
+      "citation_issues": [
+       "CRITICAL: \\citep is used for ~20 keys (mem0, zep, letta, memstrata, euaiact, memanto, langmem, wu2024longmemeval, engram, gmotion, xmemory, moss, memsim, tracekit, janus, mutmem, court, auditlme, memleak, sleeper, agentpoison, admissibility) but the document contains NO bibliography — every citation is undefined.",
+       "Some cited keys (sleeper, agentpoison, admissibility, engram, gmotion, etc.) have no corresponding entries to verify even if a bibfile were added."
+      ],
+      "orphaned_figures": [
+       "rn_decay_curve.pdf is the only \\includegraphics; existence on disk cannot be verified from the source — flag for confirmation (Fig. \\ref{fig:rn} is referenced in text ✓)."
+      ],
+      "duplicates": [
+       "'256 of 383 superseded rows (67%) have a non-empty valid\\_to; the remaining 127 date from an earlier schema version.' — appears TWICE in the Metric definitions paragraph.",
+       "84% vs 64% noise-robustness result stated twice in Sec 5.6 ('with 300+ distractor facts...' paragraph restates the previous paragraph).",
+       "'These are paper-reported numbers on heterogeneous protocols, cited as claims rather than reproduced results.' — appears in Sec 2.2 and again in Sec 6/discussion ('Why Not Compete...').",
+       "Contribution bullet: 'anchored anchored-row' — duplicated word (copy-paste artifact).",
+       "Empty section skeleton: 'Comparison with Existing Systems' subsection has no content; Production Deployment section is nearly empty (paragraph headers only)."
+      ],
+      "formatting_issues": [
+       "WRONG CROSS-REFERENCE: 'see Table~\\ref{sec:rn}' and 'Table~\\ref{sec:rn} shows the raw data' — \\ref points to the SECTION label, so it renders 'Table 3' pointing to a section, and no such raw-data table exists in the document.",
+       "Copy-paste artifact: 'Table~\\ref{tab:supersession} compares DistilBERT against seven baselines on the same stratified split.' — the referenced table is actually the oracle ceiling diagnostic; no DistilBERT/baseline table exists.",
+       "Sec 6 (Tamper-Detection Evaluation) sets up the experiment then abruptly jumps to an orphaned LangMem paragraph — results never reported (truncation).",
+       "Figure \\ref{fig:rn} caption includes 'EXPLORATORY FIT --- DO NOT EXTRAPOLATE' — fine content-wise but note caption/text duplication of the fit numbers.",
+       "Table tab:supersession label is on the oracle-diagnostic table while the supersession-benchmark table it names is absent.",
+       "B1 Gate evaluation table has no \\label despite being the section's key table."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 26123,
+    "out": 11871,
+    "secs": 75.0
+   },
+   "raw_len": 48485,
+   "z": 0.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "ok": false,
+   "error": "HTTP Error 504: Gateway Timeout"
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify the r^N fit claim: does the paper's data actually support a=0.702, r=0.736, R^2=0.85 on log-log scale, and does Table (sec:rn) match the abstract's numbers (31.2% single-session strict accuracy vs. 0.702×0.736=51.7% implied at N=1 — check whether the model and reported N=1 accuracy are consistent)?",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check the 0.736^10 ≈ 4.7% claim in Section 3.2: is the arithmetic correct (0.736^10 ≈ 0.047), and does the redundant sentence ('more conservative point estimate r = 0.736... it is 0.736^10') contain a leftover editing artifact that should be fixed?",
+   "category": "claim",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-03",
+   "item": "Verify the tail-count caveat: does Table sec:rn actually show 11 and 3 questions at N≥5, and are the R^2/fit claims derived from binned data consistent with the stated dominance of N≤2 points?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Reconcile the operation counts: 2,346 audit_log writes + 28,807 use_count reads = 31,153 — does this match the '31K+ recorded operations' claim in the abstract and Section 4.1, and is 2,346 used consistently for both the audit experiment and total writes?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Check internal consistency of the tamper-detection experiment: abstract says 'five tamper scenarios (five anchored, one unanchored tail)' — Section 5 says six scenarios (five anchored + one unanchored); do all statements agree, and is the '5 of 5' framing in the abstract consistent with six total scenarios?",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Verify the threat model honesty: does Section 4.4 explicitly acknowledge the 'security through obscurity' limitation and fail-open source attribution, and do the stated claims about EU AI Act Article 12 compliance avoid overstating protection against anchor-recomputing adversaries?",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Check Section 5's orphaned paragraph: the paragraph beginning 'LangMem returned NOT_FOUND for 79.2%...' appears inside the Tamper-Detection Evaluation section — is it misplaced, and do the cross-system numbers (mem0 60.2%, LangMem ~26-27%, MemTether 43.1%) match between Section 3.3 and the discussion?",
+   "category": "method",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-08",
+   "item": "Verify Table 4 (admissibility) arithmetic: does 0/383 + 1,699 active + 383 superseded reconcile with 2,269 total (source attribution row), and do the 347 supersession events vs. 383 superseded rows vs. abstract's 347 supersession events align with the reconciliation paragraph in Section 6?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Check the SGM Chinese benchmark numbers: 84% recall = 105/125 and 64% = 80/125 across 5 entities × 25 facts; verify F1 computations (0.91 and ~0.78 given stated precision assumptions) and whether the 50× speedup claim (<1ms vs ~50ms) is supported by reported measurements or is an estimate.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-10",
+   "item": "Verify the B1 Gate evaluation validity: v1-v5 progression shows v3 dropped to 80% then v5 hit 100% after 6 iterations on the same 100-write benchmark — is the 100%/100% result evaluated on the training iterations' data or a held-out set, and is the '20/20 unseen dev set' claim sufficiently separated from the 6 refinement iterations?",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Check the oracle ceiling diagnostic (Finding 1): do the numbers reconcile — 44/75 strict + 63/75 semantic implies 19 questions gained, but the Finding says 31 strict-incorrect of which 15 semantically correct; verify 75-44=31, 31-15=16 split as 11+5, and whether '+25.3pp' matches (58.7%→84.0%).",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-12",
+   "item": "Verify whether the Section 7 (metric bias) implication that 'EAF pipeline's 60.0% strict score' corresponds to a system/result actually defined elsewhere in the paper — the term 'EAF pipeline' appears without definition, and the 60.0% figure does not match the 43.1% overall strict reported for MemTether in Section 3.3.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-13",
+   "item": "Check theorem-proof adequacy: Theorems 1-2 depend on Definition 2(4) (T-axis continuity vt(f_i)=vf(f_{i+1})) being an invariant maintained by correct(), but no theorem proves the implementation maintains this invariant under concurrent correct() — does Theorem 4 (concurrency) prevent a fork that would violate interval partitioning?",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Verify reproducibility artifacts: does the anonymous.4open.science repository claim cover all stated deliverables (per-question results, eval scripts, test_F negative test, HTML verifier, 534 passing tests), and are the 534 tests referenced anywhere in the body beyond the abstract?",
+   "category": "reproducibility",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-15",
+   "item": "Check 'zero data loss' claim qualification: is it clearly labeled as self-reported manual verification (Section 6 metric definitions) in all places it appears (abstract, intro, contributions), and does the 26-day vs 30-day snapshot discrepancy (abstract parenthetical) get consistently applied to the supersession benchmark?",
+   "category": "claim",
+   "load_bearing": false
+  }
+ ],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [
+    "Abstract: `$0.702 \\times 0.736\\^N$` and `R\\^2` — `\\^` is an accent command requiring an argument; compiles wrong or errors. Should be `0.736^N` in math mode and `R^2`.",
+    "verbatim block: `old\\_uid` — backslash-escaped underscore inside verbatim prints literal `\\_` (should be `old_uid`).",
+    "Metric definitions paragraph: literal `\\\\emph{events}`, `\\\\texttt{supersessions}`, `\\\\texttt{correct()}`, `\\\\texttt{valid\\\\_to}` — double backslashes will render as raw text, not commands.",
+    "B1 Gate table paragraph: `\\u2192` is a JSON/unicode escape, not a LaTeX command (v1 88% → v2 ...). Compile error.",
+    "CRITICAL: document is truncated mid-sentence ('...or adopt L') — no closing of Finding/section, and there is NO bibliography environment (no \\bibliography or thebibliography) anywhere, so compilation ends incomplete.",
+    "Duplicate \\label{sec:rn} (two consecutive lines at Section 3 start) — 'multiply defined labels' warning.",
+    "\\label{sec:crosssys} and \\label{sec:disc} stacked on one section — suspicious but not an error."
+   ],
+   "number_inconsistencies": [
+    "Abstract says '5 of 5 anchored-row modification scenarios'; tamper section (Sec 6) sets up 'six tamper scenarios (five on anchored rows...)' but is cut off before reporting results — the 5/5 result and the 2,346-entry experiment details appear only in the abstract/contributions, not in a completed evaluation section.",
+    "Abstract: '534 passing tests' and test_F negative test mentioned — never substantiated in the (truncated) body.",
+    "Abstract: '31K+ recorded operations' — body derives it as 28,807 reads + 2,346 writes ≈ 31K ✓ consistent.",
+    "Abstract 347 supersession events ✓ appears in Table admissibility (4/347) and metric definitions.",
+    "Abstract 31.2% single-session, r=0.736, R²=0.85 ✓ all appear in Sec 3/Fig 1 caption.",
+    "Abstract 84%/64% Chinese recall ✓ matches Sec 5.6.",
+    "Minor: abstract says 'detects all 5 of 5 anchored-row modification scenarios' while contributions phrase it redundantly as '5 of 5 anchored anchored-row modification scenarios detected' (also a duplicated-word typo)."
+   ],
+   "citation_issues": [
+    "CRITICAL: \\citep is used for ~20 keys (mem0, zep, letta, memstrata, euaiact, memanto, langmem, wu2024longmemeval, engram, gmotion, xmemory, moss, memsim, tracekit, janus, mutmem, court, auditlme, memleak, sleeper, agentpoison, admissibility) but the document contains NO bibliography — every citation is undefined.",
+    "Some cited keys (sleeper, agentpoison, admissibility, engram, gmotion, etc.) have no corresponding entries to verify even if a bibfile were added."
+   ],
+   "orphaned_figures": [
+    "rn_decay_curve.pdf is the only \\includegraphics; existence on disk cannot be verified from the source — flag for confirmation (Fig. \\ref{fig:rn} is referenced in text ✓)."
+   ],
+   "duplicates": [
+    "'256 of 383 superseded rows (67%) have a non-empty valid\\_to; the remaining 127 date from an earlier schema version.' — appears TWICE in the Metric definitions paragraph.",
+    "84% vs 64% noise-robustness result stated twice in Sec 5.6 ('with 300+ distractor facts...' paragraph restates the previous paragraph).",
+    "'These are paper-reported numbers on heterogeneous protocols, cited as claims rather than reproduced results.' — appears in Sec 2.2 and again in Sec 6/discussion ('Why Not Compete...').",
+    "Contribution bullet: 'anchored anchored-row' — duplicated word (copy-paste artifact).",
+    "Empty section skeleton: 'Comparison with Existing Systems' subsection has no content; Production Deployment section is nearly empty (paragraph headers only)."
+   ],
+   "formatting_issues": [
+    "WRONG CROSS-REFERENCE: 'see Table~\\ref{sec:rn}' and 'Table~\\ref{sec:rn} shows the raw data' — \\ref points to the SECTION label, so it renders 'Table 3' pointing to a section, and no such raw-data table exists in the document.",
+    "Copy-paste artifact: 'Table~\\ref{tab:supersession} compares DistilBERT against seven baselines on the same stratified split.' — the referenced table is actually the oracle ceiling diagnostic; no DistilBERT/baseline table exists.",
+    "Sec 6 (Tamper-Detection Evaluation) sets up the experiment then abruptly jumps to an orphaned LangMem paragraph — results never reported (truncation).",
+    "Figure \\ref{fig:rn} caption includes 'EXPLORATORY FIT --- DO NOT EXTRAPOLATE' — fine content-wise but note caption/text duplication of the fit numbers.",
+    "Table tab:supersession label is on the oracle-diagnostic table while the supersession-benchmark table it names is absent.",
+    "B1 Gate evaluation table has no \\label despite being the section's key table."
+   ],
+   "pass": false
+  }
+ },
+ "cross_challenges": [],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

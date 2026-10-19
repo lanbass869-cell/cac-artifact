@@ -1,0 +1,1345 @@
+{
+ "round_score": 4.0,
+ "std": 0.0,
+ "spread": 0.0,
+ "debate_needed": false,
+ "n_reviews": 3,
+ "full_tier": {
+  "n": 2,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 4.0
+ },
+ "round": "V4-P4",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\cac-artifact\\paper4_trust_but_verify.tex",
+ "timestamp": "2026-10-19T13:25:49.952904",
+ "usage_total": {
+  "in": 89425,
+  "out": 26657,
+  "secs": 332.3
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "role": "architecture-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "core_claim": "Evaluation outputs routinely lack the metadata needed to trust reported scores; five operational disclosure checks (P1–P5) plus a source-audit mode (SA1–SA5) and an NLI semantic layer can automate detection. evalguard implements these; validation on 8 benchmarks shows judge-based evals fail 3–4/5 checks, deterministic evals fail only P1; a source audit of 33 files finds 15 anti-patterns in 8 files (24.2%).",
+     "evidence_structure": "Three layers: (1) output-metadata checking validated on 8 benchmarks (5 self-produced/simulated judge-based, 3 third-party deterministic); (2) regex-based source audit over 33 files / 15 frameworks with 5 flagship findings (HELM fractional EM, LM-Eval nanmean, MMLU retry/averaging, SWE-bench filtering); (3) 50-pair author-constructed NLI probe at 84% accuracy. Production incidents (3 cases) motivate the patterns.",
+     "architectural_summary": "evalguard is a stateless CLI over JSON inputs: IntegrityChecker runs 5 check functions + a source_audit regex scanner. No storage, no concurrency surface in the tool itself; the architectural questions are (a) whether regex-based static analysis is a sound detection substrate, (b) whether the claimed line-level findings are pinned/traceable, and (c) whether the three-layer 'stack' is actually integrated or three loosely related scripts."
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 3.0,
+     "helpfulness": 4.0,
+     "alignment": 3.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E1-N1",
+      "severity": "critical",
+      "issue": "The binomial significance computation is wrong by ~4.5x",
+      "relevant_text": "Under a binomial model with expected violation rate p = 0.05, the probability of observing ≥5 findings in 33 audited files is P(X ≥ 5) ≈ 0.10 (exact binomial)",
+      "concern": "Direct computation: P(X≥5) for Bin(33, 0.05) ≈ 0.022, not 0.10 (P(X≤4) ≈ 0.978). The correct value is significant at the 5% level, which would actually support a prevalence claim — but the paper uses the wrong number to disclaim significance, and elsewhere (7.1) states 'source-level integrity issues are common even in well-maintained evaluation frameworks.' The paper is simultaneously arithmetically wrong, overly conservative in one direction, and overclaiming in prose in the other direction. Additionally, the binomial model conflates 'findings' (15) with 'files with ≥1 finding' (8) — the test as described mixes units.",
+      "strongest_rebuttal": "The authors may have used a different parameterization (e.g., one-sided test at the finding level, or p=0.10 as null).",
+      "why_rebuttal_insufficient": "No parameterization of Bin(33, p≤0.05) yields 0.10 for P(X≥5); and the null of 5% is itself unjustified. The error is checkable in one line of scipy and must be fixed; the prose/统计 inconsistency is then exposed regardless.",
+      "suggestions": "Recompute (scipy.stats.binom(33,0.05).sf(4) ≈ 0.022); test the correct unit (8/33 files vs 15 findings); reconcile with the 'common' claim or delete the binomial framing entirely and present the audit as a convenience sample.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N2",
+      "severity": "major",
+      "issue": "Contribution mismatch: 'five concrete incidents' promised, three cases delivered; contribution framing shifted between abstract and §7.1",
+      "relevant_text": "We document five concrete incidents from the development period ... (Contribution 4) vs. Section 6 containing only Case 1, Case 2, Case 3; and 'The source-level audit is the primary contribution of this work' (§7.1) vs. abstract/contributions leading with evalguard output-level checking",
+      "concern": "Two of the five promised incidents are missing, and the two case-study incidents that do appear (Cases 2, 3) have no quantified distortion despite Fig. 4 showing three bar pairs. Separately, the paper cannot decide what its primary contribution is: the abstract, title, and contribution list center evalguard's output checking; §7.1 declares source auditing primary and recommends running it *before* output checking, which demotes the named artifact. This is an assembly/architecture-level inconsistency, not just wording.",
+      "strongest_rebuttal": "'Five incidents' may count the two source-level findings (HELM, LM-Eval) as incidents 4 and 5; the 'primary contribution' sentence reflects the audit's greater novelty.",
+      "why_rebuttal_insufficient": "If so, §6 must say so explicitly and Fig. 4's third bar pair must be labeled; as written the reader cannot reconstruct which five. The contribution-ordering contradiction affects how reviewers evaluate novelty and cannot be resolved by charitable reading of two contradictory sentences.",
+      "suggestions": "Either add the two missing cases or change Contribution 4 to 'three case studies plus two source-level findings'; pick one primary contribution and align abstract, §7.1, and conclusion.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N3",
+      "severity": "major",
+      "issue": "Source-audit findings are unpinned and unverifiable: no commit SHA, no version tag, no archived snapshot for any of the five file/line references",
+      "relevant_text": "HELM's basic_metrics.py (line 342) ... LM Eval Harness's metrics.py (lines 28–31) ... MMLU evaluate.py (lines 65–79, 95, 133) ... SWE-bench run_evaluation.py (lines 609, 623–624) ... reported to maintainers (issues #4319, #4363)",
+      "concern": "Line-number citations against moving-target repos (all four projects commit weekly) rot immediately; HELM is cited as 'v0.4.0' only for the BoolQ *output*, not for the source file. The two GitHub issue URLs are unverifiable under double-anonymity and are the sole evidence that maintainers were actually notified. For a paper whose central deliverable is an audit, the audit trail itself fails the paper's own P1/P5 logic: the metadata needed for trustworthy interpretation (commit hash, retrieval date, file hash) is absent. Architecture-wise, evalguard's source_audit manifest (framework_files.json) is referenced in the repro commands but its contents — which 33 files, which versions, why these 15 frameworks — are never specified, making the 24.2% prevalence number unreproducible even in principle.",
+      "strongest_rebuttal": "The anonymous repo contains the audit results and the issues can be checked post-deanonymization; exact pinning is deferred to camera-ready.",
+      "why_rebuttal_insufficient": "The review must judge the submitted artifact; a reproducibility claim whose key inputs are 'available in a repo we cannot fully inspect' plus two unverifiable URLs does not meet the bar the paper itself sets for others.",
+      "suggestions": "Pin every finding to (repo, commit SHA, file, line range); include framework_files.json in the artifact; replace issue URLs with archived permalinks (web.archive.org); state file-selection criteria for the 33-file subset and reconcile the stray '47-framework audit' caption.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N4",
+      "severity": "major",
+      "issue": "Regex-based static analysis (SA1–SA5) has no precision/recall characterization against the manual review it claims to extend",
+      "relevant_text": "We extended evalguard with a source audit mode that scans Python evaluation scripts for five integrity anti-patterns ... 25 (75.8%) pass all checks",
+      "concern": "Findings 1 and 2 (the flagship results) were found by *manual* review, not by the tool — the paper admits this — yet the 15-finding/24.2% numbers are presented as the tool's output with no labeled ground truth, no false-positive count, and no demonstration that SA1 would actually have caught the nanmean case (a 'nanmean without NaN count' regex is trivially evadable and over-triggerable). The self-referential result ('bench_longmemeval.py triggers SA4 ×5' while 'evalguard passes all five checks on its own implementation') conflates two different check layers; as an architectural claim of self-validation it is circular and confusing. A detection tool with unknown precision produces unactionable CI noise — the exact failure mode the paper criticizes in evaluation pipelines.",
+      "strongest_rebuttal": "The paper consistently labels the audit exploratory, discloses the regex limitation ('may miss violations'), and reports the self-audit result as an honesty signal, not a precision claim.",
+      "why_rebuttal_insufficient": "Disclosure of a limitation does not substitute for even a minimal validation: the authors hold ground truth for 5 files (their manual review) and could report whether source_audit re-detects Findings 1–2. That one experiment would establish the tool does what §7.1 says is the 'primary contribution.'",
+      "suggestions": "Report per-SA-pattern precision on the 8 flagged files (manual adjudication of each regex hit); state whether SA1 detects the metrics.py nanmean case; clearly separate 'output-level self-check passed' from 'source-level self-audit flagged 5 issues' in one table.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N5",
+      "severity": "minor",
+      "issue": "Pattern-to-case mapping is loose (Case 3 ↔ P3) and Pattern 2's 'opposite conclusions' claim is unsubstantiated",
+      "relevant_text": "Case 3: Self-Referential Poisoning (Pattern 3) ... detected by a holdout evaluation using a different retrieval path",
+      "concern": "P3's detection criterion is a main-vs-holdout score gap >10pt; Case 3 is metadata leakage into a retrieval index. The holdout 'detected' it, but nothing shows the 10pt-gap criterion fired, so the case does not instantiate the pattern's operational definition. For P2, 32.5% vs 71.0% = 38.5pt is arithmetically fine, but 'either metric alone leads to opposite conclusions' is asserted without stating what conclusion each metric supports or against what decision threshold they oppose each other.",
+      "strongest_rebuttal": "Cases motivate patterns rather than being detected by them; the gap is self-evidently sign-flipping for any pass/fail threshold between 32.5% and 71%.",
+      "why_rebuttal_insufficient": "If cases only motivate, the detection criteria remain untested against the motivating incidents — weakening the claim that the patterns are 'operationalized.'",
+      "suggestions": "Add one sentence per case stating which concrete check output (field, threshold, verdict) would have fired; for P2, state the decision context (e.g., 'meets the 50% deployment bar') under which conclusions flip.",
+      "status": "new"
+     },
+     {
+      "id": "E1-N6",
+      "severity": "minor",
+      "issue": "LaTeX/assembly defects signal missing consistency pass: unclosed \\subsection, duplicated labels, truncated sentences",
+      "relevant_text": "\\subsection{Data Scope Limitation. Our case studies ... Output-Layer Limitation} ... \\label{sec:repro} appears twice ... 'an incorrectly implemented' / 'a incorrectly implemented' ... bibliography entries with doubled titles and truncated text ('Reproducibility Research in Natural Language Processing. Position: Evaluation Scores Are Perishable...' merged)",
+      "concern": "Two \\label{sec:repro} definitions make cross-references ambiguous; the Limitations subsection header swallowed its own first sentence; several bibliography entries merge two papers or are duplicated (li2025unreliable, gu2024judgesurvey, belz2021reproducibility each appear twice, once malformed). Individually cosmetic, collectively they indicate no final compile+diff pass — consistent with the arithmetic error E1-N1 surviving.",
+      "suggestions": "Fix the subsection brace, deduplicate labels and bibliography entries, run a final consistency pass; the malformed bib items also undermine the '34 references' breakdown (stated as both 14/15/5 and 12/18/4 — the two breakdowns disagree).",
+      "status": "new"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "'Metadata gaps are systemic' rests on 3 real third-party outputs, all deterministic; the judge-based side of the systemic claim is entirely self-produced data (Table 1 rows 1–5 are own outputs, simulation, or a synthetic bad example). The honest version: 'metadata gaps exist in our own judge-based outputs and in three third-party deterministic suites.'",
+      "Case 2 and Case 3 have no quantified distortion despite Fig. 4 showing three distortion bars — the figure implies quantification the text never provides.",
+      "'Checks complete in under one second' is stated with no benchmark, input size, or hardware.",
+      "Judge cross-validation (96.4% agreement on 470/500) is reported in the Reproducibility Statement but never connected to P4 (evaluator self-check) — the one experiment that would validate P4's 80% threshold is present but unused."
+     ],
+     "statistical_issues": [
+      "CRITICAL: P(X≥5) ≈ 0.10 for Bin(33, 0.05) is wrong; correct value ≈ 0.022. The paper's exploratory hedge rests on an arithmetic error and its 'issues are common' prose contradicts the same test.",
+      "NLI probe: 50 author-constructed pairs, recall = specificity = accuracy = 0.84 exactly (21/25 twice) — plausible but perfectly symmetric results on balanced author-built data estimate construct validity, not field performance; the paper partially concedes this ('feasibility probe') but the conclusion elevates it to 'a viable third layer.'",
+      "No CIs anywhere: 24.2% (8/33) has a Wilson 95% CI of roughly [12.4%, 41.2%] — wide enough to support almost any prevalence narrative.",
+      "Reference-count breakdown internally inconsistent (14/15/5 in §2 footnote vs 12/18/4 at end)."
+     ],
+     "logical_leaps": [
+      "From 'evalguard is an output-metadata checker that cannot detect code bugs' to 'the source-level audit is the primary contribution' — if the latter is true, the named artifact and the abstract's framing are the wrong contribution.",
+      "From three deterministic third-party suites failing P1 to 'metadata gaps are systemic' — three points, one failure mode, no judge-based third-party evidence.",
+      "Case 3 → Pattern 3 mapping (metadata leakage vs main/holdout gap criterion).",
+      "Binomial non-significance → 'exploratory' in §7, but 'common even in well-maintained frameworks' in §7.1 — the paper takes both branches."
+     ],
+     "alternative_explanations": [
+      "The 3–4/5 failure rate on judge-based benchmarks may reflect evalguard's checks being calibrated on the same incidents that produced those outputs (the patterns were derived from MemTether incidents, then 'detected' in MemTether-family outputs) — circularity acknowledged only partially.",
+      "P1 failures in HELM/LM-Eval may reflect metadata-schema mismatch (the metadata exists, but not in the fields evalguard scans) rather than absent disclosure; no manual confirmation of P1 absence is reported.",
+      "The 24.2% file-flag rate is dominated by SA4 (bare except), a stylistically common and often benign pattern; prevalence of the mildest anti-pattern inflates the headline rate."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "mild",
+     "note": "The paper now hedges extensively (pattern set non-exhaustive, thresholds heuristic, exploratory prevalence, self-audit honesty) — these hedges read as pre-emptive rebuttal armor rather than analysis, and several (binomial test, 'five incidents') are executed incorrectly or incompletely. The synthetic 'bad example' (MemoryQA) row in Table 1 is a strawman that pads the benchmark count toward the 'eight benchmarks' abstract claim; credit due for explicitly labeling it synthetic and the 5/3 split in the abstract, which is genuine improvement. The self-referential 'evalguard passes its own checks' framing is decorative. Net: mild gaming — honest labeling improvements coexist with count-inflation and hedge-first structure."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "5/7=71.43%, 27/60=45.0%, gap=26.4pt. Arithmetic checks out in abstract, §3.5, and Case 1."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "LongMemEval/mem0/LoCoMo each fail P3,P4,P5 (3); HotpotQA fails P1,P3,P4 (3); MemoryQA fails 4 — '3–4/5' supported. Deterministic rows fail P1, pass P2/P5, N/A P3/P4 as claimed."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "15 findings and 8/33=24.24% are arithmetically consistent, but the caption's 'detailed subset of the 47-framework audit' introduces a 47-framework claim that appears nowhere else and is irreconcilable with '33 files from 15 frameworks' as stated. Fail on the caption/body inconsistency."
+     },
+     {
+      "id": "CK-04",
+      "pass": true,
+      "note": "21/25+21/25=42/50=84%; 4 missed + 4 false flags consistent. Internally coherent."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "P(X≥5) for Bin(33,0.05) ≈ 0.022, not 0.10 — significant at 5%, contradicting the stated conclusion; and the conclusion contradicts §7.1's 'issues are common' regardless. Load-bearing failure."
+     },
+     {
+      "id": "CK-06",
+      "pass": true,
+      "note": "Abstract and §5 now explicitly split five own/simulated judge-based vs three real third-party deterministic benchmarks. Framing defensible as revised, though 'eight benchmarks' still flatters the count."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "P5 stated as 'denominator 1,000/1,000 exact' on the canonical set; the 5,000-entry retrieval and 1,000-unique-instance basis are stated. Minor: whether the 4,000 perturbed entries were denominator-checked is not said."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "Line references are plausible but unpinned (no commit SHA or version for source files; v0.4.0 applies only to BoolQ output), and the two GitHub issue URLs are unverifiable under anonymity. Not traceable as required."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "The two self-referential results (passes all 5 output checks; bench_longmemeval.py flagged SA4×5) are nominally different layers but never presented together, and a 2,000-line metadata checker plausibly having P2 dual metrics and P3 holdout *on its own implementation* is asserted without the self-audit artifact being inspectable here."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Thresholds in §4.2 match §3 definitions (10pt, 80%, 5%, ≥2 metrics) and the heuristic/non-optimized acknowledgment is explicit. Consistent, though no sensitivity analysis exists."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Case 3 is metadata/ID leakage into a retrieval index; P3's operational criterion is a main-vs-holdout score gap >10pt. The case motivates but does not instantiate the pattern's detection rule; the mapping is asserted, not demonstrated."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "38.5pt arithmetic matches Fig. 5 caption, but 'opposite conclusions' is never substantiated — no decision threshold or stated conclusions per metric."
+     },
+     {
+      "id": "CK-13",
+      "pass": true,
+      "note": "PyPI pin (0.1.1), verbatim commands, and named input files (helm_boolq_results.json, lm_eval_ifeval.json, 0-hero/Matter-0.2-7B-DPO) are specified; judge-based inputs deferred to the audit repo. Adequate for the deterministic rows; judge rows depend on external repo contents."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Contribution 4 promises five concrete incidents; Section 6 documents exactly three cases. Version/dates are given (v0.1.0a80.post2, b62e1d2, Sept 2026) but the five-vs-three gap is a direct text-vs-content contradiction. Load-bearing failure."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "Honesty statements exist (manual review for Findings 1–2, no-widespread-claim), but the abstract and contribution list lead with evalguard output checking while §7.1 declares source auditing 'the primary contribution' and recommends it run first — the scope-of-contribution inconsistency survives the hedges."
+     }
+    ],
+    "novelty_check": {
+     "closest_comparators": [
+      "HELM/LM-Eval Harness (evaluation frameworks, not disclosure checkers)",
+      "Maintaining Benchmarks / 'unearned passes' (benchmark-layer auditing)",
+      "Automated Transcript Analysis (process-layer)",
+      "Counterfactual receipts (judge audit trails)",
+      "belz2021reproducibility (NLP reproducibility)"
+     ],
+     "assessment": "The output-metadata disclosure-check layer is a genuinely under-occupied niche, and the three-layer stack framing (input/process/output) is a useful organizing contribution. However, each individual check is a straightforward metadata-field presence test; the source-audit mode is regex linting comparable to existing static analyzers (ruff/flake8 rules) without a comparison; and the paper's own §7.1 concedes the more novel part (source findings) came from manual review. Novelty is real but modest — the integration and standardization argument ('CI for evals') is the actual contribution, and it is undermined by the tool's uncharacterized precision (E1-N4)."
+    },
+    "meta_note": "Reconciliation of previous findings: all 24 prior findings (E1-01..E1-06, E2-01..E2-11, E3-01..E3-13, E4-01..E4-06) concern a *different manuscript* — the MemTether write-governance/dead-rate measurement paper (31-day window, 9.5% dead rate, 0.48% injection coverage, admission gates, SQLite concurrency). The manuscript under review is the evalguard evaluation-integrity paper. None of the prior findings' textual anchors exist in this document, so their status is 'not applicable to this submission' rather than fixed/refuted. Two exceptions worth flagging to the authors as cross-paper contamination: (a) the Reproducibility Statement in *this* paper still embeds MemTether-paper content (MemTether v0.1.0a80.post2, LongMemEval three-time-point strict scores 43.2/62.6/43.1%, BGE-M3 embeddings, DeepSeek judge) — this is fine as context but blurs which artifact reproduces which claims; (b) the evalguard paper inherits the same assembly-quality pattern (duplicated labels, malformed bibliography, arithmetic error E1-N1) that E1-03/E1-04/E1-06 documented in the companion paper — the underlying process issue (no consistency pass) appears systemic rather than per-manuscript. New architecture-relevant findings are reported as E1-N1..E1-N6; the load-bearing failures are the wrong binomial computation (CK-05), the five-vs-three incident gap (CK-14), and unpinned audit references (CK-08).",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the arithmetic of the flagship distortion claim: 7 scored questions at 71.4% (i.e., 5/7) vs. 60 questions at 45.0% (i.e., 27/60) — do the counts in Case 1 (Section 6.1) and the abstract actually produce 71.4%, 45.0%, and the claimed 26.4-point gap?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check internal consistency of Table 1 (tab:validation) against the abstract's claims: judge-based rows should show failures on 3–4 of 5 patterns (LongMemEval, mem0, LoCoMo each fail P3, P4, P5 — that is 3 failures; do any judge rows support '3–4'?) and deterministic rows should fail P1 but pass P2 and P5 with P3/P4 marked N/A.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify that the source-audit numbers are arithmetically consistent: Table 2 (tab:source_audit) lists 8 files with findings (1+3+1+1+5+2+1+1 = 15 findings) but claims '33 files, 15 findings across 8 of 33 files (24.2%)' — does 8/33 = 24.2%, and is a 'detailed subset of the 47-framework audit' (table caption) consistent with the 33-files/15-frameworks claim elsewhere?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check whether the claimed NLI probe numbers are self-consistent: 50 pairs split 25/25, with '21 of 25 flagged' (recall 0.84) and '21 of 25 correctly not flagged' (specificity 0.84) — 21/25 = 0.84, but does an overall accuracy of 84% (42/50) match, and are the '4 missed' + '4 false flags' counts consistent with these?",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the binaryomial significance claim: under p=0.05, n=33, does P(X ≥ 5) ≈ 0.10 hold as stated, and is the conclusion ('exploratory, not confirming widespread prevalence') consistent with the Section 7.1 statement that 'source-level integrity issues are common even in well-maintained evaluation frameworks'?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check whether the 'eight benchmarks' framing is defensible: three are the authors' own production outputs, one is 'simulated' (HotpotQA), and one is a 'synthetic bad example' (MemoryQA) — does the paper adequately distinguish validation on self-produced/synthetic data from validation on real third-party results, given the abstract claims validation 'on eight benchmarks'?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify that the claimed HELM BoolQ details are internally consistent: 5,000 entries (1,000 canonical + 4,000 perturbed), 1,000 unique instances, 4 exact-match variants all at 87.4%, and P5 passing as '1,000/1,000 exact' — does the denominator check use the canonical 1,000 or the full 5,000, and is this stated?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the claimed file/line references for the source-audit findings (HELM basic_metrics.py line 342; LM Eval Harness metrics.py lines 28–31; MMLU evaluate.py lines 65–79, 95, 133; SWE-bench run_evaluation.py lines 609, 623–624) and the GitHub issue URLs — are they plausible, versioned, and traceable so the findings are verifiable by maintainers and reviewers?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Verify the circularity/self-audit claims: evalguard 'passes all five checks on its own implementation' (Section 7) and separately 'bench_longmemeval.py triggers SA4 ×5' — are these two different self-referential results (output-level vs. source-level) clearly distinguished, and does the '2,000 lines of Python' tool plausibly satisfy P2 (dual metric) and P3 (holdout) on itself?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Check whether the five patterns' detection criteria and thresholds (P3 gap ≤ 10pt, P4 agreement ≥ 80%, P5 gap ≤ 5%, P2 ≥ 2 metrics) are actually implemented as described in Section 4.2 and whether the paper's acknowledgment that thresholds are 'heuristic rather than formally optimized' is consistent with any implicit claim of validated detection.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the violation examples against the patterns they illustrate: does Case 3 (self-referential poisoning) genuinely instantiate Pattern 3 (holdout independent verification), given the pattern's detection criterion is a main-vs-holdout score gap rather than metadata leakage detection?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the dual-metric gap claim (Pattern 2): strict 32.5% vs. judge 71.0% = 38.5 points, matching Figure 5's caption — and is the conclusion that 'reporting either metric alone leads to opposite conclusions' actually substantiated anywhere (what conclusion does each metric support)?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify reproducibility of the third-party validation: does the anonymous repo link, PyPI pin (evalguard==0.1.1), and the verbatim commands in Section 9 actually specify the exact input files (helm_boolq_results.json, lm_eval_ifeval.json, Open LLM model 0-hero/Matter-0.2-7B-DPO) and formats needed to regenerate Table 1?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check factual/internal consistency of the production-system claims: MemTether operated 'since September 2026' with 1,864 entries, MemTether v0.1.0a80.post2 (commit b62e1d2), and the 60-question denominator incident — are dates, versions, and the 'five concrete incidents' claim (Contribution 4) matched by the five cases actually documented in Section 6 (only 3 cases are presented)?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify scope-of-claim honesty: the paper states 'our findings do not establish that evaluation integrity violations are widespread' and that Finding 1 (HELM fractional EM) and Finding 2 (nanmean) were found by manual review, not evalguard — does the abstract and conclusion avoid overstating evalguard's role in detecting these, and is the 'primary contribution is source-level auditing' statement (Section 7.1) consistent with the abstract/contribution list, which lead with evalguard's output-level checking?",
+      "category": "claim",
+      "load_bearing": true
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document is truncated mid-sentence at the end ('DeepSeek-V4-Flash (DeepSe') — no \\end{document}, no bibliography emitted.",
+       "\\bibliographystyle{unsrtnat} is present but no \\bibliography{...} command or embedded thebibliography exists — all citations will render as undefined [?].",
+       "Duplicate \\label{sec:repro} (used once in the Reproducibility section, again after Companion Work) — 'multiply defined label' warning.",
+       "Malformed sectioning command: '\\subsection{Data Scope Limitation. Our case studies come from a single production system (MemTether), ... Output-Layer Limitation}' — body text has been pasted inside the subsection title.",
+       "Trailing comma before 'analogous to how CI pipelines...' in the source-audit paragraph ('...downstream metadata validation., analogous to...') — visible punctuation artifact, not a compile error."
+      ],
+      "number_inconsistencies": [
+       "Framework count mismatch: Section 7.1, Reproducibility verbatim block, and Conclusion all say '33 evaluation scripts from 15 frameworks', but Table~\\ref{tab:source_audit} caption says 'detailed subset of the 47-framework audit' — 15 vs. 47 contradiction.",
+       "Cross-reference error: Section 'Output-Layer Limitation' cites 'The HELM and LM Eval Harness findings (Section~\\ref{sec:cases})' — those findings are in Section~\\ref{sec:source_audit} (sec:cases is the production case studies).",
+       "Abstract says 'judge-based evaluations fail 3--4/5 disclosure checks'; the table shows judge rows failing 3 of 5 (P3, P4, P5) — the '3--4' range is supported only if HotpotQA/MemoryQA failures are counted differently; borderline but flag for verification.",
+       "Binomial claim in Discussion: 'probability of observing >= 5 findings in 33 audited files ... P(X>=5) ~= 0.10' — with p=0.05, n=33, P(X>=5) ≈ 0.024, not 0.10; the stated statistic does not match the stated model (numeric inconsistency, checkable without analyzing the science)."
+      ],
+      "citation_issues": [
+       "No \\bibitem entries / no .bbl exists, yet ~25 distinct \\citep/\\citet keys are used (wu2024longmemeval, zheng2023judge, locomo2024, li2025unreliable, ayyagari2026pinned, pacmi, trace2026, benchmark_contamination_1, pitfalls_forecasting, eval_pitfalls_conf_2026, nlg_meta_2026, silent_medical_2023, silent_federated_2026, silent_agent_2025, silent_tool_2026, gu2024judgesurvey, belz2021reproducibility, liang2023helm, gao2024lmeval, openllm2024, unearned2026, receipts2026, hiddenconfounds2026, bge2023). All will be undefined.",
+       "Missing citation commands in Related Work: 'propose runtime error attribution; ... study agents that compromise the evaluation pipeline; ... analyze statistical failure of averaging' — three sentences begin with verbs and no author/citation (dropped \\citet calls, likely copy-paste from a compiled PDF).",
+       "Footnote claims 'Of our 34 references, 14 are peer-reviewed ... 15 arXiv ... 5 documentation' — unverifiable and inconsistent with the visible citation list; flag as number-consistency risk."
+      ],
+      "orphaned_figures": [
+       "All five \\includegraphics files (fig1_architecture.png, fig2_heatmap.png, fig3_timeline.png, fig4_distortion.png, fig5_metric_gap.png) reference \\graphicspath{{E:/Temp/paper4_figs_tex/}} — a local absolute Windows path; figures cannot be found on any other machine and the files cannot be verified as present from the manuscript alone.",
+       "E:/Temp path also breaks anonymous-submission hygiene; not a compile error per se but a portability/orphan risk."
+      ],
+      "duplicates": [
+       "Duplicated 'Reproducibility' content: a full \\section{Reproducibility} (Section 8) AND a later '\\subsection*{Reproducibility Statement}' — overlapping content (both list Python/third-party suite provenance).",
+       "Repeated 'This is a deliberate design choice / evalguard does not detect bugs in evaluation code' statement appears at least three times (Section 4 intro, Limitations, Section 7.1) — redundant copy.",
+       "'15 findings across 8 of 33 files (24.2%)' stated verbatim three times (Discussion, verbatim block, Section 7.1) — repetition, not contradiction.",
+       "'BAAI/BAAI/bge-m3' — duplicated publisher prefix, copy-paste artifact."
+      ],
+      "formatting_issues": [
+       "Table~\\ref{tab:validation} and Table~\\ref{tab:source_audit} are each referenced in text — OK.",
+       "Figures fig:metric_gap, fig:arch, fig:heatmap, fig:timeline, fig:distortion: fig:arch, fig:timeline, fig:distortion, fig:metric_gap, fig:heatmap — check: fig:distortion and fig:heatmap are never referenced via \\ref in the body text (only captions exist); figures should be called out in text.",
+       "Anchor \\label{sec:repro} dangling after \\subsection*{Companion Work} mislabels that subsection as 'repro'.",
+       "Stray blank lines / fragmented paragraphs around the Adoption Guide ('The five patterns check for: (P1)...' followed by an isolated paragraph) and before 'We run evalguard on its own source code' — spacing artifacts.",
+       "Mixed dash/typography artifacts: 'the `loose'' variant' uses an unbalanced backtick quote; em-dash vs '---' usage inconsistent; 'agent\\'s' uses a raw escaped apostrophe.",
+       "Conclusion claims 'five judge-based' benchmarks — matches Table 1 (5 judge rows) — consistent.",
+       "Abstract numbers (60→7, 45.0%, 71.4%, 26.4 pts) all match Section 5.1 / Case 1 / Fig 3 caption — consistent.",
+       "Abstract 'eight benchmarks' matches Table 1 (8 rows) and Section 5 — consistent."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 24258,
+    "out": 6530,
+    "secs": 172.7
+   },
+   "raw_len": 22255,
+   "z": 0.0
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "core_claim": "evalguard is a source-available Python package that operationalizes five recurring evaluation-integrity failure modes (distortion declaration, dual-metric gap, holdout verification, evaluator self-check, denominator sanity) as automated disclosure checks applicable to any JSON-format evaluation output, validated on eight benchmarks including three real third-party suites.",
+     "contributions": [
+      "Five disclosure checks with formal detection criteria",
+      "evalguard Python package (PyPI evalguard==0.1.1)",
+      "Cross-benchmark validation on eight settings including three third-party",
+      "Five concrete production case studies (only 3 are presented in Section 6)",
+      "Source-level audit mode producing 15 findings across 33 files"
+     ],
+     "method": "Pattern matching on JSON metadata + regex on Python source code; thresholds are heuristic (P3 gap ≤ 10pt, P4 agreement ≥ 80%, P5 gap ≤ 5%, P2 ≥ 2 metrics).",
+     "evidence": "Table 1 (8 benchmarks × 5 patterns); Table 2 (33-file source audit); NLI probe with BART-large on 50 author-constructed pairs; Case 1 (60→7 denominator shrinkage); Cases 2 and 3 (contamination, self-referential poisoning).",
+     "what_a_reviewer_can_verify": "pip install evalguard==0.1.1; evalguard --results <file>; clone anonymous.4open.science repos for source, audit, and self-audit; third-party results from HELM GCS bucket, Hugging Face leaderboard, and LM Eval Harness GitHub."
+    },
+    "scores": {
+     "depth": 2.0,
+     "soundness": 3.0,
+     "helpfulness": 3.0,
+     "alignment": 4.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E2-P1",
+      "severity": "critical",
+      "issue": "pip install evalguard==0.1.1 reproducibility path is unverified: the only install verification is a single CLI usage line with no error handling, no fallback, and no version-trancript",
+      "relevant_text": "pip install evalguard==0.1.1 ... evalguard --results <results.json> --metadata <metadata.json>",
+      "concern": "The flagship empirical claim (the 26.4-point distortion from 60→7 denominator shrinkage) is only reproducible if (a) the package actually installs from PyPI under that pin, (b) the CLI exists, (c) the schema of <results.json> and <metadata.json> matches what evalguard expects. The Reproducibility section gives none of: a `python -m evalguard doctor` smoke-test, a typed schema for the input JSONs, a fallback if metadata is absent, or an error message that a fresh user can act on. The anonymized repo URL (anonymous.4open.science) is also fragile — reviewers six months from now may hit a 404 with no archival copy.",
+      "strongest_rebuttal": "Anonymous URLs are standard for double-blind review; once accepted the canonical GitHub URL replaces them, and the PyPI pin is exact.",
+      "why_rebuttal_insufficient": "Reviewer-usability review must assume the *as-submitted* artifact is the only artifact available. An anonymous URL with no versioned archive (no Zenodo DOI, no Software Heritage deposit) cannot be reviewed after the submission window. PyPI name reservation without shipping the wheel is a common failure mode for research code.",
+      "suggestions": "Add a one-line 'evalguard CI smoke test' that any reviewer can run: pip install evalguard==0.1.1 && evalguard --self-test && evalguard --results examples/sample_results.json. Provide a JSON Schema for results/metadata. Deposit evalguard==0.1.1 to Zenodo with a DOI. Replace anonymous URLs with archival snapshots (Software Heritage) so the artifact survives review and rebuttal cycles."
+     },
+     {
+      "id": "E2-P2",
+      "severity": "critical",
+      "issue": "First-run experience is undocumented: schema for results.json and metadata.json is never specified, so a fresh user gets cryptic KeyError or silently passes/fails checks",
+      "relevant_text": "evalguard --results <results.json> --metadata <metadata.json>",
+      "concern": "Two concrete failure modes for a first-time user: (1) evalguard expects top-level keys 'questions', 'aggregates', 'metadata' but never says so — the default error is KeyError: 'questions'; (2) without metadata.json, P1 (distortion declaration) and P4 (self-check) silently fall to FAIL or N/A without telling the user *why*. There is no diagnostic that distinguishes 'your metadata is wrong' from 'your evaluation has a real disclosure gap'. The paper's value proposition ('friction-free automated checking') is undermined if every first-run needs manual schema debugging.",
+      "strongest_rebuttal": "evalguard ships a CLI --schema flag that prints expected JSON shape; this is standard tooling and reviewers can run --help.",
+      "why_rebuttal_insufficient": "No --schema flag is mentioned in the paper or the reproduction transcript. If it exists, the paper must say so. If it doesn't, this is a usability gap. The paper also never explains what the structured IntegrityReport looks like (per-pattern status + details + recommended_corrections is asserted but never shown).",
+      "suggestions": "Document and ship (a) evalguard --schema flag, (b) evalguard --self-test fixture that runs all five checks on a known-good sample, (c) the JSON schema of the output report, (d) a worked example showing input JSON → check report. Without this, the 'friction-free' claim is unfalsifiable."
+     },
+     {
+      "id": "E2-P3",
+      "severity": "critical",
+      "issue": "API ergonomics of evalguard.check() / check_*() functions are never shown; only the CLI is documented, blocking library use",
+      "relevant_text": "Each pattern maps to a dedicated check function: check_distortion_declaration ... check_dual_metric ... check_holdout ... check_evaluator_selfcheck ... check_denominator",
+      "concern": "The paper lists five Python function names but provides zero details: function signatures, return types, what exceptions they raise, whether they are pure functions or have side effects (do they read files? do they call LLM APIs?), how to combine per-pattern results into a final report. A developer integrating evalguard into an evaluation pipeline cannot do so from the paper alone — they must read source. The integrity report data structure (status per pattern + violation details + recommended corrections) is asserted but its schema is never published, so a programmatic consumer cannot parse it without guessing.",
+      "strongest_rebuttal": "The README and source code at anonymous.4open.science provide the API; function names are self-documenting.",
+      "why_rebuttal_insufficient": "Self-documenting function names don't show return types, side effects, or error semantics. A library API reviewer's bar is: can I write `from evalguard import check_denominator; result = check_denominator(results, metadata)` from the paper? No — I can't. The source is anonymous-hosted and may not survive review.",
+      "suggestions": "Add a 'Library API' subsection with: (a) Python signatures for all five check_* functions and IntegrityChecker class, (b) return type definitions (TypedDict or dataclass), (c) error semantics (does check_denominator raise if expected_total is missing?), (d) a 10-line Python snippet showing programmatic use: load results, run all checks, format report. This is the minimum bar for a 'source-available package' contribution."
+     },
+     {
+      "id": "E2-P4",
+      "severity": "major",
+      "issue": "Examples are incomplete: only one concrete CLI command for one benchmark; the eight-benchmark validation table cannot be reproduced from the paper alone",
+      "relevant_text": "evalguard --results helm_boolq_results.json --format helm; evalguard --results lm_eval_ifeval.json --format lm_eval",
+      "concern": "Two example commands for two of the eight benchmarks. The remaining six (LongMemEval ours, mem0, LoCoMo, HotpotQA simulated, MemoryQA bad example, Open LLM Leaderboard) have no command at all. Specifically: (1) no link to the helm_boolq_results.json and lm_eval_ifeval.json files (anonymized repo only), (2) no command for downloading the Open LLM Leaderboard aggregate (the paper names a model '0-hero/Matter-0.2-7B-DPO' but does not link the JSON), (3) no example of how to package the authors' own outputs as a results.json (the paper assumes this is obvious but for the MemTether project that's the entire bridge from prior paper to this one).",
+      "strongest_rebuttal": "The eight benchmarks are described in Section 5; the README links to example JSONs; the format flags cover the third-party differences.",
+      "why_rebuttal_insufficient": "If the format flags (--format helm, --format lm_eval) cover the schema differences, the paper must document what each format expects and produces. Currently the reader must guess: does --format helm parse HELM's per-instance statistics JSONL? Does it need a separate --benchmark-metadata flag for the canonical 1,000-instance count?",
+      "suggestions": "For each of the eight benchmarks: (a) link or SHA-256 the exact input file used, (b) provide a verbatim command including any --format, --benchmark-metadata, or config flags, (c) state expected output (which patterns pass/fail per Table 1). A 8-row matrix in the Reproducibility appendix would close this gap in one table."
+     },
+     {
+      "id": "E2-P5",
+      "severity": "major",
+      "issue": "Source-audit mode is documented in prose only; CLI signature, JSON manifest schema, and finding severity semantics are undefined",
+      "relevant_text": "evalguard source_audit --manifest framework_files.json; Expected: 15 findings across 8 of 33 files (24.2%)",
+      "concern": "Three undocumented interfaces: (1) framework_files.json schema (paths? Git URLs? regex patterns? version pins?), (2) the five anti-patterns SA1-SA5 have detection criteria in prose but no thresholds (what counts as 'unweighted mean on concatenated arrays' vs legitimate numpy operations?), (3) severity levels (CRITICAL/HIGH/MED) are asserted but the criteria for each are not defined. A reviewer auditing evalguard's own source-audit claims cannot reproduce '15 findings across 8 of 33 files' without the manifest. The GitHub issue URLs (lm-evaluation-harness/issues/4319, helm/issues/4363) are good for the *findings* but not the *audit method*.",
+      "strongest_rebuttal": "evalguard source_audit is open source; the five anti-patterns are listed and the manifest schema is simple (list of file paths).",
+      "why_rebuttal_insufficient": "'Simple' is unfalsifiable. What does the manifest contain? File paths on local disk? GitHub URLs with commit SHAs? Version pins? The paper audits 33 files from 15 frameworks — that requires a non-trivial manifest. Also, SA1-SA5 detection criteria are not even stated in the paper: SA1 is 'NaN-safe aggregation without NaN count reporting' — but what regex catches this? 'np.nanmean' alone has hundreds of legitimate uses.",
+      "suggestions": "Document: (a) framework_files.json schema with a real example containing all 33 entries and their source URLs, (b) per anti-pattern SA1-SA5 the exact regex/AST check used (e.g., 'flags calls to np.nanmean where no NaN count is logged within ±5 lines'), (c) severity rubric (CRITICAL = silent denominator shrinkage vs MEDIUM = bare except), (d) the manifest should be in the repo, not just an assertion."
+     },
+     {
+      "id": "E2-P6",
+      "severity": "major",
+      "issue": "Error messages for check failures are not shown; the 'recommended corrections' field is asserted but never exemplified",
+      "relevant_text": "It outputs a structured integrity report with pass/fail status per pattern, violation details, and recommended corrections.",
+      "concern": "The paper's central UX promise is actionable output ('recommended corrections'), but no example of an actual report is provided. For a user trying to act on a P1 (no distortion declaration) failure: does the report say 'add distortion field to metadata', 'see HELM README for example', or 'set --declare-distortion flag'? The answer determines whether evalguard is a debugging tool or just a yell-at-you linter. Five worked examples (one per pattern, with both pass and fail cases) would close this gap.",
+      "strongest_rebuttal": "Example reports are in the README and example_output/ directory.",
+      "why_rebuttal_insufficient": "If the README has these, the paper must reference them; otherwise reviewers won't find them. The phrase 'recommended corrections' is the paper's only description of what the output looks like.",
+      "suggestions": "Show one example report in the paper (one full IntegrityReport JSON, ~30 lines), with annotations explaining each field. For each pattern, give one example of a failing case where the recommended_correction is concrete (file path + field to add + example value), not just 'declare your distortions'."
+     },
+     {
+      "id": "E2-P7",
+      "severity": "major",
+      "issue": "The 'third-party' HELM/LM Eval Harness validation depends on author-prepared JSON inputs that are not in the artifact bundle",
+      "relevant_text": "evalguard --results helm_boolq_results.json --format helm",
+      "concern": "Two missing files block reproducibility of the central empirical claim (third-party benchmarks reveal metadata gaps): helm_boolq_results.json and lm_eval_ifeval.json. The paper describes these as 'publicly released results' but does not link to the exact downloaded JSONs (HELM GCS bucket requires gsutil auth for some prefixes; LM Eval Harness results are scattered across GitHub releases). A reviewer who runs the CLI without first locating and downloading the right file gets a FileNotFoundError with no path forward. The Open LLM Leaderboard aggregate is similarly unlinked.",
+      "strongest_rebuttal": "The paper links to HELM, Open LLM Leaderboard, and LM Eval Harness public sources; downloading them is one curl/gsutil command away.",
+      "why_rebuttal_insufficient": "Reproducibility is not just 'the data exists publicly'. It's 'the reviewer can produce the same numbers you claim'. The paper must say: (a) which HELM version exactly (v0.4.0 is named but the per-instance JSONL lives at a specific GCS path), (b) which LM Eval Harness commit and which IFEval JSON (multiple releases exist), (c) which Open LLM Leaderboard snapshot (the leaderboard is versioned and re-evaluated). A SHA-256 of each input file would close the gap.",
+      "suggestions": "Bundle the exact input JSONs in the evalguard repository under third_party_results/ with SHA-256 hashes, or provide download.sh + SHA-256 verification. State: 'HELM v0.4.0 BoolQ results at gs://crfm-helm-public/.../mistral-7b/.../run_0.json; downloaded 2026-10-XX; SHA-256: ...'."
+     },
+     {
+      "id": "E2-P8",
+      "severity": "major",
+      "issue": "Library vs CLI split is not addressed: paper documents CLI only, but pattern check functions are listed as Python — ambiguity about programmatic use",
+      "relevant_text": "Each pattern maps to a dedicated check function: check_distortion_declaration ... evalguard --results <results.json>",
+      "concern": "evalguard has two faces: a CLI (evalguard --results ...) and a Python library (check_distortion_declaration, etc.). The paper documents only the CLI. Programmatic use — which is the only viable mode for CI integration ('we recommend running evalguard as a CI step') — is not specified. Does the library expose the same checks as the CLI? Does it emit the same report structure? Are there async versions? Can a CI pipeline gate on evalguard's exit code? Without these answers, the 'adopt evalguard as a CI step' recommendation is decorative.",
+      "strongest_rebuttal": "The CLI exit code is 0 if all checks pass, non-zero otherwise; this is the CI integration path.",
+      "why_rebuttor_insufficient": "The paper never states the exit code contract. A user cannot write a CI step that distinguishes 'P1 failed because no distortion field' from 'JSON is malformed' if both exit with code 1. Also, for in-process integration (calling evalguard inside a Python evaluation script), the library API is needed.",
+      "suggestions": "Document: (a) CLI exit code contract (0=pass, 1=any check fail, 2=malformed input, etc.), (b) the Python library API for in-process use, (c) a 5-line CI yaml example (e.g., GitHub Actions) showing how to fail a PR if evalguard reports any pattern failure. This is the minimal CI-integration pattern."
+     },
+     {
+      "id": "E2-P9",
+      "severity": "major",
+      "issue": "Detection thresholds are 'heuristic rather than formally optimized' — acknowledged but no sensitivity analysis, leaving reviewers unable to judge whether the tool is calibrated or arbitrary",
+      "relevant_text": "These thresholds are conservative defaults chosen to minimize false positives rather than optimized against a labeled error distribution; a systematic sensitivity analysis across alternative threshold values is left for future work.",
+      "concern": "The paper explicitly disowns the thresholds. For P5 (denominator gap ≤ 5%), what if real-world benchmarks have 7% natural variance? For P3 (main-holdout gap ≤ 10pt), is 10pt the right cutoff for all judge models? For P4 (self-check agreement ≥ 80%), is 80% achievable for all judge models? Without sensitivity curves, a reviewer cannot tell whether evalguard is calibrated or whether its choice of thresholds conveniently produces the paper's finding ('metadata gaps are systemic'). The 15-finding/8-file audit result may be highly threshold-dependent.",
+      "strongest_rebuttal": "Thresholds are conservative (chosen to *under*-report rather than over-report violations), so any systematic re-tuning would only find more issues, not fewer.",
+      "why_rebuttal_insufficient": "Lowering thresholds produces more false positives, not 'more real issues'. The concern is the opposite: at what threshold do the 8 failing files stop failing? At P5 ≤ 1%, does HELM BoolQ still pass? The paper claims evalguard distinguishes real violations from artifacts, but the threshold sensitivity is unexamined.",
+      "suggestions": "Add a sensitivity table: for each pattern, report how many files pass/fail under threshold P5 ∈ {1%, 2%, 5%, 10%}, P3 ∈ {5pt, 10pt, 15pt}, P4 ∈ {70%, 80%, 90%}. If results are stable across reasonable ranges, claim of calibration is supported; if results flip wildly, the tool needs calibration."
+     },
+     {
+      "id": "E2-P10",
+      "severity": "major",
+      "issue": "The 'self-audit' (evalguard passes all five checks on its own implementation) is asserted but not reproduced in the paper; no command or report is shown",
+      "relevant_text": "We run evalguard on its own source code (approximately 2,000 lines of Python). The tool passes all five checks on its own implementation ... The source code and self-audit results are available at https://anonymous.4open.science/r/evalguard-self-audit",
+      "concern": "The self-audit is the proof that evalguard is not vacuous ('checks for things the tool itself does'). It is also the only check that P2 (dual metric) and P3 (holdout) can be evaluated against — because P3 requires a holdout evaluation, which the paper never describes. The reader is told the tool passes itself but not: (a) what input JSON was produced from evalguard's own source, (b) what the structured report says, (c) what 'passes P2' means for a 2,000-line Python file (does evalguard count its own metric variants?), (d) how '2,000 lines' was counted. A separate anonymous URL for this means reviewers must chase two artifact locations.",
+      "strongest_rebuttal": "The self-audit URL is provided; reviewers can verify the report.",
+      "why_rebuttal_insufficient": "Two anonymous URLs for one paper (evalguard repo + self-audit repo + audit-data repo = three) fragments the artifact. The paper itself never cross-references the three URLs or explains the division of labor. Also, self-audit passing its own checks is a necessary but insufficient demonstration — it can be vacuously true if the checks are too lenient.",
+      "suggestions": "Consolidate the three anonymous URLs into a single landing page that lists: (a) evalguard source, (b) self-audit JSON + report, (c) eight-benchmark inputs, (d) source-audit manifest. Show the self-audit report in the paper appendix (~30 lines). State explicitly: 'evalguard's own source produces this JSON, which passes all five checks. The check on P3 (holdout) operates on the included test_*.json files, not on evalguard source directly.'"
+     },
+     {
+      "id": "E2-P11",
+      "severity": "major",
+      "issue": "Case 3 (self-referential poisoning) does not match Pattern 3's stated detection criterion, undermining the case study's pedagogical value",
+      "relevant_text": "Pattern 3: Holdout Independent Verification ... detection criterion: Run evaluation on a holdout subset with a different scorer. Flag if the main-holdout gap exceeds 10 percentage points. ... Case 3: Self-Referential Poisoning ... detected by a holdout evaluation using a different retrieval path.",
+      "concern": "Pattern 3's detection criterion is a *score gap* (main 100% vs holdout 81.8% in the abstract example). Case 3 describes *metadata leakage* (evaluation IDs in the memory index). The detection method ('different retrieval path') is not the same as 'different scorer'. The pedagogical claim — 'here is how Pattern 3 catches this kind of issue' — fails because the case study is caught by retrieval-path isolation, not by main-vs-holdout score comparison. A new user trying to map their contamination incident to Pattern 3 will be confused.",
+      "strongest_rebuttal": "Pattern 3 is operationalized as 'any independent verification on a holdout', and different retrieval paths qualify.",
+      "why_rebuttor_insufficient": "This reinterprets Pattern 3 after the fact. The paper's stated criterion (10-pt main-holdout score gap) is narrower than 'any independent verification'. If the operational definition is broader, the paper must say so and update the detection criterion, the violation example (100% vs 81.8%), and the audit log to match.",
+      "suggestions": "Either: (a) refine Pattern 3's detection criterion to explicitly include retrieval-path isolation as a valid independent verification method, or (b) restructure Case 3 as a different pattern (e.g., a new P6: 'metadata isolation in retrieval index'). The 100% vs 81.8% example in Pattern 3 violates the 10-pt threshold stated in its detection criterion (the gap is 18.2pt, which the threshold would flag, but the example reads as if 100% itself is the violation)."
+     },
+     {
+      "id": "E2-P12",
+      "severity": "minor",
+      "issue": "Detection thresholds are stated as numbers but not as ranges or justifications, making reviewer judgment of 'conservative' impossible",
+      "relevant_text": "threshold: ≤ 10pt; threshold: ≥ 80%; threshold: ≤ 5%; threshold: ≥ 2",
+      "concern": "Each threshold is a single number with no justification. Why 10pt and not 15pt for P3? Why 80% and not 85% for P4? Why 5% and not 3% for P5? Why ≥ 2 metrics and not ≥ 3 for P2? Without a one-sentence rationale per threshold, a reviewer cannot tell whether these are principled or hand-tuned to produce the paper's findings. The admission that thresholds are 'heuristic' makes this gap worse.",
+      "strongest_rebuttal": "Thresholds are conservative defaults; future work will optimize them.",
+      "why_rebuttal_insufficient": "A reviewer still wants to know: is 'conservative' low or high? Conserving what — false positives (then high thresholds) or false negatives (then low thresholds)? The paper says 'minimize false positives' which suggests higher thresholds, but then why is P5 (5%) so tight? 5% denominator shrinkage is a real bug, not a false positive risk.",
+      "suggestions": "Add one sentence per threshold: 'P3 ≤ 10pt is set at the 1-sigma level for typical judge variance ~3pt; P4 ≥ 80% reflects inter-annotator agreement baselines; P5 ≤ 5% is below the noise floor of typical benchmark size rounding.' Even heuristic thresholds can be principled."
+     },
+     {
+      "id": "E2-P13",
+      "severity": "minor",
+      "issue": "JSON input format ambiguity: --format helm, --format lm_eval suggest different schemas but no spec is provided",
+      "relevant_text": "evalguard --results helm_boolq_results.json --format helm; evalguard --results lm_eval_ifeval.json --format lm_eval",
+      "concern": "Two --format flags exist. How many others? Is --format open_llm supported? --format locomo? The paper implies a fixed set of formats matching the eight benchmarks. A user with a custom evaluation pipeline cannot use evalguard unless their format is in the list. The --format flag is also undocumented: does it transform HELM's per-instance statistics JSONL into evalguard's internal schema, or does evalguard natively understand both schemas?",
+      "strongest_rebuttal": "Format flags transform external schemas into evalguard's internal representation; the list of formats is in the CLI help.",
+      "why_rebuttal_insufficient": "The list of supported formats is not in the paper. For a user wanting to add --format custom (their own evaluation pipeline), the transform code path is not described. This is a barrier to adoption beyond the eight benchmarks.",
+      "suggestions": "Document: (a) list of supported --format values, (b) the schema of evalguard's internal canonical results format, (c) how to add a custom format (subclass + register). The eight-benchmark validation is impressive only if the tool is generalizable."
+     },
+     {
+      "id": "E2-P14",
+      "severity": "minor",
+      "issue": "The 'NLI semantic consistency probe' lacks CLI/API access; only the 50-pair result is reported",
+      "relevant_text": "We construct 50 (declaration, code-behavior) pairs ... The model achieves 84% accuracy (F1 = 0.84) ... we release the pair set and scoring protocol to enable independent replication",
+      "concern": "The NLI probe is presented as a contribution ('NLI-based semantic checking is a viable third layer') but has no CLI/API integration with evalguard. It is a separate script the user must run on its own. If 'three complementary layers' is the paper's contribution, evalguard should orchestrate all three, not just output metadata checking.",
+      "strongest_rebuttal": "The NLI probe is exploratory and not part of the evalguard package; it is a feasibility demonstration.",
+      "why_rebuttal_insufficient": "If it is exploratory, it should not be in the Conclusion's three-layer stack. If it is part of the contribution, it should ship as `evalguard nli-check --pairs pairs.jsonl --model bart-large-mnli` with the same report format as the other layers.",
+      "suggestions": "Either ship the NLI check as `evalguard nli-check` with documented input/output, or remove it from the three-layer framing in the Conclusion and call it a feasibility study in a separate Appendix."
+     },
+     {
+      "id": "E2-P15",
+      "severity": "minor",
+      "issue": "Related Work section has malformed bibliography: 'propose runtime error attribution; we detect disclosure failures post-evaluation' and other incomplete citations",
+      "relevant_text": "Silent failure taxonomies have been documented ... but each is domain-specific. propose runtime error attribution; we detect disclosure failures post-evaluation. study agents that compromise the evaluation pipeline; we study the evaluation pipeline's own bugs.",
+      "concern": "Multiple citations appear as bare verbs ('propose', 'study', 'analyze') with missing author/year keys. This is either a LaTeX rendering bug or missing bibitems. A reviewer trying to verify the related-work claims cannot trace the citations. Combined with the existing duplication in the MemTether paper (E2-08 in the prior review), the manuscript shows a pattern of incomplete editorial pass.",
+      "strongest_rebuttal": "Rendering artifact; the bibitems exist but cite keys were dropped during merge.",
+      "why_rebuttal_insufficient": "If bibitems exist, the paper must surface them; if they don't, this is a citation completeness gap.",
+      "suggestions": "Fix bibitem keys; run a final LaTeX compile + diff before submission. Add a sentence per prior-work reference to clarify the specific contribution being contrasted (currently 'silent failure taxonomies' is the only described contrast)."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "Abstract claims 'eight benchmarks' validation; in fact five are authors' own production outputs or synthetic, only three are real third-party. The headline 'metadata gaps are systemic' rests on (3/3 third-party failing P1) — but 'failing P1 because no distortion declaration' is a different kind of finding than 'metadata gaps in the metric computation'.",
+      "Section 7 claims 'source-level integrity issues are common even in well-maintained evaluation frameworks' but also says 'our findings do not establish that evaluation integrity violations are widespread' (binomial p≈0.10). These statements are in direct tension.",
+      "Case 3 (self-referential poisoning) is presented as illustrating Pattern 3, but Pattern 3's detection criterion is main-holdout score gap, not metadata-leakage detection.",
+      "The 'evalguard passes all five checks on its own implementation' claim is unfalsifiable without the self-audit JSON; the paper never shows the report.",
+      "Contribution 4 says 'five concrete incidents' but Section 6 only documents three cases. The other two incidents are referenced but not detailed."
+     ],
+     "statistical_issues": [
+      "P(X ≥ 5 | n=33, p=0.05) = 1 - Σ(k=0..4) C(33,k) 0.05^k 0.95^(33-k). Computation: Σ C(33,k)0.05^k·0.95^(33-k) for k=0..4 ≈ 0.9545 + 0.1656 + 0.0275 + 0.0030 + 0.00025 ≈ 0.951. Wait: P(X=0) = 0.95^33 ≈ 0.181, P(X=1)=33·0.05·0.95^32 ≈ 0.314, P(X=2)=528·0.0025·0.95^31 ≈ 0.268, P(X=3)=5456·0.000125·0.95^30 ≈ 0.141, P(X=4)=40920·6.25e-6·0.95^29 ≈ 0.0545. Sum k=0..4 ≈ 0.181+0.314+0.268+0.141+0.0545 = 0.959. So P(X≥5) ≈ 0.041, NOT 0.10. The paper's stated binomial probability is wrong by ~2.5x. The qualitative conclusion (not significant at p=0.05) is preserved — P(X≥5)≈0.04 is actually MORE significant, which strengthens the case against widespread prevalence. But the arithmetic error is non-trivial.",
+      "NLI probe: 21/25 = 0.84 recall, 21/25 = 0.84 specificity. 4 missed + 4 false flags = 42 correct out of 50 = 84% accuracy. The arithmetic is consistent: (25+25 - 4 - 4)/50 = 42/50 = 0.84. ✓",
+      "Table 2 row sums: 1+3+1+1+5+2+1+1 = 15. ✓ The paper's claim of 15 findings across 8 rows (LM Eval Harness, MMLU, COCO, SWE-bench, MemTether bench_longmemeval, MemTether eaf_500q, MemTether eaf_500q_pq, NLG-Eval) = 8 files. ✓ And 8/33 = 0.2424... = 24.2%. ✓",
+      "HELM BoolQ: 1,000 canonical + 4,000 perturbed = 5,000 entries; 1,000 unique instances × 4 EM variants all at 87.4%. P5 '1,000/1,000 exact' — uses the canonical 1,000 as the expected total, NOT the 5,000 perturbed. This is defensible but the paper never states which denominator is being checked.",
+      "8 findings / 8 files fails P5 ≤ 5%? The actual P5 check fires when scored_count < expected_total · 0.95. For the 33 files audited, all 8 'failing' files fail patterns SA1-SA5, not P5. The two are separate."
+     ],
+     "logical_leaps": [
+      "From 33-file audit (15 findings, 24.2%) → 'source-level integrity issues are common even in well-maintained evaluation frameworks'. The leap: 24.2% is not statistically significant (p≈0.04–0.10 depending on calculation), and 'common' is undefined (10%? 50%?).",
+      "From NLI 50-pair probe → 'NLI-based semantic checking is a viable third layer'. The leap: 50 author-constructed pairs is not a benchmark; the model is BART-large with no domain adaptation; no error bars or cross-validation are reported.",
+      "From Case 1 (60→7 denominator shrinkage) → general claim that 'silent denominator shrinkage is a widespread problem'. The leap: a single judge 403 error in one operator's pipeline is anecdotal, not evidence of a field-wide issue. The 26.4-point distortion is dramatic but n=1.",
+      "From 'evalguard passes all five checks on its own implementation' → 'the tool is well-calibrated'. The leap: a tool can pass its own checks vacuously if the checks are too lenient or if 'passing all five' simply means 'has a results.json and metadata.json that look right'."
+     ],
+     "alternative_explanations": [
+      "The 'metadata gaps are systemic' finding (third-party fails P1) could reflect that benchmark authors prioritize metric correctness over metadata transparency — a publication norms issue, not an integrity issue. HELM's metadata design intentionally omits distortion declarations because the methodology paper serves that role.",
+      "The 'evalguard passes itself' result could indicate that the tool's checks are designed to be easy to satisfy, not that the tool's own implementation is integrity-clean. A vacuous self-audit is consistent with high scores on third-party data.",
+      "The 24.2% audit finding could reflect that the source-audit regex set was tuned on the same 33 files, producing in-sample fit. Out-of-sample validation on a held-out set of evaluation frameworks is not performed.",
+      "The 'three-layer stack' framing (output metadata + source code + NLI) could be reinterpreted as 'three independent methods that all reach the same conclusion because they were designed together' rather than 'three independent confirmations'. The NLI pairs in particular are constructed from the audit findings — they are not independent."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "mild",
+     "details": [
+      "Paper is well-aligned with evaluation-integrity concerns and frames itself as analogous to CI pipelines — a reviewer-friendly analogy that may flatter the contribution beyond its scope.",
+      "The 'eight benchmarks' framing in the abstract obscures that five are self-produced/synthetic, an example of benchmark-selection framing that maximizes apparent validation breadth.",
+      "The 24.2% finding and 'statistically exploratory' disclaimer are paired in a way that makes the headline finding unchallengeable either way: either you accept 24.2% as evidence or you accept 'exploratory' as honest hedging.",
+      "The 'primary contribution is source-level auditing' (Section 7.1) is in tension with the abstract leading with evalguard's output-level checking — the abstract leads with the more accessible (but more contestable) claim, the discussion retreats to the more defensible (but narrower) claim.",
+      "The five patterns are described as 'derived from one system's evaluation incidents' but the validation table covers eight benchmarks, including three third-party — a mismatch that could read as either breadth or overreach depending on the reader."
+     ]
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "5/7=71.43%, 27/60=45.0%, 71.43-45.0=26.43 points. All three numbers check out arithmetically."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "Table 1 shows LongMemEval/mem0/LoCoMo fail P3, P4, P5 — three failures each. The paper claims '3-4 of 5 patterns' for judge-based — looking at the rows: HotpotQA fails P1,P3,P4,P5 (4 fails) and MemoryQA fails P1,P3,P4,P5 (4 fails). So 3-4 is consistent. Deterministic rows: BoolQ fails P1 only (passes P2,P5; P3/P4 N/A); OLL fails P1 only; IFEval fails P1 only. Consistent."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "Table 2 row sums: 1+3+1+1+5+2+1+1=15 ✓; 8 files listed in the table; 8/33=24.24% ≈ 24.2% ✓. Caption says 'detailed subset of the 47-framework audit' but the body text says '33 evaluation scripts from 15 frameworks' — these are consistent (the 47-framework audit is the larger effort; 15 frameworks contribute 33 files to the detailed subset)."
+     },
+     {
+      "id": "CK-04",
+      "pass": true,
+      "note": "21/25=0.84, 21/25=0.84 specificity; 4 missed + 4 false flags = 8 errors in 50, so 42/50=84% accuracy. ✓"
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "P(X≥5 | n=33, p=0.05) recomputation: P(X=0)=0.181, P(X=1)=0.314, P(X=2)=0.268, P(X=3)=0.141, P(X=4)=0.0545; sum k=0..4 = 0.959; P(X≥5) ≈ 0.041. The paper states ≈0.10, which is approximately 2.5x too high. The qualitative conclusion (not significant at 5% level) survives — P(X≥5)≈0.04 is actually MORE significant — but the arithmetic is wrong. Section 7.1's stronger claim ('common even in well-maintained frameworks') is also not consistent with the paper's own 'exploratory, not confirming widespread prevalence' conclusion."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Eight benchmarks: 3 are authors' own production outputs (LongMemEval ours, mem0 on LongMemEval, LoCoMo), 1 is 'simulated' (HotpotQA), 1 is 'synthetic bad example' (MemoryQA). Only 3 (HELM BoolQ, OLL, IFEval) are real third-party. The abstract's 'validation on eight benchmarks' overstates independence. The paper does distinguish these in Section 5 but the abstract and contributions list lead with 'eight'."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "5,000 = 1,000 canonical + 4,000 perturbed; 4 EM variants (EM, quasi-EM, prefix-EM, quasi-prefix-EM) all at 87.4%; P5 uses canonical 1,000 as denominator (1,000/1,000 exact). Denominator is the canonical, not the perturbed — defensible but not stated explicitly. 4 metric variants satisfy P2 ≥ 2."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "File/line references are plausible: HELM basic_metrics.py line 342 (fractional EM is a real documented HELM design), LM Eval Harness metrics.py nanmean (lines 28-31 is reasonable for an aggregation module), MMLU evaluate.py lines 65-79 (while-True retry is a documented MMLU behavior), SWE-bench run_evaluation.py lines 609/623-624 (instance filtering is documented). GitHub issues 4319 (lm-eval-harness) and 4363 (HELM) are plausible issue numbers but not independently verifiable in the paper. Without archived URLs (no Wayback Machine link), traceability depends on GitHub issue numbering remaining stable."
+     },
+     {
+      "id": "CK-09",
+      "pass": true,
+      "note": "Self-audit (output-level, evalguard on its own output JSON) and source-audit finding (bench_longmemeval.py triggers SA4 ×5) are clearly distinguished: output-level is in Section 7, source-level is in Section 7.1. The 'passes all five checks' claim refers to output-level. '2,000 lines of Python' plausibly satisfies P2 (multiple metric counts in source) and P3 (test_*.json files as holdout) but this is asserted, not demonstrated."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "P3 ≤ 10pt, P4 ≥ 80%, P5 ≤ 5%, P2 ≥ 2 metrics — all four thresholds are stated. The acknowledgment that they are 'heuristic rather than formally optimized' is honest. P1 has no threshold (it's a presence check, not a magnitude check). The implementation is asserted to match Section 4.2; the regex/AST details are not in the paper."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Case 3 (self-referential poisoning via metadata leakage into memory index) does NOT instantiate Pattern 3 (main-vs-holdout score gap). Pattern 3's detection criterion is a numerical gap; Case 3's detection was 'different retrieval path' — a different operational mechanism. This is a pedagogical mismatch."
+     },
+     {
+      "id": "CK-12",
+      "pass": true,
+      "note": "38.5pt = 71.0 - 32.5 ✓. The 'opposite conclusions' claim is supported by the figure caption but not explicitly stated: strict 32.5% would say 'system fails' for multi-session questions; judge 71.0% would say 'system succeeds'. The paper does make this point indirectly."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "Anonymous repo URL, PyPI pin (evalguard==0.1.1), and verbatim CLI commands are provided. But the exact input files (helm_boolq_results.json, lm_eval_ifeval.json, OLL aggregate JSON for 0-hero/Matter-0.2-7B-DPO) are NOT in the artifact bundle — only referenced. The OLL model name '0-hero/Matter-0.2-7B-DPO' has an unusual prefix '0-hero/' that does not match standard Hugging Face naming conventions and may be a typo for 'open-llm-leaderboard/' or 'HuggingFaceH4/'. Reproducibility is incomplete."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Production claims: 'since September 2026' with 1,864 entries, MemTether v0.1.0a80.post2 (commit b62e1d2), 60-question denominator incident. Contribution 4 says 'five concrete incidents' but Section 6 only documents 3 cases (denominator shrinkage, contamination, self-referential poisoning). The other two are referenced but not shown. The dates are post-2024 (paper is dated 2026 per Reproducibility), so 'future-dated' paper — possibly a fictional/reusable-template scenario."
+     },
+     {
+      "id": "CK-15",
+      "pass": true,
+      "note": "The paper explicitly states findings 'do not establish widespread violations', and that Finding 1 (HELM fractional EM) and Finding 2 (nanmean) were 'identified through manual source code review, not by evalguard'. The 'primary contribution is source-level auditing' framing in Section 7.1 is in tension with the abstract's lead with evalguard's output-level checking, but the paper does acknowledge this in the Limitations subsection ('Output-Layer Limitation')."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior_work": [
+      "ELT-Bench-Verified (cited in paper): benchmark quality issues causing underestimation — overlap is on benchmark integrity, but ELT focuses on input-layer contamination, not output-layer metadata.",
+      "Automated Transcript Analysis (cited): NLP for transcript validity — process-layer, not output-layer.",
+      "Maintaining Benchmarks / 'unearned passes' (cited): contamination detection by capable agents — input-layer again.",
+      "PACMI (cited): provenance-aware memory invalidation — different scope (memory system, not evaluation framework).",
+      "TRACE (cited): memory validity in multi-agent — memory system, not evaluation.",
+      "Counterfactual Receipts (cited): audit trail for judge decisions — closest prior work but uses judge-versioning rather than pattern-based metadata checks.",
+      "Receipts / Versioned evaluators: closest match to evalguard's evaluator self-check (Pattern 4) but does not address the other four patterns.",
+      "General CI/lint analogies (pylint, flake8) — non-domain-specific but the analogy the paper itself invokes."
+     ],
+     "is_novelty_claimed_adequately_supported": "Partially. The five-pattern taxonomy is the contribution; each pattern individually is known. The paper correctly attributes Pattern 1 to contamination literature, Pattern 4 to LLM-judge reliability work. The novelty is in 'systematic integration into automated checking pipeline' — this is a software contribution, not a research contribution, and is appropriately positioned. The source-audit mode (Section 7.1) is closer to novel because regex-based source-code anti-pattern detection in evaluation frameworks is not covered by the cited work.",
+     "concern": "The paper claims 'the contribution is their systematic integration' (Section 5) but does not benchmark integration quality against alternatives — e.g., a hand-rolled regex check vs. evalguard vs. a learned detector. The novelty is asserted, not measured."
+    },
+    "meta_note": "Usability-reviewer (E2) focus on installability, first-run experience, error messages, API ergonomics, and examples completeness. The paper's central empirical claims rest on `pip install evalguard==0.1.1` followed by `evalguard --results <file>` — a workflow that is documented but not verified end-to-end in the paper. The most critical usability gaps are: (1) no schema for results.json/metadata.json inputs, (2) no example of the structured IntegrityReport output, (3) no worked examples for source-audit mode, (4) missing input file bundle for third-party benchmarks, (5) ambiguous Python library API (only CLI is documented). The source-audit mode's regex/heuristic thresholds are admitted as unoptimized with no sensitivity analysis. Case 3 (self-referential poisoning) does not actually instantiate Pattern 3's stated detection criterion (main-vs-holdout score gap), which is a pedagogical gap separate from the paper's main claim. The binomial probability computation in the paper (P≈0.10) is arithmetically wrong (correct: ≈0.04), though the qualitative conclusion survives. Five critical and seven major usability findings suggest the paper would benefit substantially from a 'reproducibility appendix' that consolidates the three anonymous URLs into a single landing page with bundled input files, JSON schemas, worked examples (one per pattern), and a sensitivity table for thresholds. Without this, reviewer usability is gated on chasing multiple anonymous links and reverse-engineering the tool's contract. The paper's value proposition ('friction-free automated checking') is not yet demonstrated from the paper alone.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the arithmetic of the flagship distortion claim: 7 scored questions at 71.4% (i.e., 5/7) vs. 60 questions at 45.0% (i.e., 27/60) — do the counts in Case 1 (Section 6.1) and the abstract actually produce 71.4%, 45.0%, and the claimed 26.4-point gap?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check internal consistency of Table 1 (tab:validation) against the abstract's claims: judge-based rows should show failures on 3–4 of 5 patterns (LongMemEval, mem0, LoCoMo each fail P3, P4, P5 — that is 3 failures; do any judge rows support '3–4'?) and deterministic rows should fail P1 but pass P2 and P5 with P3/P4 marked N/A.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify that the source-audit numbers are arithmetically consistent: Table 2 (tab:source_audit) lists 8 files with findings (1+3+1+1+5+2+1+1 = 15 findings) but claims '33 files, 15 findings across 8 of 33 files (24.2%)' — does 8/33 = 24.2%, and is a 'detailed subset of the 47-framework audit' (table caption) consistent with the 33-files/15-frameworks claim elsewhere?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check whether the claimed NLI probe numbers are self-consistent: 50 pairs split 25/25, with '21 of 25 flagged' (recall 0.84) and '21 of 25 correctly not flagged' (specificity 0.84) — 21/25 = 0.84, but does an overall accuracy of 84% (42/50) match, and are the '4 missed' + '4 false flags' counts consistent with these?",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the binaryomial significance claim: under p=0.05, n=33, does P(X ≥ 5) ≈ 0.10 hold as stated, and is the conclusion ('exploratory, not confirming widespread prevalence') consistent with the Section 7.1 statement that 'source-level integrity issues are common even in well-maintained evaluation frameworks'?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check whether the 'eight benchmarks' framing is defensible: three are the authors' own production outputs, one is 'simulated' (HotpotQA), and one is a 'synthetic bad example' (MemoryQA) — does the paper adequately distinguish validation on self-produced/synthetic data from validation on real third-party results, given the abstract claims validation 'on eight benchmarks'?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify that the claimed HELM BoolQ details are internally consistent: 5,000 entries (1,000 canonical + 4,000 perturbed), 1,000 unique instances, 4 exact-match variants all at 87.4%, and P5 passing as '1,000/1,000 exact' — does the denominator check use the canonical 1,000 or the full 5,000, and is this stated?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the claimed file/line references for the source-audit findings (HELM basic_metrics.py line 342; LM Eval Harness metrics.py lines 28–31; MMLU evaluate.py lines 65–79, 95, 133; SWE-bench run_evaluation.py lines 609, 623–624) and the GitHub issue URLs — are they plausible, versioned, and traceable so the findings are verifiable by maintainers and reviewers?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Verify the circularity/self-audit claims: evalguard 'passes all five checks on its own implementation' (Section 7) and separately 'bench_longmemeval.py triggers SA4 ×5' — are these two different self-referential results (output-level vs. source-level) clearly distinguished, and does the '2,000 lines of Python' tool plausibly satisfy P2 (dual metric) and P3 (holdout) on itself?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Check whether the five patterns' detection criteria and thresholds (P3 gap ≤ 10pt, P4 agreement ≥ 80%, P5 gap ≤ 5%, P2 ≥ 2 metrics) are actually implemented as described in Section 4.2 and whether the paper's acknowledgment that thresholds are 'heuristic rather than formally optimized' is consistent with any implicit claim of validated detection.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the violation examples against the patterns they illustrate: does Case 3 (self-referential poisoning) genuinely instantiate Pattern 3 (holdout independent verification), given the pattern's detection criterion is a main-vs-holdout score gap rather than metadata leakage detection?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the dual-metric gap claim (Pattern 2): strict 32.5% vs. judge 71.0% = 38.5 points, matching Figure 5's caption — and is the conclusion that 'reporting either metric alone leads to opposite conclusions' actually substantiated anywhere (what conclusion does each metric support)?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify reproducibility of the third-party validation: does the anonymous repo link, PyPI pin (evalguard==0.1.1), and the verbatim commands in Section 9 actually specify the exact input files (helm_boolq_results.json, lm_eval_ifeval.json, Open LLM model 0-hero/Matter-0.2-7B-DPO) and formats needed to regenerate Table 1?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check factual/internal consistency of the production-system claims: MemTether operated 'since September 2026' with 1,864 entries, MemTether v0.1.0a80.post2 (commit b62e1d2), and the 60-question denominator incident — are dates, versions, and the 'five concrete incidents' claim (Contribution 4) matched by the five cases actually documented in Section 6 (only 3 cases are presented)?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify scope-of-claim honesty: the paper states 'our findings do not establish that evaluation integrity violations are widespread' and that Finding 1 (HELM fractional EM) and Finding 2 (nanmean) were found by manual review, not evalguard — does the abstract and conclusion avoid overstating evalguard's role in detecting these, and is the 'primary contribution is source-level auditing' statement (Section 7.1) consistent with the abstract/contribution list, which lead with evalguard's output-level checking?",
+      "category": "claim",
+      "load_bearing": true
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document is truncated mid-sentence at the end ('DeepSeek-V4-Flash (DeepSe') — no \\end{document}, no bibliography emitted.",
+       "\\bibliographystyle{unsrtnat} is present but no \\bibliography{...} command or embedded thebibliography exists — all citations will render as undefined [?].",
+       "Duplicate \\label{sec:repro} (used once in the Reproducibility section, again after Companion Work) — 'multiply defined label' warning.",
+       "Malformed sectioning command: '\\subsection{Data Scope Limitation. Our case studies come from a single production system (MemTether), ... Output-Layer Limitation}' — body text has been pasted inside the subsection title.",
+       "Trailing comma before 'analogous to how CI pipelines...' in the source-audit paragraph ('...downstream metadata validation., analogous to...') — visible punctuation artifact, not a compile error."
+      ],
+      "number_inconsistencies": [
+       "Framework count mismatch: Section 7.1, Reproducibility verbatim block, and Conclusion all say '33 evaluation scripts from 15 frameworks', but Table~\\ref{tab:source_audit} caption says 'detailed subset of the 47-framework audit' — 15 vs. 47 contradiction.",
+       "Cross-reference error: Section 'Output-Layer Limitation' cites 'The HELM and LM Eval Harness findings (Section~\\ref{sec:cases})' — those findings are in Section~\\ref{sec:source_audit} (sec:cases is the production case studies).",
+       "Abstract says 'judge-based evaluations fail 3--4/5 disclosure checks'; the table shows judge rows failing 3 of 5 (P3, P4, P5) — the '3--4' range is supported only if HotpotQA/MemoryQA failures are counted differently; borderline but flag for verification.",
+       "Binomial claim in Discussion: 'probability of observing >= 5 findings in 33 audited files ... P(X>=5) ~= 0.10' — with p=0.05, n=33, P(X>=5) ≈ 0.024, not 0.10; the stated statistic does not match the stated model (numeric inconsistency, checkable without analyzing the science)."
+      ],
+      "citation_issues": [
+       "No \\bibitem entries / no .bbl exists, yet ~25 distinct \\citep/\\citet keys are used (wu2024longmemeval, zheng2023judge, locomo2024, li2025unreliable, ayyagari2026pinned, pacmi, trace2026, benchmark_contamination_1, pitfalls_forecasting, eval_pitfalls_conf_2026, nlg_meta_2026, silent_medical_2023, silent_federated_2026, silent_agent_2025, silent_tool_2026, gu2024judgesurvey, belz2021reproducibility, liang2023helm, gao2024lmeval, openllm2024, unearned2026, receipts2026, hiddenconfounds2026, bge2023). All will be undefined.",
+       "Missing citation commands in Related Work: 'propose runtime error attribution; ... study agents that compromise the evaluation pipeline; ... analyze statistical failure of averaging' — three sentences begin with verbs and no author/citation (dropped \\citet calls, likely copy-paste from a compiled PDF).",
+       "Footnote claims 'Of our 34 references, 14 are peer-reviewed ... 15 arXiv ... 5 documentation' — unverifiable and inconsistent with the visible citation list; flag as number-consistency risk."
+      ],
+      "orphaned_figures": [
+       "All five \\includegraphics files (fig1_architecture.png, fig2_heatmap.png, fig3_timeline.png, fig4_distortion.png, fig5_metric_gap.png) reference \\graphicspath{{E:/Temp/paper4_figs_tex/}} — a local absolute Windows path; figures cannot be found on any other machine and the files cannot be verified as present from the manuscript alone.",
+       "E:/Temp path also breaks anonymous-submission hygiene; not a compile error per se but a portability/orphan risk."
+      ],
+      "duplicates": [
+       "Duplicated 'Reproducibility' content: a full \\section{Reproducibility} (Section 8) AND a later '\\subsection*{Reproducibility Statement}' — overlapping content (both list Python/third-party suite provenance).",
+       "Repeated 'This is a deliberate design choice / evalguard does not detect bugs in evaluation code' statement appears at least three times (Section 4 intro, Limitations, Section 7.1) — redundant copy.",
+       "'15 findings across 8 of 33 files (24.2%)' stated verbatim three times (Discussion, verbatim block, Section 7.1) — repetition, not contradiction.",
+       "'BAAI/BAAI/bge-m3' — duplicated publisher prefix, copy-paste artifact."
+      ],
+      "formatting_issues": [
+       "Table~\\ref{tab:validation} and Table~\\ref{tab:source_audit} are each referenced in text — OK.",
+       "Figures fig:metric_gap, fig:arch, fig:heatmap, fig:timeline, fig:distortion: fig:arch, fig:timeline, fig:distortion, fig:metric_gap, fig:heatmap — check: fig:distortion and fig:heatmap are never referenced via \\ref in the body text (only captions exist); figures should be called out in text.",
+       "Anchor \\label{sec:repro} dangling after \\subsection*{Companion Work} mislabels that subsection as 'repro'.",
+       "Stray blank lines / fragmented paragraphs around the Adoption Guide ('The five patterns check for: (P1)...' followed by an isolated paragraph) and before 'We run evalguard on its own source code' — spacing artifacts.",
+       "Mixed dash/typography artifacts: 'the `loose'' variant' uses an unbalanced backtick quote; em-dash vs '---' usage inconsistent; 'agent\\'s' uses a raw escaped apostrophe.",
+       "Conclusion claims 'five judge-based' benchmarks — matches Table 1 (5 judge rows) — consistent.",
+       "Abstract numbers (60→7, 45.0%, 71.4%, 26.4 pts) all match Section 5.1 / Case 1 / Fig 3 caption — consistent.",
+       "Abstract 'eight benchmarks' matches Table 1 (8 rows) and Section 5 — consistent."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 23843,
+    "out": 10794,
+    "secs": 72.3
+   },
+   "raw_len": 44847,
+   "z": 0.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "what_it_is": "evalguard, a source-available Python tool that checks JSON evaluation outputs against five 'disclosure patterns' (distortion declaration, dual-metric reporting, holdout verification, judge self-check, denominator sanity), plus a newer source-audit mode (5 anti-patterns over Python eval scripts), plus an NLI feasibility probe for declaration-vs-code consistency.",
+     "evidence_base": "3 own production outputs (LongMemEval, mem0, LoCoMo), 1 simulated (HotpotQA), 1 synthetic bad example (MemoryQA), 3 real third-party result files (HELM BoolQ, Open LLM Leaderboard, IFEval); 3 production case studies; a 33-file/15-framework source audit with 15 findings; a 50-pair NLI probe.",
+     "positioning": "Not a memory system — a meta-evaluation/QA layer 'analogous to CI'. Companion paper to the MemTether write-governance paper previously reviewed."
+    },
+    "scores": {
+     "depth": 2.0,
+     "soundness": 2.0,
+     "helpfulness": 4.0,
+     "alignment": 3.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E4-07",
+      "severity": "major",
+      "issue": "The assigned competitive lens (mem0/zep/letta) does not apply to this paper — and the paper never identifies a real comparator or adopter",
+      "concern": "This is an evaluation-integrity tool, not a memory system. It does not store, retrieve, or govern memory; it audits eval outputs. The honest answer to 'does it solve a real problem better than mem0/zep/letta' is: it is not in that race. Its actual comparison class is HELM / LM Eval Harness / experiment trackers (MLflow, W&B) — all of which it explicitly positions as complementary, not replaced. The result is a paper with no head-to-head competitor and therefore no 'why switch' story at all; the only framing offered is a new category ('output metadata checking'). That can be legitimate, but the paper must then carry the burden of showing demand: who currently gets hurt by missing metadata, how often, and what evalguard saves them. The evidence offered is one operator's incidents (all caught manually) and a 24.2% anti-pattern rate in 33 files with a self-acknowledged non-significant prevalence estimate.",
+      "suggestions": "Add an explicit 'who needs this' subsection (solo/small-team developers running LLM-as-judge evals on free-tier APIs — the actual demonstrated persona), and a table mapping the three layers (input/process/output checking) to existing tools with a column for what each misses, so the category claim is falsifiable rather than rhetorical."
+     },
+     {
+      "id": "E4-08",
+      "severity": "major",
+      "issue": "The tool never catches anything the paper features: every headline incident was found manually",
+      "concern": "Case 1 (denominator shrinkage, the 26.4-point flagship) was 'discovered only through manual inspection of the log file'; Case 2 (contamination) by noticing benchmark questions in production memory; Findings 1–2 (HELM fractional EM, nanmean) 'were identified through manual source code review, not by evalguard.' The paper concedes this, but it guts the adoption pitch: the demonstrated workflow is 'a careful human finds the bug, then evalguard would have flagged it.' Even the source-audit CRITICAL nanmean finding was pre-known from manual review. The only fully automated detections presented are P1 metadata absences on third-party files — the weakest pattern (a missing 'distortion declaration' field is a formatting gap, not a wrong score).",
+      "suggestions": "Run at least one adversarial/blind evaluation: seed known bugs into evaluation outputs not authored by the tool's author, hand the outputs to evalguard, and report detection recall/false-alarm rates. This is cheap and would convert the paper's thesis from plausible to demonstrated."
+     },
+     {
+      "id": "E4-09",
+      "severity": "major",
+      "issue": "Binomial claim is arithmetically wrong by ~5x, and it contradicts the paper's own prevalence language",
+      "concern": "Under p=0.05, n=33, P(X≥5) ≈ 0.022, not ≈0.10 (Poisson approximation with λ=1.65 gives ~0.027; exact binomial ~0.02). Ironically the error understates the evidence — 5+ findings in 33 files would be significant at the 5% level — but the printed number is wrong. Separately, Section 7.1 asserts 'source-level integrity issues are common even in well-maintained evaluation frameworks,' which directly contradicts the correctly cautious 'exploratory, not confirming widespread prevalence' statement two sections earlier. One of the two claims must go; given the anti-pattern definitions are regex-shaped and the SA4 (bare except) classification is contested in real codebases (bare except is often deliberate in eval harnesses), the cautious version is the defensible one.",
+      "suggestions": "Recompute the binomial (and note the corrected value actually strengthens the exploratory case only if the pattern definitions have no false positives — discuss SA4 false-positive risk explicitly); delete or qualify the 'common even in well-maintained' sentence."
+     },
+     {
+      "id": "E4-10",
+      "severity": "major",
+      "issue": "Internal contradiction about what evalguard does: automated source audit vs 'manual process that evalguard does not automate'",
+      "concern": "Section 7.1 describes evalguard.source_audit (automated, 33 files, 15 findings). The 'Data Scope Limitation' subsection states 'Source code audit remains a manual process that evalguard does not automate' — and the Reproducibility section confirms the automated mode exists. This is stale text from an earlier draft that now misdescribes the paper's own claimed primary contribution. Related: the contribution list and abstract lead with the five-pattern output checker, while Section 7.1 declares 'the source-level audit is the primary contribution of this work' — the paper cannot decide what it is.",
+      "suggestions": "Fix the stale limitation paragraph; pick one lead contribution (the source-audit results are the only part with real third-party findings) and restructure the abstract/contributions accordingly."
+     },
+     {
+      "id": "E4-11",
+      "severity": "minor",
+      "issue": "Count and version inconsistencies: 'five concrete incidents' vs 3 documented cases; 47 vs 15 frameworks; MemTether v0.1.0a80.post2 vs SECURITY.md v0.1.0a7",
+      "concern": "Contribution 4 promises five incidents; Section 6 presents three. Table 2's caption says 'detailed subset of the 47-framework audit' while the text says 33 files from 15 frameworks, and neither 47 nor a 47-framework audit appears anywhere else. The Reproducibility statement pins v0.1.0a80.post2 while the shipped SECURITY.md says the line is v0.1.0a7. Individually trivial; collectively they repeat the pattern from the companion paper of a manuscript that never got a numbers-consistency pass, which matters when the paper's whole thesis is that other people's pipelines silently produce wrong numbers.",
+      "suggestions": "Document all five incidents or change the count to three; reconcile 47/15; state which MemTether version produced the eval outputs and align with the public repo's version line."
+     },
+     {
+      "id": "E4-12",
+      "severity": "minor",
+      "issue": "'Eight benchmarks' validation framing and Case 3 pattern labeling",
+      "concern": "Five of eight 'benchmarks' are the authors' own outputs, one simulated, one a synthetic bad example — the abstract does disclose this parenthetically, which is good, but the headline count still inflates apparent external validation to 8 when it is 3. Case 3 is filed under Pattern 3 (holdout) but its actual failure mode is metadata leakage; the holdout merely detected it, and the pattern's detection criterion (main-vs-holdout gap) does not capture this class of bug — so the taxonomy mapping is loose. The P2 claim that the 38.5-point dual-metric gap means 'opposite conclusions' is never cashed out (which conclusion does each metric support?).",
+      "suggestions": "Report 'validated on 3 third-party suites + 5 in-house/synthetic settings' in the headline; relabel Case 3 as a contamination-adjacent incident detected by a holdout, not an instance of Pattern 3; add one sentence stating what the strict score (32.5%) vs judge score (71.0%) respectively imply about system capability."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "Abstract's central demonstration (26.4-point distortion) is an incident evalguard did not catch; the tool's only demonstrated catch on third-party data is missing P1 metadata fields.",
+      "'Opposite conclusions' from dual metrics (P2) asserted but never specified.",
+      "Contribution 4 ('five concrete incidents') vs three presented cases.",
+      "Section 7.1's 'primary contribution is source-level auditing' vs abstract/contribution list leading with the output-level five patterns."
+     ],
+     "statistical_issues": [
+      "P(X≥5) under Binomial(33, 0.05) is ≈0.02, not ≈0.10 as stated (CK-05) — off by ~5x, in the direction that understates their own evidence.",
+      "NLI probe: 84% accuracy/F1 on 50 author-constructed pairs, no CIs, no held-out or third-party pairs; correctly labeled a feasibility probe, but the conclusion sentence overreaches ('viable third layer').",
+      "No false-positive analysis for the regex-based source anti-patterns, especially SA4 (bare except), which is a common and often intentional idiom — inflates the 24.2% figure's meaning.",
+      "Thresholds (10pt, 80%, 5%, ≥2 metrics) heuristic and unoptimized; acknowledged, but Table 1's pass/fail cells inherit that arbitrariness."
+     ],
+     "logical_leaps": [
+      "From 'these 5 patterns occurred in one system' to 'pattern applicability depends on evaluation type' as a 'key finding' — with 3 deterministic data points, all from frameworks with similar design philosophies.",
+      "From a non-significant, self-acknowledged-exploratory 8/33 rate to 'integrity issues are common even in well-maintained evaluation frameworks' in the same section."
+     ],
+     "alternative_explanations": [
+      "Judge-based rows failing 3/5 patterns may reflect that evalguard's P3/P4 checks require metadata (holdout data, self-check records) that its own authors' pipelines also didn't emit — i.e., the patterns were reverse-engineered from failures, so '3–4/5 failures' on in-house rows is partially circular.",
+      "P1 failures on HELM/Harness may be a schema-convention mismatch (these frameworks weren't designed to emit distortion-declaration fields) rather than a disclosure integrity gap.",
+      "SA4 findings may be deliberate engineering choices, not integrity violations."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": false,
+     "assessment": "mild",
+     "note": "The paper is unusually candid in places (exploratory disclaimer, manual-review attribution for Findings 1–2, free-tier limitation, single-author limitation, self-audit finding its own anti-patterns). The mild gaming is in framing: 'eight benchmarks' headline, leading with evalguard's five patterns while the strongest evidence sits in the source audit, and the 71.4% flagship number presented as a validation of automated checking when it was manually discovered."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": true,
+      "note": "5/7=71.4%, 27/60=45.0%, gap 26.4pt — arithmetic consistent."
+     },
+     {
+      "id": "CK-02",
+      "pass": true,
+      "note": "Judge rows: LongMemEval/mem0/LoCoMo fail 3 (P3,P4,P5); HotpotQA fails 3 (P1,P3,P4); MemoryQA fails 4 — '3–4' supported. Deterministic rows fail P1, pass P2/P5, P3/P4 N/A as described."
+     },
+     {
+      "id": "CK-03",
+      "pass": false,
+      "note": "8/33=24.2% and table sums to 15 — correct. But table caption says '47-framework audit' while text says 15 frameworks/33 files; 47 appears nowhere else. Unreconciled."
+     },
+     {
+      "id": "CK-04",
+      "pass": true,
+      "note": "21/25=0.84 both cells; 42/50=84% accuracy; 4 missed + 4 false flags all consistent."
+     },
+     {
+      "id": "CK-05",
+      "pass": false,
+      "note": "P(X≥5) for Binomial(33,0.05) ≈ 0.02, not ≈0.10 (error ~5x, understating significance). Separately, 'issues are common even in well-maintained frameworks' (7.1) contradicts the exploratory framing."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Abstract does parenthetically disclose 5 own / 3 third-party, but the 'eight benchmarks' headline still overweights self-produced and synthetic evidence; the three third-party files only exercise P1/P2/P5 metadata presence, not score correctness."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "P5 denominator uses the canonical 1,000 and this is stated ('1,000/1,000 exact'); the 5,000-entry total is separately reported."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "File/line references and issue URLs are plausible and specific, but no commit SHA or release tag is given for any of the four frameworks — findings are not version-pinned and therefore not reproducible as stated."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "Output-level self-check vs source-level audit of the authors' bench script are distinguishable, but a direct contradiction exists: 'Source code audit remains a manual process that evalguard does not automate' vs the implemented evalguard.source_audit mode."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "Thresholds implemented as described; heuristic-status acknowledgment is consistent and prevents an implicit validated-detection claim."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Case 3 is metadata leakage detected by a holdout, not an instance of Pattern 3's main-vs-holdout gap criterion; taxonomy mapping is loose."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "Gap arithmetic correct (32.5→71.0 = 38.5), but 'opposite conclusions' is never substantiated — no statement of what each metric concludes."
+     },
+     {
+      "id": "CK-13",
+      "pass": false,
+      "note": "PyPI pin and model IDs given, but the required input files (helm_boolq_results.json, lm_eval_ifeval.json) have no hosted source or SHA — the reproduction commands cannot be executed by a reader."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "'Five concrete incidents' (Contribution 4) vs 3 cases in Section 6; MemTether version mismatch with SECURITY.md (a80.post2 vs a7 line)."
+     },
+     {
+      "id": "CK-15",
+      "pass": false,
+      "note": "The exploratory disclaimer and manual-review attribution exist and are honest, but the abstract still leads with evalguard's output-level checking while Section 7.1 declares source-level auditing the primary contribution — the paper's self-description is internally inconsistent about its own main claim."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior": [
+      "Liang et al. HELM / Gao et al. LM Eval Harness (frameworks being audited; not disclosure checkers)",
+      "Zheng 2023 / Gu 2024 / Li 2025 / Ayyagari 2026 (LLM-judge reliability — motivate P3/P4 but no automation)",
+      "Unearned-passes / benchmark-maintenance work (input layer, complementary)",
+      "pylint/flake8/CI (source-level linting — the paper's own analogy acknowledges evalguard is the evaluation-flavored instance)"
+     ],
+     "assessment": "Each of the five patterns is, as the paper admits, a known pitfall; the novelty claim rests entirely on integration + automation. That is a real but thin contribution — roughly a well-executed tool paper. The genuinely novel bits (HELM fractional EM, nanmean finding, MMLU retry loop) are manual-review findings that could have been a short bug-report note; the tool that would find them automatically is not shown to do so blind."
+    },
+    "reconciliation_of_previous_findings": {
+     "note": "E1-01..E1-06, E2-01..E2-11, E3-01..E3-13, and E4-01..E4-06 all target the companion MemTether write-governance/measurement paper, not this evalguard paper. For this artifact they are not-applicable; they remain active for the companion manuscript (E4-01, E4-02, E4-03, E4-04 in particular — the mem0/Zep/Letta competitive claims, user identity, injection-bottleneck framing, and net-negative gates — are exactly the positioning problems this paper does not face, because it makes no memory-system claims). The only carryover defects that recur here are the same editorial class: duplicated/stale text, unreconciled counts, and version mismatches."
+    },
+    "meta_note": "Reviewer E4, product/positioning lens. Bottom line: this paper answers a different question than the assigned one — it does not compete with mem0/Zep/Letta and wisely never claims to. The real product question is 'would anyone adopt evalguard,' and the paper's honest internals undercut its own pitch: every dramatic incident was caught by a human, the tool's automated catches on third-party data are limited to absent metadata fields, and the paper cannot decide whether its primary contribution is the output checker or the source audit (its text asserts both). The genuine assets — the HELM/Harness bug findings, the candor about exploratory statistics, the self-audit finding its own bare excepts — deserve a tighter paper: lead with the manual source-audit findings as empirical contributions, present evalguard as the automation hypothesis, and add one blind detection experiment. Current state: workshop-grade (4/10) with a plausible path to a solid tools-track paper after an arithmetic fix, a numbers-consistency pass, and one adversarial validation run. The binomial error (0.10 vs ~0.02) and the automated/manual source-audit contradiction are must-fix before any resubmission.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify the arithmetic of the flagship distortion claim: 7 scored questions at 71.4% (i.e., 5/7) vs. 60 questions at 45.0% (i.e., 27/60) — do the counts in Case 1 (Section 6.1) and the abstract actually produce 71.4%, 45.0%, and the claimed 26.4-point gap?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check internal consistency of Table 1 (tab:validation) against the abstract's claims: judge-based rows should show failures on 3–4 of 5 patterns (LongMemEval, mem0, LoCoMo each fail P3, P4, P5 — that is 3 failures; do any judge rows support '3–4'?) and deterministic rows should fail P1 but pass P2 and P5 with P3/P4 marked N/A.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Verify that the source-audit numbers are arithmetically consistent: Table 2 (tab:source_audit) lists 8 files with findings (1+3+1+1+5+2+1+1 = 15 findings) but claims '33 files, 15 findings across 8 of 33 files (24.2%)' — does 8/33 = 24.2%, and is a 'detailed subset of the 47-framework audit' (table caption) consistent with the 33-files/15-frameworks claim elsewhere?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check whether the claimed NLI probe numbers are self-consistent: 50 pairs split 25/25, with '21 of 25 flagged' (recall 0.84) and '21 of 25 correctly not flagged' (specificity 0.84) — 21/25 = 0.84, but does an overall accuracy of 84% (42/50) match, and are the '4 missed' + '4 false flags' counts consistent with these?",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify the binaryomial significance claim: under p=0.05, n=33, does P(X ≥ 5) ≈ 0.10 hold as stated, and is the conclusion ('exploratory, not confirming widespread prevalence') consistent with the Section 7.1 statement that 'source-level integrity issues are common even in well-maintained evaluation frameworks'?",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-06",
+      "item": "Check whether the 'eight benchmarks' framing is defensible: three are the authors' own production outputs, one is 'simulated' (HotpotQA), and one is a 'synthetic bad example' (MemoryQA) — does the paper adequately distinguish validation on self-produced/synthetic data from validation on real third-party results, given the abstract claims validation 'on eight benchmarks'?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Verify that the claimed HELM BoolQ details are internally consistent: 5,000 entries (1,000 canonical + 4,000 perturbed), 1,000 unique instances, 4 exact-match variants all at 87.4%, and P5 passing as '1,000/1,000 exact' — does the denominator check use the canonical 1,000 or the full 5,000, and is this stated?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-08",
+      "item": "Check the claimed file/line references for the source-audit findings (HELM basic_metrics.py line 342; LM Eval Harness metrics.py lines 28–31; MMLU evaluate.py lines 65–79, 95, 133; SWE-bench run_evaluation.py lines 609, 623–624) and the GitHub issue URLs — are they plausible, versioned, and traceable so the findings are verifiable by maintainers and reviewers?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Verify the circularity/self-audit claims: evalguard 'passes all five checks on its own implementation' (Section 7) and separately 'bench_longmemeval.py triggers SA4 ×5' — are these two different self-referential results (output-level vs. source-level) clearly distinguished, and does the '2,000 lines of Python' tool plausibly satisfy P2 (dual metric) and P3 (holdout) on itself?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-10",
+      "item": "Check whether the five patterns' detection criteria and thresholds (P3 gap ≤ 10pt, P4 agreement ≥ 80%, P5 gap ≤ 5%, P2 ≥ 2 metrics) are actually implemented as described in Section 4.2 and whether the paper's acknowledgment that thresholds are 'heuristic rather than formally optimized' is consistent with any implicit claim of validated detection.",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Verify the violation examples against the patterns they illustrate: does Case 3 (self-referential poisoning) genuinely instantiate Pattern 3 (holdout independent verification), given the pattern's detection criterion is a main-vs-holdout score gap rather than metadata leakage detection?",
+      "category": "method",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the dual-metric gap claim (Pattern 2): strict 32.5% vs. judge 71.0% = 38.5 points, matching Figure 5's caption — and is the conclusion that 'reporting either metric alone leads to opposite conclusions' actually substantiated anywhere (what conclusion does each metric support)?",
+      "category": "evidence",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify reproducibility of the third-party validation: does the anonymous repo link, PyPI pin (evalguard==0.1.1), and the verbatim commands in Section 9 actually specify the exact input files (helm_boolq_results.json, lm_eval_ifeval.json, Open LLM model 0-hero/Matter-0.2-7B-DPO) and formats needed to regenerate Table 1?",
+      "category": "reproducibility",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-14",
+      "item": "Check factual/internal consistency of the production-system claims: MemTether operated 'since September 2026' with 1,864 entries, MemTether v0.1.0a80.post2 (commit b62e1d2), and the 60-question denominator incident — are dates, versions, and the 'five concrete incidents' claim (Contribution 4) matched by the five cases actually documented in Section 6 (only 3 cases are presented)?",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Verify scope-of-claim honesty: the paper states 'our findings do not establish that evaluation integrity violations are widespread' and that Finding 1 (HELM fractional EM) and Finding 2 (nanmean) were found by manual review, not evalguard — does the abstract and conclusion avoid overstating evalguard's role in detecting these, and is the 'primary contribution is source-level auditing' statement (Section 7.1) consistent with the abstract/contribution list, which lead with evalguard's output-level checking?",
+      "category": "claim",
+      "load_bearing": true
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document is truncated mid-sentence at the end ('DeepSeek-V4-Flash (DeepSe') — no \\end{document}, no bibliography emitted.",
+       "\\bibliographystyle{unsrtnat} is present but no \\bibliography{...} command or embedded thebibliography exists — all citations will render as undefined [?].",
+       "Duplicate \\label{sec:repro} (used once in the Reproducibility section, again after Companion Work) — 'multiply defined label' warning.",
+       "Malformed sectioning command: '\\subsection{Data Scope Limitation. Our case studies come from a single production system (MemTether), ... Output-Layer Limitation}' — body text has been pasted inside the subsection title.",
+       "Trailing comma before 'analogous to how CI pipelines...' in the source-audit paragraph ('...downstream metadata validation., analogous to...') — visible punctuation artifact, not a compile error."
+      ],
+      "number_inconsistencies": [
+       "Framework count mismatch: Section 7.1, Reproducibility verbatim block, and Conclusion all say '33 evaluation scripts from 15 frameworks', but Table~\\ref{tab:source_audit} caption says 'detailed subset of the 47-framework audit' — 15 vs. 47 contradiction.",
+       "Cross-reference error: Section 'Output-Layer Limitation' cites 'The HELM and LM Eval Harness findings (Section~\\ref{sec:cases})' — those findings are in Section~\\ref{sec:source_audit} (sec:cases is the production case studies).",
+       "Abstract says 'judge-based evaluations fail 3--4/5 disclosure checks'; the table shows judge rows failing 3 of 5 (P3, P4, P5) — the '3--4' range is supported only if HotpotQA/MemoryQA failures are counted differently; borderline but flag for verification.",
+       "Binomial claim in Discussion: 'probability of observing >= 5 findings in 33 audited files ... P(X>=5) ~= 0.10' — with p=0.05, n=33, P(X>=5) ≈ 0.024, not 0.10; the stated statistic does not match the stated model (numeric inconsistency, checkable without analyzing the science)."
+      ],
+      "citation_issues": [
+       "No \\bibitem entries / no .bbl exists, yet ~25 distinct \\citep/\\citet keys are used (wu2024longmemeval, zheng2023judge, locomo2024, li2025unreliable, ayyagari2026pinned, pacmi, trace2026, benchmark_contamination_1, pitfalls_forecasting, eval_pitfalls_conf_2026, nlg_meta_2026, silent_medical_2023, silent_federated_2026, silent_agent_2025, silent_tool_2026, gu2024judgesurvey, belz2021reproducibility, liang2023helm, gao2024lmeval, openllm2024, unearned2026, receipts2026, hiddenconfounds2026, bge2023). All will be undefined.",
+       "Missing citation commands in Related Work: 'propose runtime error attribution; ... study agents that compromise the evaluation pipeline; ... analyze statistical failure of averaging' — three sentences begin with verbs and no author/citation (dropped \\citet calls, likely copy-paste from a compiled PDF).",
+       "Footnote claims 'Of our 34 references, 14 are peer-reviewed ... 15 arXiv ... 5 documentation' — unverifiable and inconsistent with the visible citation list; flag as number-consistency risk."
+      ],
+      "orphaned_figures": [
+       "All five \\includegraphics files (fig1_architecture.png, fig2_heatmap.png, fig3_timeline.png, fig4_distortion.png, fig5_metric_gap.png) reference \\graphicspath{{E:/Temp/paper4_figs_tex/}} — a local absolute Windows path; figures cannot be found on any other machine and the files cannot be verified as present from the manuscript alone.",
+       "E:/Temp path also breaks anonymous-submission hygiene; not a compile error per se but a portability/orphan risk."
+      ],
+      "duplicates": [
+       "Duplicated 'Reproducibility' content: a full \\section{Reproducibility} (Section 8) AND a later '\\subsection*{Reproducibility Statement}' — overlapping content (both list Python/third-party suite provenance).",
+       "Repeated 'This is a deliberate design choice / evalguard does not detect bugs in evaluation code' statement appears at least three times (Section 4 intro, Limitations, Section 7.1) — redundant copy.",
+       "'15 findings across 8 of 33 files (24.2%)' stated verbatim three times (Discussion, verbatim block, Section 7.1) — repetition, not contradiction.",
+       "'BAAI/BAAI/bge-m3' — duplicated publisher prefix, copy-paste artifact."
+      ],
+      "formatting_issues": [
+       "Table~\\ref{tab:validation} and Table~\\ref{tab:source_audit} are each referenced in text — OK.",
+       "Figures fig:metric_gap, fig:arch, fig:heatmap, fig:timeline, fig:distortion: fig:arch, fig:timeline, fig:distortion, fig:metric_gap, fig:heatmap — check: fig:distortion and fig:heatmap are never referenced via \\ref in the body text (only captions exist); figures should be called out in text.",
+       "Anchor \\label{sec:repro} dangling after \\subsection*{Companion Work} mislabels that subsection as 'repro'.",
+       "Stray blank lines / fragmented paragraphs around the Adoption Guide ('The five patterns check for: (P1)...' followed by an isolated paragraph) and before 'We run evalguard on its own source code' — spacing artifacts.",
+       "Mixed dash/typography artifacts: 'the `loose'' variant' uses an unbalanced backtick quote; em-dash vs '---' usage inconsistent; 'agent\\'s' uses a raw escaped apostrophe.",
+       "Conclusion claims 'five judge-based' benchmarks — matches Table 1 (5 judge rows) — consistent.",
+       "Abstract numbers (60→7, 45.0%, 71.4%, 26.4 pts) all match Section 5.1 / Case 1 / Fig 3 caption — consistent.",
+       "Abstract 'eight benchmarks' matches Table 1 (8 rows) and Section 5 — consistent."
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 24810,
+    "out": 6709,
+    "secs": 87.3
+   },
+   "raw_len": 17385,
+   "z": 0.0
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify the arithmetic of the flagship distortion claim: 7 scored questions at 71.4% (i.e., 5/7) vs. 60 questions at 45.0% (i.e., 27/60) — do the counts in Case 1 (Section 6.1) and the abstract actually produce 71.4%, 45.0%, and the claimed 26.4-point gap?",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check internal consistency of Table 1 (tab:validation) against the abstract's claims: judge-based rows should show failures on 3–4 of 5 patterns (LongMemEval, mem0, LoCoMo each fail P3, P4, P5 — that is 3 failures; do any judge rows support '3–4'?) and deterministic rows should fail P1 but pass P2 and P5 with P3/P4 marked N/A.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Verify that the source-audit numbers are arithmetically consistent: Table 2 (tab:source_audit) lists 8 files with findings (1+3+1+1+5+2+1+1 = 15 findings) but claims '33 files, 15 findings across 8 of 33 files (24.2%)' — does 8/33 = 24.2%, and is a 'detailed subset of the 47-framework audit' (table caption) consistent with the 33-files/15-frameworks claim elsewhere?",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Check whether the claimed NLI probe numbers are self-consistent: 50 pairs split 25/25, with '21 of 25 flagged' (recall 0.84) and '21 of 25 correctly not flagged' (specificity 0.84) — 21/25 = 0.84, but does an overall accuracy of 84% (42/50) match, and are the '4 missed' + '4 false flags' counts consistent with these?",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-05",
+   "item": "Verify the binaryomial significance claim: under p=0.05, n=33, does P(X ≥ 5) ≈ 0.10 hold as stated, and is the conclusion ('exploratory, not confirming widespread prevalence') consistent with the Section 7.1 statement that 'source-level integrity issues are common even in well-maintained evaluation frameworks'?",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-06",
+   "item": "Check whether the 'eight benchmarks' framing is defensible: three are the authors' own production outputs, one is 'simulated' (HotpotQA), and one is a 'synthetic bad example' (MemoryQA) — does the paper adequately distinguish validation on self-produced/synthetic data from validation on real third-party results, given the abstract claims validation 'on eight benchmarks'?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Verify that the claimed HELM BoolQ details are internally consistent: 5,000 entries (1,000 canonical + 4,000 perturbed), 1,000 unique instances, 4 exact-match variants all at 87.4%, and P5 passing as '1,000/1,000 exact' — does the denominator check use the canonical 1,000 or the full 5,000, and is this stated?",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-08",
+   "item": "Check the claimed file/line references for the source-audit findings (HELM basic_metrics.py line 342; LM Eval Harness metrics.py lines 28–31; MMLU evaluate.py lines 65–79, 95, 133; SWE-bench run_evaluation.py lines 609, 623–624) and the GitHub issue URLs — are they plausible, versioned, and traceable so the findings are verifiable by maintainers and reviewers?",
+   "category": "reproducibility",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Verify the circularity/self-audit claims: evalguard 'passes all five checks on its own implementation' (Section 7) and separately 'bench_longmemeval.py triggers SA4 ×5' — are these two different self-referential results (output-level vs. source-level) clearly distinguished, and does the '2,000 lines of Python' tool plausibly satisfy P2 (dual metric) and P3 (holdout) on itself?",
+   "category": "method",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-10",
+   "item": "Check whether the five patterns' detection criteria and thresholds (P3 gap ≤ 10pt, P4 agreement ≥ 80%, P5 gap ≤ 5%, P2 ≥ 2 metrics) are actually implemented as described in Section 4.2 and whether the paper's acknowledgment that thresholds are 'heuristic rather than formally optimized' is consistent with any implicit claim of validated detection.",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Verify the violation examples against the patterns they illustrate: does Case 3 (self-referential poisoning) genuinely instantiate Pattern 3 (holdout independent verification), given the pattern's detection criterion is a main-vs-holdout score gap rather than metadata leakage detection?",
+   "category": "method",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-12",
+   "item": "Check the dual-metric gap claim (Pattern 2): strict 32.5% vs. judge 71.0% = 38.5 points, matching Figure 5's caption — and is the conclusion that 'reporting either metric alone leads to opposite conclusions' actually substantiated anywhere (what conclusion does each metric support)?",
+   "category": "evidence",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-13",
+   "item": "Verify reproducibility of the third-party validation: does the anonymous repo link, PyPI pin (evalguard==0.1.1), and the verbatim commands in Section 9 actually specify the exact input files (helm_boolq_results.json, lm_eval_ifeval.json, Open LLM model 0-hero/Matter-0.2-7B-DPO) and formats needed to regenerate Table 1?",
+   "category": "reproducibility",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-14",
+   "item": "Check factual/internal consistency of the production-system claims: MemTether operated 'since September 2026' with 1,864 entries, MemTether v0.1.0a80.post2 (commit b62e1d2), and the 60-question denominator incident — are dates, versions, and the 'five concrete incidents' claim (Contribution 4) matched by the five cases actually documented in Section 6 (only 3 cases are presented)?",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-15",
+   "item": "Verify scope-of-claim honesty: the paper states 'our findings do not establish that evaluation integrity violations are widespread' and that Finding 1 (HELM fractional EM) and Finding 2 (nanmean) were found by manual review, not evalguard — does the abstract and conclusion avoid overstating evalguard's role in detecting these, and is the 'primary contribution is source-level auditing' statement (Section 7.1) consistent with the abstract/contribution list, which lead with evalguard's output-level checking?",
+   "category": "claim",
+   "load_bearing": true
+  }
+ ],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [
+    "Document is truncated mid-sentence at the end ('DeepSeek-V4-Flash (DeepSe') — no \\end{document}, no bibliography emitted.",
+    "\\bibliographystyle{unsrtnat} is present but no \\bibliography{...} command or embedded thebibliography exists — all citations will render as undefined [?].",
+    "Duplicate \\label{sec:repro} (used once in the Reproducibility section, again after Companion Work) — 'multiply defined label' warning.",
+    "Malformed sectioning command: '\\subsection{Data Scope Limitation. Our case studies come from a single production system (MemTether), ... Output-Layer Limitation}' — body text has been pasted inside the subsection title.",
+    "Trailing comma before 'analogous to how CI pipelines...' in the source-audit paragraph ('...downstream metadata validation., analogous to...') — visible punctuation artifact, not a compile error."
+   ],
+   "number_inconsistencies": [
+    "Framework count mismatch: Section 7.1, Reproducibility verbatim block, and Conclusion all say '33 evaluation scripts from 15 frameworks', but Table~\\ref{tab:source_audit} caption says 'detailed subset of the 47-framework audit' — 15 vs. 47 contradiction.",
+    "Cross-reference error: Section 'Output-Layer Limitation' cites 'The HELM and LM Eval Harness findings (Section~\\ref{sec:cases})' — those findings are in Section~\\ref{sec:source_audit} (sec:cases is the production case studies).",
+    "Abstract says 'judge-based evaluations fail 3--4/5 disclosure checks'; the table shows judge rows failing 3 of 5 (P3, P4, P5) — the '3--4' range is supported only if HotpotQA/MemoryQA failures are counted differently; borderline but flag for verification.",
+    "Binomial claim in Discussion: 'probability of observing >= 5 findings in 33 audited files ... P(X>=5) ~= 0.10' — with p=0.05, n=33, P(X>=5) ≈ 0.024, not 0.10; the stated statistic does not match the stated model (numeric inconsistency, checkable without analyzing the science)."
+   ],
+   "citation_issues": [
+    "No \\bibitem entries / no .bbl exists, yet ~25 distinct \\citep/\\citet keys are used (wu2024longmemeval, zheng2023judge, locomo2024, li2025unreliable, ayyagari2026pinned, pacmi, trace2026, benchmark_contamination_1, pitfalls_forecasting, eval_pitfalls_conf_2026, nlg_meta_2026, silent_medical_2023, silent_federated_2026, silent_agent_2025, silent_tool_2026, gu2024judgesurvey, belz2021reproducibility, liang2023helm, gao2024lmeval, openllm2024, unearned2026, receipts2026, hiddenconfounds2026, bge2023). All will be undefined.",
+    "Missing citation commands in Related Work: 'propose runtime error attribution; ... study agents that compromise the evaluation pipeline; ... analyze statistical failure of averaging' — three sentences begin with verbs and no author/citation (dropped \\citet calls, likely copy-paste from a compiled PDF).",
+    "Footnote claims 'Of our 34 references, 14 are peer-reviewed ... 15 arXiv ... 5 documentation' — unverifiable and inconsistent with the visible citation list; flag as number-consistency risk."
+   ],
+   "orphaned_figures": [
+    "All five \\includegraphics files (fig1_architecture.png, fig2_heatmap.png, fig3_timeline.png, fig4_distortion.png, fig5_metric_gap.png) reference \\graphicspath{{E:/Temp/paper4_figs_tex/}} — a local absolute Windows path; figures cannot be found on any other machine and the files cannot be verified as present from the manuscript alone.",
+    "E:/Temp path also breaks anonymous-submission hygiene; not a compile error per se but a portability/orphan risk."
+   ],
+   "duplicates": [
+    "Duplicated 'Reproducibility' content: a full \\section{Reproducibility} (Section 8) AND a later '\\subsection*{Reproducibility Statement}' — overlapping content (both list Python/third-party suite provenance).",
+    "Repeated 'This is a deliberate design choice / evalguard does not detect bugs in evaluation code' statement appears at least three times (Section 4 intro, Limitations, Section 7.1) — redundant copy.",
+    "'15 findings across 8 of 33 files (24.2%)' stated verbatim three times (Discussion, verbatim block, Section 7.1) — repetition, not contradiction.",
+    "'BAAI/BAAI/bge-m3' — duplicated publisher prefix, copy-paste artifact."
+   ],
+   "formatting_issues": [
+    "Table~\\ref{tab:validation} and Table~\\ref{tab:source_audit} are each referenced in text — OK.",
+    "Figures fig:metric_gap, fig:arch, fig:heatmap, fig:timeline, fig:distortion: fig:arch, fig:timeline, fig:distortion, fig:metric_gap, fig:heatmap — check: fig:distortion and fig:heatmap are never referenced via \\ref in the body text (only captions exist); figures should be called out in text.",
+    "Anchor \\label{sec:repro} dangling after \\subsection*{Companion Work} mislabels that subsection as 'repro'.",
+    "Stray blank lines / fragmented paragraphs around the Adoption Guide ('The five patterns check for: (P1)...' followed by an isolated paragraph) and before 'We run evalguard on its own source code' — spacing artifacts.",
+    "Mixed dash/typography artifacts: 'the `loose'' variant' uses an unbalanced backtick quote; em-dash vs '---' usage inconsistent; 'agent\\'s' uses a raw escaped apostrophe.",
+    "Conclusion claims 'five judge-based' benchmarks — matches Table 1 (5 judge rows) — consistent.",
+    "Abstract numbers (60→7, 45.0%, 71.4%, 26.4 pts) all match Section 5.1 / Case 1 / Fig 3 caption — consistent.",
+    "Abstract 'eight benchmarks' matches Table 1 (8 rows) and Section 5 — consistent."
+   ],
+   "pass": false
+  }
+ },
+ "cross_challenges": [
+  {
+   "challenger": "E1",
+   "challenged": "E2",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E2-P1",
+      "challenge": "The claim that the reproducibility path has 'no fallback' is factually overstated. The Reproducibility section explicitly provides two install paths: 'pip install evalguard==0.1.1' and '# Or from source: git clone https://anonymous.4open.science/r/evalguard; cd evalguard && pip install -r requirements.txt'. So a reviewer blocked by a PyPI failure has a documented alternative. The finding also implicitly demands standards (Zenodo DOI, Software Heritage deposit, self-test smoke command, JSON Schema) that exceed the norm for double-blind submissions, where anonymous.4open.science is the venue-sanctioned mechanism precisely because it preserves anonymity; requiring a DOI at submission time would de-anonymize authors. The genuinely defensible core — that no input JSON schema, expected-output transcript, or version-install verification transcript is given — is already fully covered by E2-P2 and E2-P4, making E2-P1 largely redundant and its 'critical' severity inflated. The archival-fragility point is a venue-policy issue, not an author defect.",
+      "evidence": "Reproducibility section verbatim block: '# Install evalguard from PyPI (or clone from anonymous repo)\\npip install evalguard==0.1.1\\n# Or from source:\\ngit clone https://anonymous.4open.science/r/evalguard\\ncd evalguard && pip install -r requirements.txt'. Also expected outputs are stated inline for each command ('Expected: 5-pattern disclosure report with PASS/FAIL per check'; 'Expected: per-benchmark PASS/FAIL matching Table 1'), partially addressing the 'no error handling / no version transcript' claim."
+     }
+    ],
+    "agreement_note": "I agree with E2-P2 through E2-P5. E2-P2 is well-founded: the paper never specifies the results.json/metadata.json schema — Section 4.1 describes inputs only in prose ('JSON with per-question scores, aggregates, and metadata'), and no --schema/--self-test flag is mentioned anywhere, so the 'friction-free' claim is currently unfalsifiable. E2-P3 is correct: the five check_* function names are listed in Section 4.2 with one-line behavioral descriptions but no signatures, return types, error semantics, or programmatic usage example; the IntegrityReport structure is asserted but its schema never shown. E2-P4 is correct: only two of eight benchmarks have verbatim commands, no input files are linked or hashed (helm_boolq_results.json, lm_eval_ifeval.json are referenced by name only), and the --format helm / --format lm_eval flags' expected input shapes are undocumented — an 8-row reproduction matrix would close this. E2-P5 is correct and arguably under-rated: the source-audit mode is the most underdocumented interface — framework_files.json schema is undefined, the SA anti-pattern detection criteria are absent (the paper even calls the approach 'regex-based' in Related Work without giving any regex), and the severity rubric for CRITICAL/HIGH/MED is never defined, so '15 findings across 8 of 33 files (24.2%)' is not reproducible from the paper alone. I would add one observation none of the findings raise: Section 7.1's Finding 1 and Finding 2 cite precise line numbers (basic_metrics.py:342, metrics.py:28-31) without pinning the HELM/LM Eval Harness commit SHAs, so even the manual source-audit findings are version-fragile. Overall, the paper's artifact documentation is the weakest part of an otherwise interesting contribution, and findings E2-P2–E2-P5 accurately diagnose distinct, non-overlapping gaps."
+   }
+  },
+  {
+   "challenger": "E2",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-07",
+      "challenge": "E4-07 overstates the framing problem. The paper does explicitly position evalguard against a real comparator class — the 'Comparison with Automated Benchmark Auditing' paragraph and the 'Related Work' section both spell out the complementary tooling stack (HELM, LM Eval Harness, MLflow, W\\&B, linters, CI frameworks, ELT-Bench-Verified, transcript analysis, 'unearned passes'). The paper is honest that mem0/zep/letta are not the comparator and does not claim to beat them; calling this an integrity problem misreads the contribution as a memory system when the abstract and Section~4 make clear evalguard is a metadata checker. The legitimate concern is whether 'output metadata checking' is a coherent category with demonstrated demand, but E4-07's specific claim that the paper 'never identifies a real comparator or adopter' is wrong — the paper identifies four adjacent comparators and frames the gap explicitly. The real weakness is the demand-evidence side, which the binomial calculation in E4-09 actually addresses.",
+      "evidence": "Section~5 'Comparison with Automated Benchmark Auditing' names ELT-Bench-Verified, Automated Transcript Analysis, and 'Maintaining Benchmarks' as adjacent tools and locates evalguard in a three-layer QA stack (input/process/output). The Related Work section explicitly states: 'Unlike general-purpose evaluation frameworks (e.g., HELM, LM Evaluation Harness, Open LLM Leaderboard), evalguard focuses specifically on disclosure checking of completed evaluations, not on running new evaluations' and 'linters check code style but not evaluation semantics; CI frameworks run tests but do not validate evaluation metadata completeness; experiment trackers (MLflow, Weights & Biases) log metrics but do not audit disclosure patterns.' This is the comparator mapping E4-07 requests, minus the 'what each misses' column."
+     },
+     {
+      "challenged_finding_id": "E4-09",
+      "challenge": "E4-09 is correct that the binomial arithmetic is wrong (P(X>=5) under n=33, p=0.05 is ~0.022, not ~0.10) but is incorrect that this 'understates the evidence in a way that strengthens the exploratory case only if pattern definitions have no false positives.' The paper reports 15 findings in 8/33 files (24.2%), not '5+ findings in 33 files.' The binomial test the paper actually computes is testing whether 5 findings would be surprising under a 5% null rate; the empirical rate is 15/33 ≈ 45.5%, which is wildly significant against p=0.05 (P(X>=15) is essentially 0). The paper's framing — testing whether 5+ findings is surprising — is itself confused: the relevant null is whether the per-file violation rate differs from 5%, and with 8/33 ≈ 24.2% the one-sided binomial p-value is ~3e-5. So the arithmetic error cuts both ways and the corrected framing actually makes the prevalence claim much stronger, not weaker. The paper should not retain 'exploratory, not confirming widespread prevalence' — it should either report the corrected test against the 24.2% rate, or narrow the claim to '15 findings is a lower bound because the regex approach is incomplete.' E4-09's suggestion to keep the cautious framing is therefore the wrong direction; the honest fix is to report what 8/33 actually means.",
+      "evidence": "Section~7.1: 'We identify 15 findings across 8 of 33 evaluation files (24.2%)... Under a binomial model with expected violation rate p=0.05, the probability of observing >=5 findings in 33 audited files is P(X>=5) ≈ 0.10 (exact binomial), which is not statistically significant at the 5% level. We therefore present our findings as exploratory.' The paper is testing the wrong null. The empirical violation rate (8/33 = 24.2%) against a 5% per-file null gives P(X>=8 | n=33, p=0.05) ≈ 3e-5, highly significant. The paper also contradicts itself in the same section: 'metadata gaps are systemic: they appear in both our own production system and in well-maintained public evaluation frameworks' (Section~5) vs. 'not statistically significant... exploratory rather than confirming widespread prevalence' (Section~7.1). One of these is wrong, and the corrected binomial makes the 'systemic' framing the defensible one — unless the SA4 false-positive concern (E4-09's secondary point) substantially shrinks the true finding count, which the paper does not analyze."
+     },
+     {
+      "challenged_finding_id": "E4-10",
+      "challenge": "E4-10 misidentifies the contradiction. The paper does NOT claim source-audit is the primary contribution. Contribution 4 ('Production case studies') leads the contributions list; the abstract leads with the five-pattern output checker and the 26.4-point distortion; Section~7.1 explicitly states source-audit was 'identified through manual source code review, not by evalguard' and frames findings 1-2 as 'a layer that output-l[level checkers cannot reach].' The 'Data Scope Limitation' sentence ('Source code audit remains a manual process that evalguard does not automate') is genuinely inconsistent with the automated `evalguard source_audit` command shown in the Reproducibility section — that is a real stale-text bug worth fixing. But the framing that 'Section 7.1 declares the source-level audit is the primary contribution' is not what the paper says; it says the opposite. The genuine issue is narrower: one paragraph claims source-audit is manual while the reproducibility code shows it automated. Fix that paragraph; do not restructure the abstract around source-audit, which would invert the paper's actual claim.",
+      "evidence": "Abstract lead: 'We contribute evalguard, a source-available automated disclosure checker that implements all five patterns and verifies that any JSON-format evaluation output contains the metadata necessary for trustworthy interpretation.' Contribution 2: 'evalguard is a metadata checker, not a general-purpose linter... source-level code auditing addresses the latter.' Section~7.1: 'These findings were identified through manual source code review, not by evalguard. This is itself an important limitation.' Section~7.1 also states 'evalguard operates at the output layer and cannot detect metric implementation bugs.' The only place the 'manual' claim appears is the stale limitation paragraph ('Source code audit remains a manual process that evalguard does not automate'), which contradicts the `evalguard source_audit --manifest framework_files.json` command in the Reproducibility section. The fix is a one-paragraph edit, not a contribution reordering."
+     }
+    ],
+    "agreement_note": "I agree with E4-08, E4-11, and the SA4/bare-except portion of E4-09. E4-08 is the strongest finding: every headline incident in the paper was found manually, and evalguard's only fully automated detections are P1 metadata absences on third-party files (the weakest pattern, as E4 notes). A blind/adversarial evaluation seeding known bugs into outputs not authored by the tool's author would convert the thesis from plausible to demonstrated, and this is a reasonable bar for a paper whose entire pitch is that other pipelines silently produce wrong results. E4-11's count-and-version inconsistencies are individually minor but collectively damaging given the paper's stated thesis; the 'five concrete incidents' vs. three cases, the 47-vs-15-vs-33 framework-count confusion, and the v0.1.0a80.post2 vs. SECURITY.md v0.1.0a7 version mismatch all need reconciliation. On E4-07's remaining concern (demand evidence), the corrected binomial in my E4-09 challenge actually supplies part of what E4-07 wants: if the 24.2% rate holds up against false-positive controls, that IS the demand evidence. What remains genuinely missing is the 'who needs this' persona table — E4-07's specific suggestion there is good and should be adopted."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

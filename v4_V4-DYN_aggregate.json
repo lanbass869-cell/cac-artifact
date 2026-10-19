@@ -1,0 +1,540 @@
+{
+ "round_score": 5.5,
+ "std": 0.5,
+ "spread": 1.0,
+ "debate_needed": false,
+ "n_reviews": 2,
+ "full_tier": {
+  "n": 2,
+  "mean": 5.5
+ },
+ "lite_tier": {
+  "n": 0,
+  "mean": null
+ },
+ "round": "V4-DYN",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\memory-dynamics-paper.tex",
+ "timestamp": "2026-10-19T13:09:16.886421",
+ "usage_total": {
+  "in": 53865,
+  "out": 14242,
+  "secs": 234.1
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "role": "architecture-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper_type": "Single-deployment longitudinal measurement study of a production multi-agent memory system (MemTether), 30 days, 15 clients, one shared SQLite file in WAL mode.",
+     "core_claims": [
+      "C1: Memory type predicts correction rate (procedures 91.5% vs decisions 8.2%, 11x, chi2 p<0.001), with KM median survival of 2.5 days for procedures.",
+      "C2: Entity-resolution funnel: 81.7% raw cross-agent polarity clash -> 0.044% genuine temporal contradictions (1,857x).",
+      "C3: Corrections cluster: one nrem_consolidation batch accounts for 262/349 corrections (75.1%).",
+      "C4: Injection coverage 0.48% (833,488 chars stored vs 3,980 injected per turn, 209x overscan); retrieval quality is the binding constraint.",
+      "C5: Cross-agent corrections (14.9%) cause 86% downstream answer divergence vs 0.7% for self-corrections (~99% of harm)."
+     ],
+     "architecture_relevant_design": "Single-file SQLite (WAL mode stated this round) shared by 15 MCP clients via NTFS junctions/symlinks; bi-temporal fact rows + fact_entities index + supersession DAG + hash-chained audit_log; read-only analysis; reproducibility via synthetic data generator at a GitHub artifact repo (production DB withheld for privacy).",
+     "changes_since_last_round": "Substantial rewrite: the write-governance/admission-gate framing is gone, replaced by a dynamics-measurement framing. WAL mode now stated; deployment window now disclosed as 32 days truncated to 30; numbers reconciled to new counts (2,273 writes, 87 organic + 262 batch corrections, 349 supersessions); duplicated Related Work removed; a synthetic data generator and scripts repo are now provided; competitive 'remember everything' attack on mem0/Zep/Letta removed; 3,980-char limit reframed as 'property of the memory-to-context ratio, not a design flaw'."
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 3.0,
+     "helpfulness": 4.0,
+     "alignment": 4.0,
+     "overall": 6.0
+    },
+    "findings": [
+     {
+      "id": "E1-01",
+      "status": "partially_fixed",
+      "note": "WAL mode is now stated ('SQLite in WAL mode for concurrent read-write access'), which addresses the journal-mode half of the original concern. However, busy_timeout, connection handling across 15 clients on NTFS junctions, and any SQLITE_BUSY/dropped-write rate during the window are still unreported. WAL permits one writer; the load-bearing counts (2,273 writes, 349 supersessions, 200 retirements) still have no completeness bound. Downgraded from major to minor given the low write volume (~76 writes/day) and the hash-chained audit log, but a one-sentence statement ('zero lock errors observed in audit_log during the window; busy_timeout=Xms') would close it.",
+      "severity": "minor"
+     },
+     {
+      "id": "E1-02",
+      "status": "refuted_by_revision",
+      "note": "The 'architectural, not algorithmic' framing is gone. Finding 4 now explicitly says the 0.48% ratio 'is a property of the memory-to-context ratio, not a design flaw' and acknowledges systems with different injection strategies have different ratios. The claim is now descriptive, not prescriptive. Residual nit: the derivation of the 3,980-char injection limit (model, prompt budget) is still undocumented, and the reproducibility comment 'divide by 3980 injection limit = 0.48% coverage' still inverts the ratio (833488/3980 = 209x overscan; coverage = 3980/833488). Fix the comment to show both equations."
+     },
+     {
+      "id": "E1-03",
+      "status": "fixed",
+      "note": "The erroneous '0.16 per active memory per day' and the entire Q-value/write-back section are gone from this version."
+     },
+     {
+      "id": "E1-04",
+      "status": "partially_fixed",
+      "note": "The 30-vs-31-day inconsistency is fixed (now '32 days, truncated to 30', stated once, used consistently). The 12-15% vs 17.9% gate inconsistency is gone with the gates section. NEW internal inconsistencies of the same class appear (see E1-N1 below): 386 vs 387 superseded rows, 349 vs 350 supersession edges, and Table 2 type totals (2,590) vs KM n (2,309) vs active+retired+superseded (2,543) do not reconcile."
+     },
+     {
+      "id": "E1-05",
+      "status": "partially_fixed",
+      "note": "Reproducibility improved: synthetic data generator + measurement scripts + expected outputs at a public artifact repo, addressing the 'decorative reproduction commands' criticism. The durability half remains unaddressed: no synchronous pragma, no transaction-scope description for correct()/retire() (multi-table writes spanning facts, fact_entities, supersessions, audit_log), no integrity_check result. A torn multi-table write (e.g., status flipped to superseded without a supersession edge) is exactly the failure mode the paper itself documents — the Table 1 footnote reports 41 rows 'directly set to superseded status... without a corresponding supersession edge' and attributes it to the batch event, but this is also precisely what a crash mid-transaction would produce. The paper should state how it distinguished intentional direct-status-updates from torn writes, and report PRAGMA integrity_check on the analyzed snapshot.",
+      "severity": "minor"
+     },
+     {
+      "id": "E1-06",
+      "status": "fixed",
+      "note": "Duplicated paragraphs removed; Related Work is now a single short paragraph. The 'first' claim remains asserted without a search protocol, but Related Work now names Caura as closest prior work, which is an improvement in specificity."
+     },
+     {
+      "id": "E2-01/E2-05/E2-09",
+      "status": "fixed",
+      "note": "pip install verified working claim with pinned version (0.1.0a80.post2), artifact repo with measurement scripts, expected outputs, and synthetic generator now provided. First-run failure modes substantially mitigated."
+     },
+     {
+      "id": "E2-02/E2-03/E2-06/E2-10/E2-11, E3-02/E3-03/E3-05/E3-07/E3-08/E3-09/E3-10/E3-11/E3-12",
+      "status": "fixed_or_moot",
+      "note": "The gate-simulation, precision@10, Q-value, dead-rate-by-type, power-law, and B1-gate content these findings targeted has been removed from this version. The 'dead = use_count==0' ambiguity is moot because use_count no longer appears (a footnote mentions 28,807 read operations as sum of use_count, but no measurement depends on it)."
+     },
+     {
+      "id": "E3-04",
+      "status": "partially_fixed",
+      "note": "The overscan equation (209x) is now correct in the text, but the verbatim reproducibility comment still reads '# Expected: 833488 chars; divide by 3980 injection limit = 0.48% coverage' — 833488/3980 = 209.3, not 0.48%. The comment should read '3980/833488 = 0.48% coverage (209x overscan)'. One-word fix, still wrong as printed."
+     },
+     {
+      "id": "E3-06",
+      "status": "fixed",
+      "note": "The 95%-vs-99.5% unretrievable contradiction is gone; the paper now consistently reports 0.48% coverage / 209x overscan."
+     },
+     {
+      "id": "E3-13",
+      "status": "fixed",
+      "note": "'Three orders of magnitude' corrected to 'two orders of magnitude' (209x ~ 2.3 orders)."
+     },
+     {
+      "id": "E4-01/E4-03/E4-04/E4-05/E4-06",
+      "status": "fixed_or_moot",
+      "note": "Competitive attacks on mem0/Zep/Letta, the net-negative gate simulations, the buffer-pool admission-control contradiction, and the B1 Chinese-only gate are all removed. The paper is now positioned purely as a measurement study, which resolves the positioning-vs-evidence mismatch. Related Work mention of mem0/Zep/Letta is now factual ('report benchmark scores but not production dynamics')."
+     },
+     {
+      "id": "E4-02",
+      "status": "active_carried",
+      "severity": "major",
+      "issue": "Single-operator, single-machine generality problem persists and now interacts with the headline findings",
+      "concern": "Limitations disclose 'one production system operated by one person', but Finding 1's 91.5% procedural correction rate and Finding 3's batch clustering are both plausibly properties of this one operator's workflow (one nrem_consolidation migration = 75% of all corrections). The abstract's design prescriptions (type-aware TTLs, cross-agent interception) are universal in form. If the procedural correction rate is driven by the batch event, the 11x finding may reduce to 'this operator ran a cleanup that mostly touched procedures' — see E1-N2."
+     },
+     {
+      "id": "E1-N1",
+      "severity": "major",
+      "issue": "NEW: Population counts do not reconcile across tables (2,590 vs 2,309 vs 2,543; 386 vs 387; 349 vs 350)",
+      "relevant_text": "Table type-correction totals 129+289+426+1333+413=2,590; survival analysis n=2,309 (349 events, 1,960 censored); deployment table: 1,957 active + 200 retired + 386 superseded = 2,543. Footnotes: '387 rows have superseded status; 350 supersession edges' vs deployment-table value 386 and 'Supersession events 349'.",
+      "concern": "Three different memory populations appear in three places with no mapping between them. The KM analysis n=2,309 excludes 281 memories that exist in the type table (2,590) — which ones, and why? If retired memories (200) are excluded from KM, 2,590-200=2,390, still not 2,309. The 386/387 and 349/350 off-by-ones are individually trivial but, as with last round's numeric errors, a measurement paper proposing a new methodology must have counts that reconcile to the row. The censoring note ('retirement-based censoring may be informative') is commendable honesty but does not substitute for a population flow diagram.",
+      "suggestions": "Add a population-flow table: total rows ever written -> active / superseded (with edge vs direct-status) / retired -> included in KM (with exclusion reasons). State exact denominators for every rate. Run all derived numbers from one released script (the artifact repo now exists — wire it to every printed number).",
+      "strongest_rebuttal": "The differences are explained by the footnotes: 37 rows superseded without edges, and KM may exclude retired or untyped rows. The counts are internally documented.",
+      "why_rebuttal_insufficient": "The footnotes explain 387->350 but the deployment table prints 386 and 349, contradicting the footnotes by one each; and no stated combination of exclusions maps 2,590 to 2,309. 'Documented somewhere' is not 'reconciled'."
+     },
+     {
+      "id": "E1-N2",
+      "severity": "major",
+      "issue": "NEW: Finding 1 (type predicts correction rate) is confounded by Finding 3 (one batch event = 75% of corrections); KM median 2.5 days may be a batch artifact",
+      "relevant_text": "procedural memories have a median survival of 2.5 days ... This confirms that the 91.5% correction rate for procedures is not an artifact of the observation window",
+      "concern": "262 of 349 corrections (75.1%) came from a single system-mediated nrem_consolidation event on 2026-09-27. If that batch preferentially touched procedural memories (plausible for a consolidation migration), then both the 91.5% rate and the 2.5-day KM median are dominated by one exogenous event, not organic aging. The paper claims the KM analysis 'confirms' procedures genuinely age faster, but KM with 75% of events contributed by one batch process at one timestamp does not confirm organic type-dependent aging — it confirms the batch happened ~2.5 days after those procedures were written. The organic-only correction rate (87 events, 2.7-2.9/day) is never broken down by type, which is the analysis that would actually support the type-aware-TTL recommendation.",
+      "suggestions": "Recompute Table 2 and the KM curves excluding the 2026-09-27 batch (87 organic corrections only). If the procedure-vs-decision gap survives on organic corrections, the claim is much stronger; if not, reframe Finding 1 as 'procedures dominate batch maintenance events'. Report the batch's per-type composition (how many of the 262 were procedures).",
+      "strongest_rebuttal": "The batch was a one-time migration cleaning up genuinely stale memories; the staleness it detected was real, so the type signal is real even if event timing is clustered.",
+      "why_rebuttal_insufficient": "Staleness detected by a batch is still real signal, agreed — but then the causal story 'procedures age faster because software updates' is unverified; an equally consistent story is 'the operator's consolidation logic targeted procedures'. The paper presents only the first. The organic-only breakdown is a one-query check and should be in the paper."
+     },
+     {
+      "id": "E1-N3",
+      "severity": "major",
+      "issue": "NEW: Finding 5's 86% divergence has a 57% attrition rate and a likely-wrong confidence interval; the 0.7% comparator is a different population",
+      "relevant_text": "Of 100 entities, 43 produced gradeable answer pairs (the remainder returned empty responses due to API content filtering). Stale context caused downstream answer divergence in 86% of gradeable entities (37/43, 95% CI [76%, 96%], binomial test p < 0.001 against the null hypothesis of 50% divergence)",
+      "concern": "(1) 57/100 entities were dropped by API content filtering with no analysis of whether the dropped entities differ systematically (content filtering plausibly correlates with entity type, and hence with divergence propensity) — 86% is computed on a self-selected 43% subsample. (2) The printed CI [76%,96%] for 37/43 is too narrow: Wilson 95% CI for 37/43 is approximately [72.9%, 93.4%]; [76,96] does not match Wilson, Clopper-Pearson, or normal approximation at n=43. (3) The 50% null hypothesis is unmotivated — under 'stale context is harmless' the null divergence rate is near the self-correction baseline (0.7%), not 50%; testing against 50% makes the result look more surprising than it is. (4) The 0.7% self-correction comparator (n=300) comes from a different sample with no stated selection procedure, no CI, and no description of how 'stale self-correction context' was constructed symmetrically to the cross-agent condition. (5) '~99% of harm' is derived by combining 14.9% x 86% vs 81.4% x 0.7%, but the 86% is measured on entities with polarity clashes while the 0.7% denominator basis differs — the power-law claim is arithmetic on non-comparable rates.",
+      "suggestions": "Report the attrition analysis (characteristics of the 57 filtered entities); recompute the CI with a stated method; either test against the 0.7% baseline null or drop the binomial p-value and report the CI only; describe the n=300 self-correction sample construction; present the harm-share calculation with both conditions' denominators explicit.",
+      "strongest_rebuttal": "37/43 = 86.0%; the CI may be a Jeffreys or exact interval under a different parameterization; content filtering is random with respect to staleness because the filter sees the query, not which context condition produced the answer.",
+      "why_rebuttal_insufficient": "Jeffreys CI for 37/43 is approx [73.4%, 93.8%] — still not [76,96]. And the filtering objection fails: both stale and correct answers for an entity are filtered together, so filtering is at the entity level, and entities whose correct answers trigger filters (sensitive topics) plausibly have different divergence rates. The asymmetry claim likely survives (0.7% vs anything near 86% is a huge gap), which is exactly why the sloppy inference should be tightened rather than left as-is."
+     },
+     {
+      "id": "E1-N4",
+      "severity": "minor",
+      "issue": "NEW: Finding 2's funnel compares unlike units (2,000 sampled fact pairs vs 24,907 cross-source pairs); 81.7% upper-bound caveat good but sampling frame undefined",
+      "relevant_text": "We sampled 2,000 fact pairs between codex and workbuddy agents ... 81.7% exhibit opposite polarity ... At the cross-source pair level (24,907 pairs) ... only 11 genuine temporal contradictions remain (0.044%)",
+      "concern": "The 1,857x reduction divides a rate measured on a 2,000-pair sample from two specific agents (codex/workbuddy) by a rate measured on 24,907 pairs across (presumably) all source pairs. These are different populations; the reduction factor conflates the filtering pipeline's effect with the population shift. Also the sentence 'after applying the full classification pipeline on the shared entity (e.g., ...). However, after applying the full classification pipeline...' is garbled — 'full classification pipeline' appears twice with an incomplete first clause. The Limitations note that 81.7% is an upper bound due to the rule-based extractor is good practice.",
+      "suggestions": "Report the pipeline applied to the same 2,000-pair sample (clash rate before/after each filter stage on one population), fix the garbled sentence, and state how the 24,907 pairs were enumerated."
+     },
+     {
+      "id": "E1-N5",
+      "severity": "minor",
+      "issue": "NEW: Architecture description still omits concurrency/durability parameters now that WAL is claimed",
+      "relevant_text": "The deployment runs on a single Windows machine (Intel CPU, 32 GB RAM) with SQLite in WAL mode for concurrent read-write access.",
+      "concern": "WAL is stated, which is the right choice for 15 readers + writers, but the paper says nothing about: busy_timeout/retry behavior when 15 MCP clients contend for the single writer slot; synchronous level (WAL with synchronous=NORMAL is crash-safe but not necessarily power-loss-safe for the last transaction; FULL is safer and slower); WAL checkpointing policy (an unbounded -wal file changes read latency and backup semantics); and behavior of the hash-chain anchor writes under crash (anchor committed but operation lost, or vice versa, would break verify_chain). Given the paper's own footnote documents 41 rows in an anomalous state (superseded without edges), a durability paragraph is not optional decoration — it is needed to rule out torn writes as the explanation.",
+      "suggestions": "One short paragraph: journal_mode, synchronous, busy_timeout, checkpoint policy, transaction scope of correct()/retire(), and PRAGMA integrity_check + verify_chain result on the analysis snapshot."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "C1 (type predicts correction): supported by Table 2 and chi-squared, but the evidence pool is 75% one batch event (Finding 3); organic-only type breakdown never shown (E1-N2).",
+      "C5 (harm asymmetry): 86% measured on a 43%-of-sample gradeable subsample with attrition unanalyzed; 0.7% comparator population undescribed; CI inconsistent with n=43 under standard methods (E1-N3).",
+      "C4 (coverage): arithmetic correct this round (209x, 0.48%, two orders) but reproducibility comment still inverts the ratio.",
+      "Population reconciliation: no table maps 2,590 (type table) -> 2,309 (KM) -> 2,543 (status decomposition); off-by-one contradictions between footnotes and Table 1 (E1-N1)."
+     ],
+     "statistical_issues": [
+      "95% CI [76,96] for 37/43 does not match Wilson, Clopper-Pearson, Jeffreys, or normal approximations at n=43; method unstated.",
+      "Binomial test against a 50% divergence null is unmotivated; the natural null is the self-correction baseline (0.7%).",
+      "57% attrition from API content filtering with no missingness analysis (MCAR assumption unstated and implausible).",
+      "KM analysis notes informative-censoring risk for retirement (good) but does not handle the batch event as a structural break; median survival 2.5 days may be driven by 262 same-timestamp events.",
+      "Chi-squared on 118/129 vs 34/413 is valid but the counts include batch corrections; test should be rerun on organic-only data.",
+      "No multiple-comparison control across the five findings, though each is individually pre-registered by structure; acceptable for a measurement paper if organic/batch sensitivity is reported."
+     ],
+     "logical_leaps": [
+      "From 'procedures corrected at 91.5% in a window where 75% of corrections were one batch' to 'procedures genuinely age faster' (KM section's 'confirms' is overclaim).",
+      "From single-operator data to universal design principles in the Discussion (type-aware TTLs, cross-agent interception) — limitations disclose but the abstract does not hedge.",
+      "1,857x reduction computed across two different pair populations presented as the effect of one filtering pipeline.",
+      "'~99% of harm' combines rates from non-comparable denominators (clash-entity experiment vs self-correction sample)."
+     ],
+     "alternative_explanations": [
+      "Procedural correction dominance: batch consolidation logic targeted procedures (operator config), not faster organic aging.",
+      "Cross-agent divergence: entities with cross-source polarity clashes are pre-selected to be contentious; the 86% may reflect selection on clash-likelihood rather than causal harm of staleness.",
+      "Correction clustering: a one-time migration is an operator decision, not a system dynamic; 'memory systems should monitor for batch vs organic' generalizes from a single occurrence.",
+      "41 superseded-without-edge rows: could be torn writes/crash recovery rather than intentional direct-status updates; the paper asserts the latter without durability evidence."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": false,
+     "assessment": "mild",
+     "note": "Substantially cleaner than the previous round: the batch event is disclosed and quantified (75.1%), the informative-censoring caveat and upper-bound polarity caveat are honest, and the competitive framing attacks are gone. Residual mild concerns: (1) the KM section claims the batch does not explain Finding 1 without showing the organic-only analysis that would prove it; (2) the [76%,96%] CI is suspiciously tight for n=43, suggesting post-hoc interval selection; (3) the 50% null choice makes the binomial p-value more dramatic than testing against the 0.7% baseline would. None of these reverse conclusions; all look like sloppiness rather than deliberate optimization."
+    },
+    "checklist_results": [],
+    "novelty_check": {
+     "claim": "First longitudinal measurement of shared agent memory dynamics in production",
+     "closest_comparators": [
+      "Caura (arXiv:2606.24535) — deployed shared memory at eToro; now cited as closest work with the correct distinction (no published longitudinal measurements)",
+      "mem0 / Zep / Letta — benchmark evaluations, no production dynamics (fairly characterized this round)",
+      "MemoryAgentBench / LongMemEval / LoCoMo — controlled benchmarks (fairly characterized)"
+     ],
+     "assessment": "The novelty claim is now defensible: comparators are named, the distinction from Caura is specific and checkable, and the inflated competitive claims are removed. 'First' still lacks a stated search protocol (venues/keywords/date) but the comparator set is small enough that the claim is plausible. Novelty is real but modest: this is a single-system case study whose contribution is the measurements, not a method."
+    },
+    "meta_note": "Round-over-round: the revision is a genuine improvement, not cosmetic. The repositioning from write-governance-with-net-negative-gates to a pure measurement study resolves the worst logical problems of the prior version, the reproducibility story (artifact repo, synthetic generator, pinned PyPI version, expected outputs) is materially better, and WAL mode is now stated. The two new major issues are internal to the revision: (E1-N2) the headline type-correction finding is confounded by the very batch event the paper honestly reports — the organic-only sensitivity analysis is the single most valuable addition and is one SQL query away; (E1-N3) Finding 5's inference (attrition, CI, null choice, comparator population) needs a rigor pass. Score: soundness 3/5 (confounding + count reconciliation), depth 3/5 (measurements are descriptive; no causal or mechanism evidence), helpfulness 4/5 (all suggested fixes are cheap and concrete), alignment 4/5. Overall 6/10: between workshop and CCF-C anchor; with the organic-only breakdown and count reconciliation it would reach 7. Strongest rebuttal test: 'the batch detected real staleness, so type signal is real' — survives partially, but the paper currently asserts rather than demonstrates this, and the fix is trivial.",
+    "checklist": [],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [],
+      "number_inconsistencies": [
+       "Consolidation event count: abstract and intro say 262 corrections (75.1%), but Table 4 (tab:clustering) reports 269 corrections on 2026-09-27 (77.1%), and body text says '262 of 269 corrections' — 262 vs 269 and 75.1% vs 77.1% are inconsistent",
+       "Operation counts: intro says 3,000 operations '(2,273 writes, 87 organic corrections, 200 retirements)' = 2,560, not 3,000",
+       "Superseded memories: Table 1 lists 386 but its own footnote says '387 rows have superseded status'",
+       "Finding 5 / Discussion claim cross-agent corrections cause '~99% of the measurable downstream harm' but abstract and figure caption say 86% answer divergence",
+       "Repro script comment: '81.7% contradictory, 18.4% same polarity' sums to 100.1%"
+      ],
+      "citation_issues": [],
+      "orphaned_figures": [
+       "Cannot verify file presence from source alone, but all 6 \\includegraphics files (fig1_type_correction.pdf, fig6_km_curves.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig5_asymmetry.pdf) are referenced in text — note fig6 is used in Section 4.2 before fig3/fig4/fig5 appear (numbering vs. order of use is odd but not an error)"
+      ],
+      "duplicates": [
+       "Minor near-duplicate in Finding 2: 'after applying the full classification pipeline on the shared entity (e.g., one agent writes...)' then 'However, after applying the full classification pipeline (identifier filtering...)' — sentence appears to have a copy-paste artifact leaving a dangling clause"
+      ],
+      "formatting_issues": [
+       "\\label{sec:repro} placed after text instead of on \\section — harmless but unconventional"
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 17704,
+    "out": 6786,
+    "secs": 146.1
+   },
+   "raw_len": 24293,
+   "z": 1.0
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "ok": false,
+   "error": "Expecting ',' delimiter: line 4 column 468 (char 1063)"
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "paper": "Memory Dynamics in Production Multi-Agent Systems: A 30-Day Longitudinal Study of Shared Agent Memory (MemTether)",
+     "core_claims": [
+      "First longitudinal measurement of shared agent memory in production (30 days, 15 clients, 3,000 ops, 1,957 active memories, 7,375 entities)",
+      "F1: memory type predicts correction rate — procedures 91.5% vs decisions 8.2% (11x), median procedure survival 2.5 days",
+      "F2: entity-resolution gap — 81.7% raw polarity clash rate collapses to 0.044% genuine temporal contradictions (1,857x reduction)",
+      "F3: corrections cluster — one system-mediated consolidation event accounts for 262/349 (75.1%) corrections",
+      "F4: injection coverage 0.48% (209x overscan), so retrieval quality is the binding constraint",
+      "F5: cross-agent corrections (14.9% of corrections) cause 86% downstream answer divergence vs 0.7% for self-corrections, implying write-time cross-agent interception is the highest-value intervention"
+     ],
+     "evidence": "SQL queries over one operator's single-machine SQLite production DB; one controlled downstream experiment (n=43 gradeable of 100) using GLM-5.3-flash; synthetic data generator released, production DB withheld for privacy",
+     "positioning": "Competitors (mem0, Zep, Letta) report benchmark scores, not production dynamics; this paper supplies the missing longitudinal evidence base"
+    },
+    "scores": {
+     "depth": 4.0,
+     "soundness": 3.0,
+     "helpfulness": 4.0,
+     "alignment": 3.0,
+     "overall": 5.0
+    },
+    "findings": [
+     {
+      "id": "E4-01-R",
+      "severity": "major",
+      "issue": "Competitive positioning against mem0/Zep/Letta remains assertion-based, and this version is weaker than the prior draft: the comparison is now only 'they report benchmark scores, not production dynamics'",
+      "relevant_text": "Existing memory papers (mem0, Zep, Letta) report benchmark scores but not production dynamics.",
+      "concern": "This is trivially true of any measurement paper — it does not establish that MemTether solves a real problem *better* than competitors. Worse, the paper's own findings argue competitors already address its top recommendations: (a) the 'cross-agent interception' recommendation is exactly Zep's temporal knowledge graph / invalidation premise; (b) 'type-aware retention' resembles Letta/MemGPT's core-vs-archival memory placement; (c) F4's buffer-pool analogy concedes that mature systems solve selectivity at read time, which is what all three competitors do. The paper never runs a single competitor on any workload, so the only honest positioning available is 'we provide measurements competitors don't publish' — a diagnostic contribution, not a product advantage.",
+      "suggestions": "Reposition the Related Work claim from 'they don't do X' to 'no published longitudinal dynamics exist for any system, including ours; our contribution is the measurement methodology.' If a product claim is intended, replay the 30-day workload (the synthetic generator already exists) through mem0 or Zep and report their correction/clash dynamics side by side.",
+      "status": "active",
+      "prior": "E4-01 partially fixed: the unsupported 'remember everything, no admission control' claim is gone from this version, but the replacement claim is vacuous rather than evidenced."
+     },
+     {
+      "id": "E4-02-R",
+      "severity": "major",
+      "issue": "User identity still undefined and the problem magnitude remains user-dependent; the single-operator confound is now compounded by the consolidation event",
+      "relevant_text": "All data comes from one production system operated by one person. ... The 269 corrections on 2026-09-27 were triggered by a system-mediated nrem_consolidation process ... a one-time migration.",
+      "concern": "Two distinct user-dependence problems. (1) Same as before: all headline rates are one operator's writing habits; no per-client decomposition is given, so the waste/conflict signal may be dominated by one or two client configs (codex and workbuddy are the only named sources in the polarity analysis, and '15 clients' is never characterized). (2) New: 75% of the correction signal is a *one-time migration the operator themselves ran* — F1's 91.5% procedure correction rate and the Kaplan-Meier 2.5-day median survival are computed over 349 corrections of which 262 are bulk cleanup. If the consolidation batch preferentially superseded procedures (plausible — stale tool configs are exactly what a cleanup migration targets), Finding 1, the paper's headline, may be an artifact of one manual maintenance decision. The paper never reports F1 with the consolidation event excluded.",
+      "suggestions": "Report all correction-rate findings twice: with and without the 2026-09-27 batch. Add a per-client (source) table characterizing the 15 clients and their write/correction profiles. Define the target user explicitly in the intro: a solo local-first operator running a heterogeneous agent fleet.",
+      "status": "active",
+      "prior": "E4-02 not fixed; worsened by the consolidation confound."
+     },
+     {
+      "id": "E4-03-R",
+      "severity": "major",
+      "issue": "Injection coverage (0.48%) still rests on the self-chosen 3,980-char budget, but this version improves honesty while leaving the headline misleading",
+      "relevant_text": "The 0.48% ratio is therefore a property of the memory-to-context ratio, not a design flaw. ... retrieval quality---not memory capacity---is the binding constraint.",
+      "concern": "The added caveat paragraph is a genuine improvement over the prior draft (it now admits other systems have different coverage), but the abstract, contribution list, and Finding 4 still lead with '209x overscan' and 'retrieval quality is the binding constraint' as if these were properties of agent memory systems generally. 3,980 chars ≈ 1K tokens; a Letta or Zep deployment on a 128K-context model has ~100x the injection budget, and the paper's own 'improving retrieval by 1% = storing 2x more memories' arithmetic changes completely at those budgets. No sensitivity analysis at 4K/32K/128K chars is provided.",
+      "suggestions": "Add the coverage-vs-budget sensitivity table (it is one SQL query against content-length distribution); move the caveat sentence into Finding 4's first paragraph; soften 'binding constraint' to 'binding at MemTether's operating point.'",
+      "status": "active",
+      "prior": "E4-03 partially fixed (caveat added, framing unchanged)."
+     },
+     {
+      "id": "E4-04-R",
+      "severity": "major",
+      "issue": "The switching story is now: buy MemTether for the B1 write-time interception gate — a gate whose target phenomenon occurs 11 times in 31 days and whose evaluation is synthetic",
+      "relevant_text": "The write-time conflict interception gate (B1) in MemTether is designed for exactly this purpose. ... only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044%).",
+      "concern": "With the admission-gate framework from the prior manuscript no longer carrying the pitch, the product case reduces to: (a) bi-temporal timestamps + supersession graph + audit hash-chain, (b) B1 cross-agent interception. But the paper's own F2 shows genuine contradictions are extremely rare (11 in a month), and F5's 86%-divergence experiment concerns *stale context* (oldest vs newest fact), which is a retrieval/supersession problem Zep's temporal KG explicitly addresses by design. The strongest honest pitch is actually governance/forensics (the SECURITY.md is admirably candid that supersession is forensic, not interceptive — a candor the paper itself does not match). A prospective switcher from Zep gets: local-first SQLite (real advantage), audit hash-chain (real), worse conflict handling than Zep's published architecture (not acknowledged).",
+      "suggestions": "State the actual switching calculus: local-first/no-cloud dependency, forensic audit trail, source attribution, and file-level sharing across 15 MCP clients — these are the real differentiators vs mem0 (cloud-centric) and Zep (server-based). Acknowledge Zep's temporal invalidation as prior art for the staleness problem and position B1 as complementary write-time defense. Match the paper's claims to SECURITY.md's honest 'forensic, not interceptive' framing.",
+      "status": "active",
+      "prior": "E4-04 transformed: gates dropped, B1 elevated — but the net-evidence problem persists in new form."
+     },
+     {
+      "id": "E4-05-R",
+      "severity": "minor",
+      "issue": "Buffer-pool analogy still implicitly concedes the design point to competitors",
+      "relevant_text": "a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject.",
+      "concern": "Same as prior E4-05: the DBMS analogy selects *at read time* (which pages to cache/inject), which is precisely what mem0/Zep/Letta retrieval does. The paper's write-time interception recommendation is not supported by its own analogy, and access-locality data (the Q-value/use_count distribution presumably exists in this DB) is never used to compare admission vs eviction policies.",
+      "suggestions": "Use the 28,807 read operations (mentioned in the Table 1 footnote) to characterize access locality; if retrieval is power-law concentrated, an eviction/LFU policy may dominate admission gates — say so, or drop the policy recommendation and keep the measurement.",
+      "status": "active",
+      "prior": "E4-05 not fixed."
+     },
+     {
+      "id": "E4-07",
+      "severity": "major",
+      "issue": "F5's headline asymmetry mixes two different denominators and its experiment measures staleness, not correction harm",
+      "relevant_text": "stale cross-agent context caused answer divergence in 86% of entities (37/43 ...) while stale self-correction context caused only 0.7% divergence (n=300)",
+      "concern": "Competitive positioning requires trustworthy harm numbers. Three problems: (1) the 86% comes from 100 *pre-selected identifier-like entities with cross-source polarity clashes* — the population maximally likely to diverge — while the 0.7% (n=300) population is unspecified; the comparison is apples-to-oranges by construction. (2) 57 of 100 queries were discarded due to API content filtering — a 57% attrition rate that is never analyzed for bias. (3) The abstract says cross-agent corrections 'cause' the divergence, but the experiment manipulates stale-vs-fresh context, not correction type; self- vs cross-agent is never actually manipulated. The companion-paper cross-reference suggests this is largely duplicate reporting.",
+      "suggestions": "State the selection criterion for both populations; report the 0.7% denominator's definition; analyze the filtered-out 57 (are they systematically different?); retitle the finding from 'corrections cause harm' to 'stale vs fresh context causes divergence in high-clash entities.' Consider cutting F5 to a pointer to the companion paper to avoid double-counting contributions.",
+      "status": "active"
+     },
+     {
+      "id": "E4-08",
+      "severity": "minor",
+      "issue": "'15 AI clients' is never decomposed; two (codex, workbuddy) do all the work in the analyses shown",
+      "relevant_text": "serves 15 AI client sources ... between codex and workbuddy agents",
+      "concern": "For a product reviewer: if the shared-memory value proposition (cross-agent sharing) is exercised primarily by 2 of 15 clients, the multi-agent framing is thinner than advertised. No table shows writes/corrections/entities per source.",
+      "suggestions": "One table: per-source write count, active memories, cross-source entity share, correction participation. This also tests whether F2/F5 generalize beyond the codex-workbuddy pair.",
+      "status": "active"
+     },
+     {
+      "id": "E4-09",
+      "severity": "minor",
+      "issue": "Reproducibility improved (version pinned, synthetic generator released) but the generator reproduces 'similar distributions,' not the paper's numbers",
+      "relevant_text": "We provide the measurement SQL queries and a synthetic data generator that produces a database with matching schema and similar distributions for reproducibility testing.",
+      "concern": "The 'Expected:' values in the SQL comments cannot be obtained from the synthetic generator by construction, and the production DB is withheld. So every headline number is unverifiable by readers. This is a disclosed limitation (good), but the Reproducibility section's framing ('All measurements are reproducible') overpromises.",
+      "suggestions": "Rename the section 'Measurement methodology'; state plainly that absolute numbers are not reproducible without the private DB; have the synthetic generator emit its own expected outputs so the *pipeline* is verifiable end-to-end.",
+      "status": "active",
+      "prior": "E2-01/E2-05/E3-01 partially addressed in this version (version pin, generator) — the remaining gap is the wording."
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "F1 (91.5% procedure correction): computed over 349 corrections of which 262 are one bulk consolidation event; no organic-only breakdown reported. If consolidation targeted procedures, the 11x headline and the 2.5-day median survival are migration artifacts.",
+      "F5 (86% vs 0.7%): different populations, 57% experimental attrition, and the manipulated variable (staleness) differs from the claimed variable (correction type). 'Responsible for approximately 99% of the measurable downstream harm' combines a proportion (14.9%) with a per-entity rate (86%) — the arithmetic to '99%' is not shown and appears to conflate units.",
+      "'First longitudinal study of shared agent memory in production': supported only by absence-of-evidence; Caura (deployed at eToro, unpublished) is acknowledged, so the claim should be 'first *published*.'",
+      "Numbers drift between sections: abstract says 3,000 ops / 1,957 active memories / 2,273 writes, intro says 349 supersession events and 87 organic corrections; Table 1 footnote reveals 31K+ operations and 28,807 reads are counted elsewhere — the headline '3,000 operations' silently excludes reads."
+     ],
+     "statistical_issues": [
+      "Kaplan-Meier: censoring acknowledged as potentially informative (retirement), but no sensitivity analysis; 30-day window heavily censors all types except procedures, making 'median survival beyond window' for other types uninformative rather than evidence of longevity.",
+      "F5's CI [76%, 96%] on 37/43 is correct arithmetic, but the binomial null of 50% divergence is arbitrary — no reason either answer should match 50% of the time under stale/fresh contexts.",
+      "The 81.7% clash rate is from a 2,000-pair sample between two named agents; the 0.044% is from 24,907 pairs — the 1,857x reduction compares a sampled rate on one pair-of-agents to a full-population rate on all cross-source pairs. Funnel levels use different denominators."
+     ],
+     "logical_leaps": [
+      "From 'procedures corrected more often' to 'type-aware retention with 3-day TTL' — no test of what TTL enforcement would do to retrieval quality (paper concedes this, but the Discussion presents the policy as a design principle).",
+      "From 'only 11 genuine contradictions' to 'cross-agent interception is the highest-value intervention' — the rarity of the event argues the opposite (low expected value), unless combined with F5's harm magnitude, which has the apples-to-oranges problem above.",
+      "From 0.48% coverage to 'retrieval quality is the binding constraint' — depends entirely on the 3,980-char injection budget (E4-03-R)."
+     ],
+     "alternative_explanations": [
+      "F1 artifact: the nrem_consolidation migration (a human-initiated cleanup) may target procedures; organic-only rates may show no type effect.",
+      "F2: the 1,857x reduction may reflect the rule-based polarity extractor's error rate on ambiguous statements (the paper flags this as an upper bound on 81.7% but not on the pipeline's precision for the 11 'genuine' contradictions, which were presumably LLM- or human-adjudicated — method unstated).",
+      "F5: 86% divergence may reflect that 'identifier-like entities with cross-source clashes' are precisely entities whose facts are volatile (service statuses like 'grok is 403'), so any staleness diverges — nothing specific to cross-agent corrections."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": false,
+     "assessment": "mild",
+     "notes": "The paper reports several unflattering facts (one-time migration, 57% content-filter attrition, private DB) which suggests good faith. However, mild gaming appears in: (a) headline '3,000 operations' excluding 28,807 reads that would change every per-operation rate; (c) the abstract's '86% answer divergence' presented without the selection criterion or attrition; (c) the '99% of harm' derived quantity that flatters F5; (d) 30-day framing of a 32-day window (truncated — this is disclosed, fine)."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-real-problem",
+      "pass": true,
+      "note": "Shared-memory dynamics in multi-agent production is a real, under-measured problem. The diagnosis is genuinely novel."
+     },
+     {
+      "id": "CK-better-than-competitors",
+      "pass": false,
+      "note": "No comparison run against mem0/Zep/Letta; the paper measures what competitors don't publish but doesn't show MemTether performs better at anything measured."
+     },
+     {
+      "id": "CK-user-defined",
+      "pass": false,
+      "note": "Single anonymous operator; 15 clients never characterized; per-client decomposition absent."
+     },
+     {
+      "id": "CK-switching-reason",
+      "pass": "partial",
+      "note": "Real differentiators exist (local-first SQLite, MCP multi-client sharing, forensic audit chain, supersession graph, source attribution) but the paper doesn't argue them; it argues type-aware TTL and B1 interception, neither of which is validated."
+     },
+     {
+      "id": "CK-positioning-honesty",
+      "pass": "partial",
+      "note": "The dishonest 'remember everything' claim from the prior draft is removed; coverage caveat added; but SECURITY.md's candid 'forensic, not interceptive' framing is not carried into the paper, and Zep's temporal invalidation as prior art for staleness is unacknowledged."
+     },
+     {
+      "id": "CK-prior-findings-reconciled",
+      "pass": "partial",
+      "note": "This is a companion/rewritten manuscript; write-governance findings (E1-*, E2-03/04/06, E3-02/03, E4-04 gates) no longer apply to this text. Recurring issues E4-01/02/03/05 persist in modified form."
+     }
+    ],
+    "novelty_check": {
+     "novelty": "The longitudinal production measurement itself is the novel contribution and is credible as the first *published* such study.",
+     "closest_prior": "mem0 (production claims but no dynamics), Zep (temporal KG architecture paper with some temporal evaluation), Letta/MemGPT (memory placement), Caura (deployed but unpublished), LongMemEval/LoCoMo/MemoryAgentBench (static benchmarks), the authors' own companion papers (memtether system paper, cac cross-agent contradiction paper) — substantial overlap with 'cac' on Findings 2 and 5 is acknowledged but the extent of double-counting as 'contributions' here is unclear.",
+     "product_novelty_vs_competitors": "MemTether's differentiators are architectural (local-first, single-file, MCP multi-client, forensic supersession+audit), not capability-based; the paper never demonstrates a capability mem0/Zep/Letta lack."
+    },
+    "meta_note": "From the product-reviewer seat: this manuscript is a better paper than its predecessor for positioning honesty — the fabricated-sounding 'remember everything' competitive claim is gone, and the 'measurement, not product' framing is closer to what the evidence supports. But it still wants to be two things: (1) a valuable longitudinal measurement study (credible, publishable at workshop level once the consolidation-event confound in F1 is handled), and (2) an implicit product pitch for MemTether (unsupported — no competitor is ever run, and the one mechanism pitched, B1, targets a phenomenon the paper itself measures at 11 occurrences/month). The strongest honest product story — local-first, no cloud, forensic audit, 15 MCP clients on one file — is never told. Recommendation: fix F1's organic-only breakdown and F5's population mismatch, decompose the 15 clients, add the coverage sensitivity table, reposition Related Work as 'no published dynamics for any system,' and let the measurement be the contribution. Current state: workshop-to-CCF-C borderline (5/10), with a clear path to 6-7.",
+    "checklist": [],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [],
+      "number_inconsistencies": [
+       "Consolidation event count: abstract and intro say 262 corrections (75.1%), but Table 4 (tab:clustering) reports 269 corrections on 2026-09-27 (77.1%), and body text says '262 of 269 corrections' — 262 vs 269 and 75.1% vs 77.1% are inconsistent",
+       "Operation counts: intro says 3,000 operations '(2,273 writes, 87 organic corrections, 200 retirements)' = 2,560, not 3,000",
+       "Superseded memories: Table 1 lists 386 but its own footnote says '387 rows have superseded status'",
+       "Finding 5 / Discussion claim cross-agent corrections cause '~99% of the measurable downstream harm' but abstract and figure caption say 86% answer divergence",
+       "Repro script comment: '81.7% contradictory, 18.4% same polarity' sums to 100.1%"
+      ],
+      "citation_issues": [],
+      "orphaned_figures": [
+       "Cannot verify file presence from source alone, but all 6 \\includegraphics files (fig1_type_correction.pdf, fig6_km_curves.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig5_asymmetry.pdf) are referenced in text — note fig6 is used in Section 4.2 before fig3/fig4/fig5 appear (numbering vs. order of use is odd but not an error)"
+      ],
+      "duplicates": [
+       "Minor near-duplicate in Finding 2: 'after applying the full classification pipeline on the shared entity (e.g., one agent writes...)' then 'However, after applying the full classification pipeline (identifier filtering...)' — sentence appears to have a copy-paste artifact leaving a dangling clause"
+      ],
+      "formatting_issues": [
+       "\\label{sec:repro} placed after text instead of on \\section — harmless but unconventional"
+      ],
+      "pass": false
+     }
+    }
+   },
+   "usage": {
+    "in": 18110,
+    "out": 4852,
+    "secs": 88.0
+   },
+   "raw_len": 20644,
+   "z": -1.0
+  }
+ ],
+ "checklist": [],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [],
+   "number_inconsistencies": [
+    "Consolidation event count: abstract and intro say 262 corrections (75.1%), but Table 4 (tab:clustering) reports 269 corrections on 2026-09-27 (77.1%), and body text says '262 of 269 corrections' — 262 vs 269 and 75.1% vs 77.1% are inconsistent",
+    "Operation counts: intro says 3,000 operations '(2,273 writes, 87 organic corrections, 200 retirements)' = 2,560, not 3,000",
+    "Superseded memories: Table 1 lists 386 but its own footnote says '387 rows have superseded status'",
+    "Finding 5 / Discussion claim cross-agent corrections cause '~99% of the measurable downstream harm' but abstract and figure caption say 86% answer divergence",
+    "Repro script comment: '81.7% contradictory, 18.4% same polarity' sums to 100.1%"
+   ],
+   "citation_issues": [],
+   "orphaned_figures": [
+    "Cannot verify file presence from source alone, but all 6 \\includegraphics files (fig1_type_correction.pdf, fig6_km_curves.pdf, fig2_entity_resolution.pdf, fig3_daily_corrections.pdf, fig4_injection_coverage.pdf, fig5_asymmetry.pdf) are referenced in text — note fig6 is used in Section 4.2 before fig3/fig4/fig5 appear (numbering vs. order of use is odd but not an error)"
+   ],
+   "duplicates": [
+    "Minor near-duplicate in Finding 2: 'after applying the full classification pipeline on the shared entity (e.g., one agent writes...)' then 'However, after applying the full classification pipeline (identifier filtering...)' — sentence appears to have a copy-paste artifact leaving a dangling clause"
+   ],
+   "formatting_issues": [
+    "\\label{sec:repro} placed after text instead of on \\section — harmless but unconventional"
+   ],
+   "pass": false
+  }
+ },
+ "cross_challenges": [
+  {
+   "challenger": "E1",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-04",
+      "challenge": "E4-04 conflates two distinct quantities to claim B1's target phenomenon 'occurs 11 times in 31 days.' The 11 genuine temporal contradictions are the output of Finding 2's *filtered entity-level pipeline* on 24,907 cross-source pairs — they measure how many contradictions survive strict classification, not how many harmful cross-agent writes occur. B1's actual target population, per Finding 5, is the 52 cross-agent corrections (14.9% of 349), i.e., events where agent A's write contradicts agent B's existing memory and the system later had to supersede it. That is ~1.7 harmful cross-agent write events per day, each carrying 86% downstream answer-divergence risk (37/43, CI [76%,96%]) versus 0.7% for self-corrections. E4-04 also mislabels F5 as a 'stale context / retrieval problem' that Zep already solves: the experiment measures what happens when a *contradicted* memory is retrieved (oldest vs. newest fact divergence), which is precisely the write-time conflict scenario — the harm is created at write time, and read-time temporal invalidation only repairs it after divergence has already been possible. Zep's temporal KG does not intercept cross-agent writes; it resolves valid-time at query time, which is complementary, not a substitute — a point the paper's Discussion ('intercepting cross-agent contradictions before they enter the store, not detecting them after') makes explicitly. The rarity argument therefore only holds if one accepts E4's substitution of the 11-pair statistic for the 52-correction statistic, which the paper's own framing does not support.",
+      "evidence": "F2: 'only 11 genuine temporal contradictions remain from 24,907 cross-source pairs (0.044%)' — a post-filtering entity-pair count. F5: 'Of 349 corrections, 52 (14.9%) are cross-agent' with 'stale cross-agent context caused answer divergence in 86% of entities (37/43)'. Discussion: 'the highest-value intervention is intercepting cross-agent contradictions before they enter the store.' The 11 and the 52 are different denominators and different phenomena; E4-04's rarity claim uses the wrong one."
+     },
+     {
+      "challenged_finding_id": "E4-02",
+      "challenge": "The consolidation-artifact hypothesis is overstated as a threat to F1's headline. E4-02 speculates the batch 'preferentially superseded procedures (plausible)' but offers no evidence, and the paper already contains a quantitative cross-check that cuts against it: the intro separates 87 organic corrections from the 262 system-mediated ones, and the survival analysis frames the 2.5-day median as confirming the type effect. More importantly, the mechanism E4 proposes (bulk cleanup targeting stale tool configs) would *be* an instance of the phenomenon F1 describes — procedures age because tool configurations change — not a confound of it; a migration that disproportionately retires procedures would be evidence for, not against, type-dependent decay. The clean demand that F1 be 'reported with and without the batch' is legitimate, but calling the finding potentially artifactual inverts the burden: the type-stratified rate is computed over status flags of all 2,590 typed memories (118/129 procedures), and for the artifact story to hold, the operator's one-time migration would have had to single-handedly create the 11x gap while leaving facts/decisions nearly untouched. That said, the underlying request (exclude-batch sensitivity table, per-client breakdown) is cheap and should be honored — my disagreement is with the severity framing, not the ask.",
+      "evidence": "Intro: '87 organic corrections (the remaining 262 were system-mediated consolidation)'. F1 rationale: 'procedures describe how to do things (tool configurations, deployment steps, API usage patterns), and these change as software is updated' — i.e., a cleanup migration targeting stale tool configs is the predicted mechanism of procedure decay, not an alternative explanation. Table 2's denominators (129 procedures, 413 decisions) are population-level, not batch-level."
+     }
+    ],
+    "agreement_note": "I agree with E4-01, E4-03, and E4-05. E4-01 is correct that the surviving competitive claim is vacuous: 'they report benchmark scores, not production dynamics' is true of any measurement paper and establishes no advantage, and the paper's own recommendations (write-time interception ≈ Zep's temporal invalidation premise; type-aware retention ≈ Letta's tiered memory) undercut novelty-as-product. The honest repositioning — 'first published longitudinal dynamics; contribution is methodology' — is available and costs nothing. E4-03 is correct that the 0.48%/209x headline is a property of the self-chosen 3,980-char budget; the caveat paragraph exists but the abstract and contribution 4 still generalize it, and a coverage-vs-budget sensitivity table is trivially computable from the content-length distribution. E4-05 is correct that the buffer-pool analogy argues for read-time selectivity — exactly what competitors' retrieval does — and the 28,807 read operations footnoted in Table 1 are an unused asset that could test access locality directly. What I would add beyond E4: (1) F5's 86% divergence is computed on only 43 gradeable entities after 57/100 were lost to API content filtering — a 57% attrition rate with no analysis of whether filtered entities differ systematically (content filtering plausibly correlates with entity type), which is a selection-bias threat E4 did not flag; (2) Table 3's header says 77% while the abstract says 75.1% (262/349) for the same event — the 269-vs-262 discrepancy is explained in the text but the two headline numbers should be reconciled; (3) the Kaplan-Meier analysis acknowledges informative censoring from retirement but does not quantify its effect on the 2.5-day median."
+   }
+  },
+  {
+   "challenger": "E4",
+   "challenged": "E1",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E1-05",
+      "challenge": "I disagree with the framing that the 41 direct-status rows are indistinguishable from torn writes 'unless the paper states how it distinguished' them. The paper does state the distinguishing mechanism: the Table 1 footnote explicitly says these rows 'are detectable via the hash-chained audit log.' Since correct() and the nrem_consolidation batch both write through the application layer, every intentional status flip leaves a corresponding audit_log entry with timestamp, agent identity, and operation type; a torn write from a crash mid-transaction, by contrast, would leave a status change with NO audit_log entry (or a partially written audit entry broken by the hash chain, which verify_chain() would flag per SECURITY.md: '写入绕过应用层的会被 verify_chain() 检出'). So the discriminator is presence/absence and chain-validity of the audit entry, which the paper implies even if it doesn't spell it out. I grant E1 the residual point that PRAGMA integrity_check output and the synchronous pragma are still unreported and cheap to add, so I support only that half of the finding; the 'cannot distinguish intentional updates from torn writes' half is overstated given the audit-log statement already present.",
+      "evidence": "Table 1 footnote: 'The 37-row gap arises from 41 rows that were directly set to superseded status (e.g., during the nrem_consolidation batch event) without a corresponding supersession edge; these are detectable via the hash-chained audit log.' Section 3.2: 'Every operation ... is recorded with timestamp, agent identity, and operation type.' SECURITY.md: '绕过应用层的写入会被 verify_chain() 检出.'"
+     },
+     {
+      "challenged_finding_id": "E1-04",
+      "challenge": "Partial defense: the 386/387 and 349/350 discrepancies are not silent inconsistencies — the Table 1 footnote explicitly explains them ('387 rows have superseded status; 350 supersession edges connect them. The 37-row gap arises from 41 rows...'). The arithmetic (387 status rows − 41 edgeless + a rounding/reconciliation of edges) is admittedly not fully laid out and should be, but these are explained discrepancies of the kind E1 says were previously missing, not new unexplained ones. The Table 2 totals (2,590) vs KM n (2,309) vs 2,543 reconciliation problem is a genuinely new and valid catch, and I fully agree that must be fixed (a one-line breakdown, e.g., how many typed rows are active vs superseded vs retired, would close it).",
+      "evidence": "Table 1 footnotes (both) vs Table 2 totals: 129+289+426+1,333+413 = 2,590, vs KM 'n=2,309 total: 349 events, 1,960 censored', vs 1,957+200+386 = 2,543."
+     }
+    ],
+    "agreement_note": "I agree with E1-01 (busy_timeout / SQLITE_BUSY reporting is a one-sentence fix and should be included; the minor severity is appropriate given ~76 writes/day), E1-02 (the reproducibility comment still inverts the ratio: 833488/3980 = 209x overscan, coverage = 3980/833488 = 0.48%; both equations should be shown), E1-03 (confirmed fixed, nothing further), and the substantive halves of E1-04 and E1-05 as noted above. I would add to E1-01/E1-05: SECURITY.md's documented fail-open source registry and same-database hash anchors are relevant context the paper's threat-model discussion could cite, since the paper's Finding 5 recommends write-time interception (B1) while the project's own security model flags initial fact injection as having no interception — an internal tension between paper and artifact worth one sentence."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}

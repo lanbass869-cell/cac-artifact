@@ -1,0 +1,966 @@
+{
+ "round_score": 3.5,
+ "std": 0.5,
+ "spread": 1.0,
+ "debate_needed": false,
+ "n_reviews": 2,
+ "full_tier": {
+  "n": 1,
+  "mean": 4.0
+ },
+ "lite_tier": {
+  "n": 1,
+  "mean": 3.0
+ },
+ "round": "V4-CAC",
+ "prompt_version": "v4-prism",
+ "paper": "E:\\RUANJIAN\\workdocs\\memtether\\cross-agent-contradiction-paper.tex",
+ "timestamp": "2026-10-19T13:01:03.310636",
+ "usage_total": {
+  "in": 72474,
+  "out": 14533,
+  "secs": 134.4
+ },
+ "reviews": [
+  {
+   "judge": "E1",
+   "model": "cn:kimi-k3-1",
+   "ok": false,
+   "error": "HTTP Error 504: Gateway Timeout"
+  },
+  {
+   "judge": "E2",
+   "model": "cn:minimax-m3",
+   "role": "usability-reviewer",
+   "schema_tier": "lite",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "core_claim": "Cross-agent memory contradictions exist at 0.044% pair-level rate (11/24,907), but cause up to 73pp downstream accuracy loss; deterministic temporal-numeric overlap detection achieves F1=0.897 on ConflictBank; supersession prevents 52-61% of potential contradictions; contradiction-aware retrieval filter recovers +53.6pp on contradicted entities.",
+     "evidence_chain": "(1) Production SQLite scan of 1,768 active facts / 24,907 cross-source pairs → 198 polarity-clash candidates → 11 rule-classified temporal flips. (2) ConflictBank (n=2000 temporal subset) F1=0.897, precision=1.000. (3) Counterfactual: production 11→23 pairs (+109%) and synthetic 13→33 pairs (+61%) without supersession. (4) Downstream A/B: 43%→96% on 28 entities with detected contradictions; packy case study 0.625→0.938 on n=8 per condition. (5) Unified three-condition: stale 9.1%, contradictory 45.5%, filtered 81.8%, correct-only 81.8%. (6) Memory Supersession Prediction: DistilBERT macro-F1=0.946 on 2,635 records. (7) Third-party: LoCoMo +17.9pp, LongMemEval +15.5pp EAF (75.7% vs 60.2%).",
+     "what_would_break_it": "(a) Detection F1≠0.897 on the full ConflictBank evaluation → contradicts the headline number; (b) supersession detection on real production → no way to reproduce; (c) downstream n=8 lack of statistical power; (d) Packy case study disconnected from systematic scan; (e) 73pp CI [28%, 95%] too wide to pin magnitude; (f) LongMemEval EAF 75.7% is superseded by own October-18 rerun (62.4% strict / 68.8% judge)."
+    },
+    "scores": {
+     "depth": 4.0,
+     "soundness": 2.0,
+     "helpfulness": 4.0,
+     "alignment": 2.0,
+     "overall": 3.0
+    },
+    "findings": [
+     {
+      "id": "E2-R-01",
+      "severity": "critical",
+      "category": "claim_evidence_gap",
+      "issue": "Abstract claims F1=0.897 / precision=1.000 on ConflictBank n=2000; arithmetic of F1=0.897 with P=1.000 requires R≈0.813; Table 7 (tab:specialization) reports the 500-sample temporal subset F1=0.889 with R=0.800, P=1.000. The full n=2000 recall is not given; whether 0.897 is just 'weighted across categories' or a separate evaluation on a different test set is unclear. The abstract headline cannot be derived from the body without a missing call.",
+      "relevant_text": "achieves F1=0.897 on ConflictBank (n=2000, precision 1.000) ... F1 = 0.889 on temporal conflicts (500-sample subset, seed=42) vs. F1 = 0.897 on the full n=2000 evaluation reported in the abstract",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-02",
+      "severity": "critical",
+      "category": "claim_evidence_gap",
+      "issue": "Abstract claims 'outperforms LLM detection (F1=0.113)' with '11,714× speedup'; body Section on learned classification reports frontier LLM Kimi-k2.6 at F1=0.583 (P=0.968, R=0.417) on a 100-sample subset. The F1=0.113 figure, the benchmark it was measured on, and the 11,714× speedup derivation never appear in the body — these are unsupported LLM-judge claims pasted into the abstract.",
+      "relevant_text": "outperforming LLM detection (F1=0.113) on this specific temporal-conflict task with 11,714× speedup ... a frontier LLM (Kimi-k2.6) achieves F1=0.583 (P=0.968, R=0.417) while our TF-IDF achieves F1=0.986",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-03",
+      "severity": "critical",
+      "category": "statistics",
+      "issue": "LongMemEval headline (75.7% EAF, +15.5pp over mem0) is contradicted by the authors' own October-18 rerun yielding 62.4% strict / 68.8% judge — only +2.2pp over mem0 strict. The abstract still cites the pre-rerun 75.7%. Either the abstract number is from a different metric definition or the rerun should supersede the headline.",
+      "relevant_text": "MemTether with EAF (Evidence-Augmented Formulation) achieves 75.7% ... A subsequent full 500-question rerun (October 18, 2026) ... yields 62.4% strict and 68.8% judge overall",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-04",
+      "severity": "major",
+      "category": "statistics",
+      "issue": "Downstream sample-size internal inconsistency: Section 'Downstream Impact' states 'n=3 (deepseek) + n=5 (glm-5.3) per condition' and 'n=3 runs per judge per condition (total 8 runs)'; Table 4 reports n=8 per condition with means 0.625 and 0.938. (3×0.33+5×0.80)/8=0.625 ✓ and (3×0.83+5×1.00)/8≈0.936 ≈ 0.938 ✓, but 'n=3 runs per judge per condition (total 8 runs across both judges)' is arithmetically wrong: 3+3=6, not 8. Recount: 3 deepseek + 5 glm = 8 runs TOTAL, not 8 per judge.",
+      "relevant_text": "We run n=3 (deepseek-v4.1-flash) + n=5 (glm-5.3-flash) per condition ... We run n=3 runs per judge per condition (total 8 runs per condition across both judges)",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-05",
+      "severity": "major",
+      "category": "circular_evidence",
+      "issue": "Packy is selected because it is the highest-churn entity, yet 'none of the 11 rule-classified contradictions involve packy'. The +0.312 downstream improvement therefore comes from a case study explicitly disconnected from the systematic scan. This is acknowledged, but it means the strongest single quantitative result in the paper is non-validating of the systematic finding — readers cannot tell whether the 0.044% rate generalizes or whether contradictions at scale behave like packy.",
+      "relevant_text": "we acknowledge that none of the 11 rule-classified contradictions from our systematic scan involve packy, making this a complementary case study rather than a direct validation of the scan results",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-06",
+      "major": false,
+      "severity": "major",
+      "category": "statistics",
+      "issue": "nf≤30 filter direction and magnitude: paper claims excluded high-churn hubs 'concentrate contradictions' so unfiltered rate would be higher. But excluding 57 entities also drops ~thousands of stable pairs from the denominator. The 1,523 multi-source entities - 57 excluded hubs does not arithmetically yield 24,907 pairs unless the join structure is unusual; the SQL is not provided to verify. Sensitivity is hand-waved via 'NF_MAX env var'.",
+      "relevant_text": "57 entities (≤3.6% of all multi-source entities) ... excluding high-degree hubs ... the 0.044% pair-level rate is a lower bound",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-07",
+      "severity": "major",
+      "category": "logical_leap",
+      "issue": "Overwrite comparison asymmetry unexplained: Table 6 reports overwrite in production = 0 contradictions, overwrite in synthetic = 13 contradictions (same as supersession). The caption says 'overwrite does not eliminate contradictions when the conflicting pair is both active', but the production 0 figure contradicts this — if production overwrite had any both-active pair, it should also retain 13. Either the production and synthetic 13/13 differ structurally, or the comparison table is presenting inconsistent rows.",
+      "relevant_text": "Overwrite (prod) ... 0 ... Overwrite (synth) ... 13 ... (overwrite does not eliminate contradictions when the conflicting pair is both active)",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-08",
+      "severity": "major",
+      "category": "statistics",
+      "issue": "73pp downstream loss is computed from n=11 paired observations. The paper does state CI [28%, 95%] and p=0.004, which is honest, but the central claim is then presented in the abstract without the wide-CI caveat. 'Up to 73pp' framing inflates the impression of magnitude vs. the 67pp CI width — the lower bound (28pp) is meaningfully smaller and would change the paper's positioning.",
+      "relevant_text": "73pp downstream accuracy loss ... 95% CI for the accuracy difference: [28%, 95%]",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-09",
+      "severity": "major",
+      "category": "evidence",
+      "issue": "Expanded downstream validation reports 86% (37/43) divergence on 'gradeable entities' but the unified section reports stale-only accuracy 9.1%. 'Divergence' and 'incorrect' are not the same measure, and the 100→43 attrition (57% non-gradeable) is unexplained. A reader cannot reconcile 86% divergence with 9.1% stale accuracy without knowing what makes a pair 'gradeable'.",
+      "relevant_text": "Stale context caused downstream answer divergence in 86% of gradeable entities (37/43, 95% CI [76%, 96%], binomial test p < 0.001) ... A: Stale only ... 9.1% (1/11)",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-10",
+      "severity": "minor",
+      "category": "claim",
+      "issue": "Macro F1 discrepancy: abstract claims 0.947; Table 9 (tab:supersession) reports 0.946. 0.001 delta is within rounding but in a paper whose contribution is the F1 number the headline should match the body.",
+      "relevant_text": "DistilBERT achieving macro F1 = 0.947 on our production dataset ... DistilBERT (ours) ... 0.946",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-11",
+      "severity": "minor",
+      "category": "reproducibility",
+      "issue": "No published SHA for any of (a) the code commit producing these numbers, (b) the production database snapshot, (c) the ConflictBank train/test split seed beyond 'seed=42'. The Reproducibility section lists SHA-256s for data files but not for code. A reviewer at this moment cannot pin which version of scan_contradictions.py produced these numbers.",
+      "relevant_text": "Table lists hashes for conflictbank_sample.jsonl, synthetic_memory.db, benchmark_memory.db, benchmark_ground_truth.json — but not for any *.py or the GitHub tag.",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-12",
+      "severity": "major",
+      "category": "logical_leap",
+      "issue": "Implication section ('Combined with Downstream Loss') asserts that the 53.6pp retrieval improvement 'directly addresses the 73pp downstream loss' because the mechanism is the same (older fact removal). But these are two different experiments on two different sets (28 entities vs n=11 packy) with two different protocols (A/B filter on/off vs contradictory vs resolved). The chain of cause is asserted, not measured, and conflates two unconnected findings into a single causal narrative.",
+      "relevant_text": "The 53.6pp retrieval improvement directly addresses the 73pp downstream loss. Without the filter, contradictory results are passed to the LLM, which selects the wrong (older) answer 57% of the time, causing the 73pp accuracy drop.",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-13",
+      "severity": "minor",
+      "category": "novelty",
+      "issue": "Memory Supersession Prediction is framed as 'the first formulation ... as a supervised learning problem' but prior work on memory decay/lifecycle modeling exists in dialogue systems (e.g., expiration modeling, half-life regression in Fei et al.). The 'first' claim is not supported by a search protocol.",
+      "relevant_text": "Memory Supersession Prediction --- the first formulation of memory lifecycle prediction as a supervised learning problem",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-14",
+      "severity": "major",
+      "category": "usability",
+      "issue": "First-run reproducibility commands: the paper lists commands for synthetic DB reproduction (counterfactual.py) but the abstract's 0.044% production rate cannot be reproduced because the production memory.db is private. A new user pip-installing the artifact would only see '0% contradiction rate' on the synthetic toy DB or fail to run scan_contradictions.py against production. This is the central installability gap (E2-01/E3-01 unresolved).",
+      "relevant_text": "Production numbers are not directly reproducible (private data); synthetic results are reproducible via python counterfactual.py",
+      "status": "active"
+     },
+     {
+      "id": "E2-R-15",
+      "severity": "minor",
+      "category": "consistency",
+      "issue": "Section 3 label/caption mismatch: Table 3 is labeled tab:unified (referencing Section 3.3 unified three-condition accuracy) but its content is 'Cross-source contradiction scan results' which is the Measurement section. Same label tab:unified then appears in Section Unified Analysis as the unified three-condition table. The cross-reference undermines 'Table 3 reports the unified three-condition accuracy'.",
+      "relevant_text": "Table\\ref{tab:unified} reports the unified three-condition accuracy ... Cross-source contradiction scan results",
+      "status": "active"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_gaps": [
+      "E2-R-01: F1=0.897/precision=1.000 implies R≈0.813; body reports R=0.800 on a different (500-sample) subset. No full-2000 result given.",
+      "E2-R-02: F1=0.113 LLM baseline and 11,714× speedup appear only in the abstract. The only LLM baseline in the body (Kimi-k2.6) gives F1=0.583, not 0.113. The 11,714× comes from nowhere.",
+      "E2-R-03: 75.7% EAF superseded by 62.4%/68.8% rerun, but abstract still cites 75.7%.",
+      "E2-R-09: 86% divergence vs 9.1% stale accuracy cannot be reconciled without the gradeability definition.",
+      "E2-R-12: 53.6pp retrieval claim is asserted to 'directly address' 73pp downstream loss without a linking experiment."
+     ],
+     "statistical_issues": [
+      "E2-R-04: downstream 'n=3 runs per judge per condition (total 8 runs per condition)' — 3+3=6, not 8.",
+      "E2-R-08: 73pp headline without [28%, 95%] CI caveat in abstract; 'up to' wording inflates.",
+      "E2-R-06: nf≤30 filter effects on numerator vs denominator not measured; sensitivity via NF_MAX env is opaque.",
+      "E2-R-10: F1 0.947 vs 0.946 (0.001 delta in a contribution claim)."
+     ],
+     "logical_leaps": [
+      "E2-R-05: packy case study is acknowledged as disconnected from the 11 contradictions but the +0.312 improvement is still used as a quantitative load-bearing result.",
+      "E2-R-07: production overwrite = 0 vs synthetic overwrite = 13 contradicted by caption claim that overwrite retains contradictions when both active.",
+      "E2-R-13: 'first formulation' of supersession prediction not supported by search protocol.",
+      "E2-R-12: 53.6pp and 73pp linked via prose without a unifying experiment."
+     ],
+     "alternative_explanations": [
+      "The 0.044% low rate may reflect the *measurement* (deterministic detector's 77.8% FP rate filters out most true contradictions), not the actual production contradiction density. The headline number inherits the detector's blind spots.",
+      "The 53.6pp A/B comparison (43%→96%) may be over-fit to entities selected because contradictions were detected; entities without detected contradictions are excluded by construction, biasing the upper-bound accuracy upward.",
+      "The +0.312 downstream improvement is on a sample of one entity (packy), on one question ('Can I use packy now?'), two judges, n=8 total — the magnitude estimate is dominated by sampling noise.",
+      "The supersession prediction F1=0.946 may reflect leakage: the supersession chain itself encodes facts used as labels; if the same source wrote both the feature content and the supersession, lexical correlates (e.g., 'correct', 'fix') could be the actual signal rather than lifecycle as claimed.",
+      "LongMemEval's 75.7% EAF vs 62.4% rerun gap suggests the original number was from a different pipeline stage (ECO+SSI+AFN) that confounded evaluation — the rerun's lower number is more credible."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "evidence": [
+      "Abstract cherry-picks the highest available number for each claim (F1=0.897 vs body 0.889; 75.7% vs own rerun 62.4%; 11,714× speedup not in body; 73pp without CI caveat).",
+      "Multiple experiments measure the same phenomenon at different scales and pick the most dramatic for headlines (packy +0.312 superseded 73pp; 86% divergence supersedes 9.1% stale).",
+      "LongMemEval listing shows MemTether EAF 75.7% / strict 62.6% / mem0 strict 60.2% — three different metrics chosen to maximize the gap.",
+      "Downstream experimental design (highest-churn entity selected, then disconnected from 11-conflict sample) optimizes for finding an improvement.",
+      "The Contradictory context was hand-crafted; the Resolved context was hand-crafted — both selected by the same author. No blinded selection.",
+      "Reproducibility commands cover only the synthetic DB; production claims deliberately not reproducible, foreclosing independent falsification."
+     ]
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "Abstract F1=0.897/P=1.000 not directly substantiated; only the 500-sample subset R=0.800 is given. No full-2000 recall, no equation derivation."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "F1=0.113 and 11,714× speedup appear in abstract only. Body LLM baseline (Kimi-k2.6) is F1=0.583 on a different subset."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "11/24907=0.04418% rounds to 0.044% ✓. Wilson CI [0.022%, 0.079%] plausible given n=11 from denom≈25K. Pair-vs-entity distinction is labeled in Finding 1."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "nf≤30 filter sensitivity is asserted but not measured; 'numerator would dominate' is a hand-wave. SQL on 1,523-57=1,466 multi-source entities is not provided to confirm the 24,907 pair count."
+     },
+     {
+      "id": "CK-05",
+      "pass": true,
+      "note": "11/198=5.56%✓, 154/198=77.78%✓, 33/198=16.67%✓, sum=198✓. Table 2 lists 11 entities. 11/(198-33)=11/165=6.67%✓."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Methodology says 'n=3 runs per judge per condition (total 8 runs)' but 3+3=6; Table 4 n=8 implies 3+5 split. Internal inconsistency; the 'n=3 runs per judge' phrase should be '3 deepseek + 5 glm = 8 total'."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "Acknowledged in the paper that packy is highest-churn yet not in the 11 contradictions, and that the case study is non-validating. Risk: +0.312 still used as headline."
+     },
+     {
+      "id": "CK-08",
+      "pass": true,
+      "note": "12/11=109.1% ✓; 20/33=60.6% rounded to 61% ✓; 'prevents 52-61%' covers both production 12/23=52% and synthetic 20/33=61%. Table 5 bottom row matches."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "Production overwrite=0 contradictions contradicts the caption which says overwrite does not eliminate both-active pairs. Either production/synthetic differ structurally or the table is inconsistent."
+     },
+     {
+      "id": "CK-10",
+      "pass": true,
+      "note": "12/28=42.9%≈43% ✓; 27/28=96.4% ✓; diff +53.6pp ✓. '57% chance of selecting older' = 16/28, supported by data. Reproducibility of 28 entities is implicit (ground truth from 'generation seed')."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Table 3 is both the contradiction-scan table and referenced as 'reports the unified three-condition accuracy' — cross-reference broken."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "86% divergence vs 9.1% stale-only accuracy use different denominators (gradeable vs all 11); 100→43 attrition unexplained; 'divergence' vs 'incorrect' not defined consistently."
+     },
+     {
+      "id": "CK-13",
+      "pass": true,
+      "note": "386/2635=14.65%≈14.6% ✓; 386+2249=2635 ✓. F1 0.947 vs 0.946 = 0.001 delta within rounding but should be harmonized."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "75.7% EAF / +15.5pp headline is contradicted by the authors' own October-18 rerun yielding 62.4% strict / 68.8% judge (+2.2pp over mem0). Abstract still cites the higher number."
+     },
+     {
+      "id": "CK-15",
+      "pass": true,
+      "note": "counterfactual.py reproduces Tables 5 and 6 on synthetic; production explicitly labeled 'not directly reproducible'. NF_MAX sensitivity is at least pointed to."
+     }
+    ],
+    "novelty_check": {
+     "claim": "First systematic treatment of cross-agent memory contradictions, including the Memory Supersession Prediction task and public desensitized benchmark.",
+     "closest_prior_work": [
+      "Zep (Rasmussen et al. 2025) — temporal knowledge graph with bi-temporal validity (the same supersession idea, but policy-side rather than learning-side).",
+      "MemStrata (Yadav 2026) — temporal validity in retrieval memory, eliminates stale-fact errors.",
+      "TOKI (2026) — bitemporal operator algebra for contradiction resolution.",
+      "StateFuse (Volkov 2026) — deterministic conflict-preserving memory for multi-agent systems.",
+      "PACMI (Wang 2026) — provenance-aware cascading memory invalidation.",
+      "Immutable Past (HaddadPajouh et al. 2026) — formalizing state mutability in mutable RAG.",
+      "Fei et al. (memory half-life regression) on dialogue lifecycle modeling."
+     ],
+     "delta": "The contributions overlap heavily with the arXiv 2606.* / 2607.* / 2609.* / 2610.* cluster cited in Related Work. The 'first systematic' framing understates the substantial prior work that the paper itself cites. The Memory Supersession Prediction framing as 'first supervised formulation' is unsupported.",
+     "assessment": "incremental"
+    },
+    "meta_note": "Reconciliation with prior E1/E2/E3/E4 findings: E2-01 (pip install unverifiable), E2-02 (schema not defined), E2-03 (API ergonomics missing), E2-05 (no first-run recipe), E2-09 (no version SHA), E3-01 (only 3 SQL queries cover many numbers), E3-04 (comment says '825032/3980=0.48%' but that's 207x), E4-04 (gates net-negative or trivial — paper still positions as a contribution) — all remain active. New findings E2-R-01 through E2-R-15 add: abstract-body mismatches on F1, LLM baseline, EAF/rerun, sample-size arithmetic, circular packy evidence, overwrite asymmetry, and the systemic gaming pattern in headline selection. The paper reads as two publications stitched together: a measurement paper (rate, taxonomy, supersession causal effect) and a system paper (supersession prediction, retrieval filter, third-party benchmarks). Each component has different rigor and the headline picks the most flattering number from each.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify internal consistency of headline detection numbers: abstract claims F1=0.897 on ConflictBank (n=2000, precision 1.000), while Table 7 (tab:specialization) reports F1=0.889 on a 500-sample temporal subset with recall 0.800 and precision 1.000. Check whether the abstract's F1=0.897 is substantiated anywhere in the paper beyond the abstract itself, and whether precision=1.000 is arithmetically compatible with F1=0.897 (requires recall≈0.813) — no recall figure for the n=2000 run is given.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check the LLM-detection comparison: the abstract claims deterministic detection 'outperforms LLM detection (F1=0.113)' with '11,714× speedup', but the body (Table 8, Section on learned classification) reports the frontier LLM (Kimi-k2.6) achieving F1=0.583 on a 100-sample subset. Verify whether the F1=0.113 figure, the benchmark it was measured on, and the 11,714× speedup calculation appear anywhere in the paper; if not, the abstract makes an unsupported comparison.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Check the arithmetic of the contradiction-rate claim: 11/24,907 = 0.0442%, so verify the 0.044% figure and the reported Wilson 95% CI [0.022%, 0.079%] are consistent; also confirm that this pair-level rate is properly qualified in the abstract and introduction, given Finding 1 explicitly warns it is not comparable to the 60% entity-level packy rate.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check the nf≤30 filter's effect direction: the paper claims the 0.044% rate is a 'lower bound' because excluded high-churn hubs concentrate contradictions, but excluding hubs also adds many stable pairs to the denominator. Verify the paper's reasoning that the numerator increase would dominate, and whether 1,523 multi-source entities minus 57 excluded hubs is consistent with the reported pair count of 24,907 (order-of-magnitude check via the supplied SQL).",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify taxonomy percentages: 11/198 = 5.6% (temporal flips), 154/198 = 77.8% (false positives), 33/198 = 16.7% (needs review), and 0 self-agent pairs — and that 11+154+33 = 198 covers all candidates. Also check that Table 2 lists exactly 11 entities and that Section 3.1's '11/165 = 6.7% excluding needs-review' is arithmetically correct (198−33=165).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the downstream experiment sample-size arithmetic: Section 'Downstream Impact' says n=3 (deepseek) + n=5 (glm-5.3) per condition, but Table 4 reports n=8 per condition and means computed as 0.625 and 0.938. Verify that (3×0.33 + 5×0.80)/8 = 0.625 and (3×0.83 + 5×1.00)/8 ≈ 0.936, and that the methodology section's 'n=3 runs per judge per condition (total 8 runs)' is internally inconsistent (3+3=6, not 8) — flag which n is actually used.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check circularity/selection in the downstream case study: the methodology admits packy is 'the highest-churn entity' yet 'none of the 11 rule-classified contradictions involve packy'. Verify whether the +0.312 improvement claim (abstract-contributing) is therefore a case study disconnected from the systematic scan, and whether the paper adequately labels it as non-validating of the scan results.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify the counterfactual arithmetic: production 11→23 is claimed as '12 additional pairs (109% increase)' — 12/11 ≈ 109% ✓; synthetic 13→33 is claimed as '61% increase' — 20/33 ≈ 61% ✓ but the abstract says 'supersession prevents 52–61% of contradictions'; check that 20/33 (prevented fraction of counterfactual total) vs 12/23 (≈52%) are the consistent quantities and that Table 5's 'Supersession prevented' row matches both text statements.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Check the overwrite comparison's asymmetry: Table 6 shows overwrite-eliminates-all-contradictions (0 prod, 13 synth). Verify why synthetic overwrite retains 13 contradictions while production overwrite has 0, and whether the caption's parenthetical '(overwrite does not eliminate contradictions when the conflicting pair is both active)' is consistent with the production 0 figure and with the claim that overwrite 'eliminates contradictions entirely (0/24,907 pairs)'.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Verify the 53.6pp retrieval A/B test: 12/28=43%, 27/28=96.4%, difference +53.6pp ✓ arithmetically. Check whether the finding's claim 'the LLM has a 57% chance of selecting the wrong (older) one' is supported by data or is an interpretation of 16/28 wrong answers, and whether the 28 entities and ground truth derivation (generation seed) are described reproducibly.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Check the unified three-condition experiment: Table 3 (labeled tab:unified but captioned as contradiction-scan results in Section 3.3) — verify that the label tab:unified is not used for two different tables (scan results in Section 3.3 vs. three-condition accuracy in the unified section), which would be a broken cross-reference undermining 'Table 3 reports the unified three-condition accuracy' in Section 3.3.",
+      "category": "reproducibility",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the expanded downstream validation's consistency with the unified experiment: Section (expanded) claims stale context caused divergence in 86% (37/43) of gradeable entities with p<0.001, while the unified section reports stale-only accuracy of 9.1%. Verify whether 'divergence' vs 'incorrect' are the same measure and whether the 100→43 gradeable-entity attrition is explained; if not, the 86% claim may overstate the harm at scale.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify supersession-prediction dataset numbers: 2,644 facts → 2,635 records after desensitization; 386 positive (14.6%) + 2,249 negative (85.4%). Check 386/2,635 ≈ 14.6% ✓ and 386+2,249=2,635 ✓, and that the abstract/introduction's claimed macro F1 (0.947) matches Table 9's reported 0.946 — a discrepancy of 0.001 between contribution claim and results table.",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-14",
+      "item": "Check third-party benchmark claims: abstract claims LoCoMo +17.9pp (0.523 vs 0.344) and LongMemEval EAF 75.7% vs 60.2% (+15.5pp, 'same hardware, same judge'), but the LLM-as-judge subsection later reports a full 500-question EAF rerun yielding 62.4% strict / 68.8% judge — only +2.2pp over mem0 strict. Verify whether the headline 75.7% is superseded by the authors' own rerun and whether the abstract still cites the pre-rerun number.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Check the reproducibility package's stated coverage: the paper claims the synthetic database has '102 facts, 16 entities, 13 known contradiction pairs', but Table 5 (synthetic row) reports 13 current contradictions and 102 active facts while Table 6 synthetic supersession reports 20 chains. Verify the artifact instructions (make scan && make classify, counterfactual.py reproducing Tables 5 and 6) actually cover the production numbers they claim are 'not directly reproducible', and that NF_MAX unfiltered scan availability matches the sensitivity-note claim.",
+      "category": "reproducibility",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document ends with '\\end{enume' — truncated environment closer (should be \\end{enumerate}); the file will not compile.",
+       "Suspicious escape: 'mem0~\\\\cite{mem0}' in Section Causal Analysis — double backslash produces a line break before the citation, likely a copy-paste artifact.",
+       "Stray '\\label{sec:eval}' and stray prose ('Table~\\ref{tab:specialization} breaks down F1...') appear detached immediately before their subsections; harmless but sloppy.",
+       "First results table (cross-source contradiction scan) has a caption but NO \\label, and is never referenced via \\ref in the text."
+      ],
+      "number_inconsistencies": [
+       "DistilBERT macro F1: Introduction and Finding say 0.947; Table (tab:supersession) says 0.946.",
+       "Abstract reports LLM detection F1 = 0.113 — this number appears nowhere in the body (body instead reports Kimi-k2.6 F1 = 0.583 on a different subset).",
+       "Abstract reports 11,714× speedup — never appears in the body.",
+       "Downstream experiment sample size: Section 'Retrieval' says the 73pp finding uses n=11 hand-crafted contexts, but Section 'Downstream Impact' specifies n=3 + n=5 = 8 per condition.",
+       "Introduction claims the resolution pipeline 'recovers 87pp' — no table/section supports 87pp (unified experiment shows +36.4pp recovery; downstream gap is +0.312 on a 0–1 scale).",
+       "Abstract '100 entities, 710 facts' controlled benchmark: the 100-entity figure appears in the retrieval/expanded sections, but 710 facts is never mentioned in the body.",
+       "Minor: Finding '53.6pp' derived from 12/28 (42.9%) → 27/28 (96.4%) is +53.6pp — OK, but table rounds to 43%/96%, making the '+53.6pp' row inconsistent with its own table cells."
+      ],
+      "citation_issues": [
+       "There is NO bibliography: no \\bibitem entries and no thebibliography environment (or .bbl). All 14 \\cite keys (mem0, letta, zep, memstrata, toki, agentpoison, sleeper, conflictbank, fever, immutablepast, statefuse, pacmi, revoked, scopeaware) are undefined and will render as '[?]'."
+      ],
+      "orphaned_figures": [],
+      "duplicates": [
+       "The downstream experiment design is described twice nearly verbatim: Section 'Downstream Impact' (Experimental Design + Results) and again in Methodology §'Downstream Experiment Protocol' (identical rubric text, contexts, judges).",
+       "'Why the Rate Is Low' (Discussion) repeats the three mechanisms almost verbatim from the opening paragraph of the Discussion (supersession discipline / entity volatility / 77.8% FP rate).",
+       "Filter pipeline described twice (Retrieval §Method and §Integration with Retrieval Pipeline)."
+      ],
+      "formatting_issues": [
+       "Table~\\ref{tab:unified} is referenced in Section 'Measurement' ('reports the unified three-condition accuracy') but that table is defined ~6 sections later, and the caption there differs from the scan-results context where it is cited — the Measurement section should reference its own unlabeled scan table.",
+       "Duplicate label pairing sec:benchmark/sec:measure on one section and sec:retrieval/sec:caw on another — not errors but redundant aliases.",
+       "Stray label sec:eval floating before a subsection with no matching section header."
+      ],
+      "pass": false
+     },
+     "summary": "Paper would NOT compile (truncated \\end{enume}); zero bibliography means every citation is broken; several abstract numbers (F1=0.113, 11,714× speedup, 87pp recovery) are unsupported in the body; DistilBERT F1 quoted as both 0.946 and 0.947; downstream n stated as both 8 and 11; the scan results table is unlabeled and mis-referenced via tab:unified; downstream protocol duplicated verbatim."
+    }
+   },
+   "usage": {
+    "in": 26600,
+    "out": 5897,
+    "secs": 62.0
+   },
+   "raw_len": 21954,
+   "z": -1.0
+  },
+  {
+   "judge": "E3",
+   "model": "cn:deepseek-v4.1-flash",
+   "ok": false,
+   "error": "no JSON object in response"
+  },
+  {
+   "judge": "E4",
+   "model": "cn:glm-5.3",
+   "role": "product-reviewer",
+   "schema_tier": "full",
+   "ok": true,
+   "data": {
+    "reconstruction": {
+     "problem": "When multiple agents share one memory store, they write contradictory facts about the same entity; stale/contradictory facts degrade downstream answers.",
+     "claimed_solution": "Deterministic temporal-numeric contradiction detection (F1 0.897 on ConflictBank temporal subset), supersession chains for provenance-preserving resolution, a post-retrieval contradiction filter (+53.6pp), and a learned supersession-prediction task (DistilBERT macro F1 0.947).",
+     "evidence_base": "Single-operator, single-machine MemTether deployment (1,768 active facts, 13 sources, 30 days) yielding 11 rule-classified temporal flips out of 24,907 cross-source pairs (0.044%); plus synthetic benchmark (102 facts, 13 contradictions), ConflictBank evaluations, LoCoMo/LongMemEval third-party runs, and hand-crafted downstream contexts (n=11 or n=8 per condition).",
+     "positioning": "mem0/Zep/Letta are framed as single-tenant or lacking cross-agent conflict handling; MemTether claims supersession + filtering recovers 36–73pp of downstream accuracy at zero LLM cost, plus first supersession-prediction benchmark."
+    },
+    "scores": {
+     "depth": 3.0,
+     "soundness": 2.0,
+     "helpfulness": 4.0,
+     "alignment": 2.0,
+     "overall": 4.0
+    },
+    "findings": [
+     {
+      "id": "E4-R1",
+      "severity": "major",
+      "issue": "Competitive claims against mem0/Zep/Letta remain assertion-based; the paper's own limitation list admits it",
+      "relevant_text": "No same-condition baseline comparison: The 73pp and 53.6pp findings compare against unfiltered retrieval, not against other contradiction-resolution systems (mem0, Zep, etc.) running on the same data.",
+      "concern": "My core mandate. The Conditions A/B/C1/C2 experiment is well-designed for internal comparison, but the mapping table (mem0→B, Zep→C1, Letta→C1/A) is *predicted* accuracy based on architectural reading, not measurement. Critically, the paper's own Table 6 shows overwrite (mem0's model) achieves 0 contradictions in production vs MemTether's 11 — so on the headline metric (contradictions reaching the LLM), the untested competitor appears *better* in the paper's own simulation. The defense is provenance retention, but the paper never demonstrates downstream value of provenance on any task a mem0 user cares about. A Zep user gets temporal KG invalidation which is functionally close to supersession; Zep is dismissed in one sentence ('does not detect cross-agent polarity clashes') with no experiment.",
+      "suggestions": "Run at least one competitor (mem0 is easiest: overwrite semantics, public API) on the same controlled benchmark and the 28-entity A/B set. Replace 'Predicted Accuracy' in the mapping table with measured numbers or delete the table.",
+      "status": "active"
+     },
+     {
+      "id": "E4-R2",
+      "severity": "major",
+      "issue": "The user is still one person; switching motivation is limited to 'operator of a local SQLite multi-agent fleet with Chinese-language status facts'",
+      "relevant_text": "Zero external users... all agent sources are operated by the author. Chinese-focused production data.",
+      "concern": "Who switches? The paper implicitly targets solo local-first operators running heterogeneous agents against volatile API-key/config status. That's a real but narrow niche. The polarity detector is tuned to status-word clashes (available/banned/403) in a Chinese-dominant corpus; the English generalization is explicitly unverified. The DistilBERT supersession predictor (the most 'product-like' contribution) is trained and tested on the same single-operator distribution — a mem0 user's write patterns would be out of distribution. The 0.044% contradiction rate, honestly reported, also undercuts the sales pitch: a prospective switcher learns the problem they'd be solving fires 11 times a month on this reference deployment.",
+      "suggestions": "State the target user in the introduction; validate the supersession predictor cross-dataset (e.g., train on synthetic or ConflictBank-derived lifecycle data, test on production); show at least one deployment-shaped scenario not authored by the author.",
+      "status": "active"
+     },
+     {
+      "id": "E4-R3",
+      "severity": "major",
+      "issue": "Abstract headline numbers are superseded or unsupported by the paper's own body",
+      "relevant_text": "Abstract: outperforming LLM detection (F1=0.113) ... 11,714× speedup; EAF 75.7% vs 60.2% (+15.5pp).",
+      "concern": "Three distinct problems compound into a positioning-honesty issue. (1) The F1=0.113 LLM-detection figure appears nowhere in the body — the body reports Kimi-k2.6 at F1=0.583 on a 100-sample subset, and the 11,714× speedup is not derived anywhere. Comparing your 0.897 against an untraceable 0.113 is exactly the kind of comparison a switching decision would be made on. (2) The abstract's 75.7% LongMemEval EAF was superseded by the authors' own October 18 rerun (62.4% strict, 68.8% judge → +2.2pp strict over mem0, not +15.5pp); the abstract still carries the pre-rerun number. (3) F1=0.897 on 'ConflictBank' is effectively the temporal subtask only (0.000 on semantic/misinformation per Table specialization) — the abstract's framing implies general conflict detection. A competitor evaluating this paper for a switch decision would be misled on all three.",
+      "suggestions": "Remove or substantiate F1=0.113 and the speedup; report the post-rerun LongMemEval numbers in the abstract; qualify the ConflictBank F1 as temporal-category-only everywhere it appears.",
+      "status": "active"
+     },
+     {
+      "id": "E4-R4",
+      "severity": "major",
+      "issue": "The 73pp headline (abstract's strongest number) comes from an 11-entity, hand-crafted-context, single-judge case study disconnected from the systematic scan",
+      "relevant_text": "we acknowledge that none of the 11 rule-classified contradictions from our systematic scan involve packy, making this a complementary case study rather than a direct validation.",
+      "concern": "The competitive pitch ('switch because contradictions cost you 73pp') rests on: n=11, hand-assembled contexts (ecological validity admitted), one judge family (GLM-5.3-flash, free-tier, admitted non-replicable), ground truth by manual inspection by the single author. The honest self-criticism is commendable and unusual, but the number still leads the abstract and contribution (3). The 53.6pp retrieval filter result (28 entities, controlled benchmark) is the more defensible headline and is buried mid-paper. Meanwhile the 86% divergence claim (expanded validation) mixes 'divergence' with 'incorrect' and has unexplained 100→43 attrition.",
+      "suggestions": "Lead with the 53.6pp controlled result; downgrade the 73pp to 'case study' in the abstract; reconcile the 86%/37-of-43 claim with the unified 9.1% stale-only figure and explain the attrition.",
+      "status": "active"
+     },
+     {
+      "id": "E4-R5",
+      "severity": "minor",
+      "issue": "Necessary conditions for switching are spread across the paper without a coherent pitch; the strongest real differentiators are under-marketed",
+      "relevant_text": "Provenance: 348 chains vs 0 chains; The filter is deterministic (no LLM calls) and adds <1ms overhead.",
+      "concern": "What would actually make a user switch: (a) deterministic sub-ms contradiction filtering (vs Zep's LLM-in-the-loop KG construction — a genuine cost/latency story never made explicitly); (b) provenance-preserving supersession vs mem0's destructive overwrite (the paper shows the tradeoff but frames it as 'we have 11 contradictions, they have 0'); (c) the desensitized 2,635-record lifecycle benchmark (genuinely novel, first of its kind — but claimed with a 0.947-vs-0.946 F1 inconsistency and no baseline from any competitor on it). The paper assembles the ingredients of a switch case but never assembles them.",
+      "suggestions": "Add a positioning paragraph: cost-per-write/per-query comparison vs Zep (LLM calls) and mem0 (no provenance), with the benchmark as the community hook. Fix the 0.947/0.946 mismatch.",
+      "status": "active"
+     }
+    ],
+    "system2_analysis": {
+     "claim_evidence_maintenance": "See E4-R1–R4: 'outperforms LLM detection' (unsupported figure), '+15.5pp LongMemEval' (superseded by own rerun), 'mem0/Zep/Letta predicted accuracy' (unmeasured mapping table), 'F1=0.897 on ConflictBank' (temporal-only, per-category table shows 0.000 elsewhere).",
+     "claim_evidence_gaps": [
+      "F1=0.113 and 11,714× speedup: absent from body (CK-02 FAIL).",
+      "75.7% EAF vs own rerun 62.4%/68.8% (CK-14 FAIL).",
+      "Mapping-table accuracies for mem0/Zep/Letta are architecture-based predictions, not measurements (E4-R1).",
+      "Supersession predictor evaluated only on single-operator in-distribution data; no cross-domain test (E4-R2)."
+     ],
+     "statistical_issues": [
+      "Downstream n inconsistency: 'n=3 per judge per condition (total 8)' — 3+3=6≠8; means of 0.625/0.938 imply a 3+5 split actually used (CK-06 FAIL as written; arithmetic (3×0.33+5×0.80)/8=0.625 ✓, (3×0.83+5×1.00)/8=0.936≈0.938 ✓, so numbers are computed on 3+5, text says 3+3).",
+      "Abstract F1=0.897 with precision=1.000 requires recall≈0.813; no recall reported for the n=2000 run; body only shows the 500-sample temporal subset F1=0.889 (CK-01 PARTIAL FAIL — abstract number is asserted, not substantiated).",
+      "0.044% = 11/24,907 ✓; Wilson CI [0.022%, 0.079%] plausible for 11/24907 ✓; pair-level vs entity-level distinction properly made in Finding 1 ✓ (CK-03 PASS).",
+      "nf≤30 'lower bound' argument is hand-waved: excluding hubs adds stable pairs to the denominator too; no quantification either direction; 57 hub entities excluded vs 1,523 retained is order-of-magnitude plausible for 24,907 pairs (CK-04 PARTIAL — direction asserted, not shown).",
+      "Taxonomy percentages 11+154+33=198 ✓, 5.6/77.8/16.7% ✓, 11/165=6.7% ✓ (CK-05 PASS).",
+      "Counterfactual arithmetic: prod 11→23 = +109% ✓ but text calls 12 prevented '52%' (12/23 ✓); synth 13→33 called '61% increase' in one place (20/33 prevented fraction) and 61% increase (20/13=154% actual increase) elsewhere — the two framings are conflated; Table 5 row matches the 52/61 prevented fractions (CK-08 PARTIAL: quantities exist but '61% increase' mislabels a prevented fraction as an increase).",
+      "Expanded validation 86% divergence (37/43) vs unified 9.1% stale-only: 'divergence' ≠ 'incorrect'; 100→43 attrition unexplained (CK-12 FAIL).",
+      "53.6pp: 12/28, 27/28 ✓ arithmetic; '57% chance of selecting wrong' is an interpretation of 16/28 without per-answer data shown; ground truth via generation seed described minimally (CK-10 PARTIAL)."
+     ],
+     "logical_leaps": [
+      "From 'our filter removes the older fact' to 'mem0/Zep/Letta users would see 45.5% accuracy' — skips whether competitors' retrieval naturally surfaces both facts without timestamps.",
+      "From overwrite having 0 contradictions to supersession being preferable — provenance value is asserted via a companion paper's theorem, not demonstrated on a downstream task.",
+      "From single-operator 0.044% rate to a field-level task/benchmark contribution."
+     ],
+     "alternative_explanations": [
+      "The 73pp gap may reflect the specific judge (deepseek 0.33 baseline weakness) and hand-picked maximally-confusing contexts rather than a general property of contradictory memory.",
+      "The 53.6pp filter gain may partially be a recency-baseline effect: any 'prefer newest fact' heuristic (trivial to add to any system, including mem0) may achieve most of it — no comparison against a naive recency sort.",
+      "Supersession predictability (F1 0.947) may be dominated by metadata leakage (source, type, entity count) rather than 'content semantics'; the best baseline being metadata-only (0.804) hints the model learns operator habits, not language."
+     ]
+    },
+    "gaming_detection": {
+     "optimized_for_metric": true,
+     "assessment": "significant",
+     "evidence": "Abstract cherry-picks: pre-rerun 75.7% over post-rerun 62.4%; untraceable F1=0.113 comparator; 'F1=0.897 on ConflictBank' implying generality while the detector scores 0.000 on 2 of 3 conflict categories; 'supersession prevents 52–61%' where the production increase is actually 109%. The limitations section is unusually candid (single author, zero external users, free-tier judge, no baseline comparison) — the honesty exists but is quarantined in the back while the abstract carries only the favorable numbers. This is the classic 'candid limitations + inflated abstract' pattern."
+    },
+    "checklist_results": [
+     {
+      "id": "CK-01",
+      "pass": false,
+      "note": "Abstract F1=0.897 (n=2000) not substantiated in body; only 500-sample temporal subset F1=0.889 shown; recall for n=2000 run absent though precision=1.000 implies recall≈0.813."
+     },
+     {
+      "id": "CK-02",
+      "pass": false,
+      "note": "F1=0.113 for LLM detection and the 11,714× speedup appear nowhere in the body; body reports Kimi-k2.6 F1=0.583 on 100 samples. Abstract comparison is unsupported."
+     },
+     {
+      "id": "CK-03",
+      "pass": true,
+      "note": "11/24,907=0.044% ✓; Wilson CI plausible ✓; pair-vs-entity-level qualification properly stated in Finding 1 and abstract."
+     },
+     {
+      "id": "CK-04",
+      "pass": false,
+      "note": "Arithmetic consistent, but the 'lower bound because numerator dominates' reasoning is asserted without quantification; excluded hubs also enlarge the denominator. Order-of-magnitude pair count plausible."
+     },
+     {
+      "id": "CK-05",
+      "pass": true,
+      "note": "11+154+33=198 ✓; percentages ✓; 11/165=6.7% ✓; Table lists exactly 11 entities ✓."
+     },
+     {
+      "id": "CK-06",
+      "pass": false,
+      "note": "Text says n=3 per judge (3+3=6≠8); Table and means use 3+5=8. The 3+5 split is what was actually run; text is wrong."
+     },
+     {
+      "id": "CK-07",
+      "pass": true,
+      "note": "Paper explicitly labels packy case study as 'complementary... rather than a direct validation'; disconnected from scan, and the labeling is adequate. However the +0.312 still feeds the abstract without that caveat."
+     },
+     {
+      "id": "CK-08",
+      "pass": false,
+      "note": "12/23=52% ✓ and 20/33=61% ✓ as prevented fractions, but body text says '61% increase in contradictions (13 to 33)' which is actually a 154% increase; framing is internally inconsistent even though Table 5 matches the prevented-fraction reading."
+     },
+     {
+      "id": "CK-09",
+      "pass": false,
+      "note": "Production overwrite: 0 contradictions and 0 chains; synthetic overwrite retains 13 — the asymmetry (why synth retains 13 under overwrite) is unexplained; caption's parenthetical contradicts the production 0. Also this table shows the competitor model winning on the headline metric (see E4-R1)."
+     },
+     {
+      "id": "CK-10",
+      "pass": false,
+      "note": "Arithmetic ✓, but '57% chance of selecting the wrong one' is not supported by shown per-answer data (16/28 wrong is inferred, not reported), and the 28-entity protocol/ground-truth derivation is under-described."
+     },
+     {
+      "id": "CK-11",
+      "pass": false,
+      "note": "Label tab:unified is used for the Section 3.3 scan-results table (captioned 'Cross-source contradiction scan results') and referenced as 'unified three-condition accuracy' — broken cross-reference; two different tables share one label."
+     },
+     {
+      "id": "CK-12",
+      "pass": false,
+      "note": "86% (37/43) 'divergence' vs unified 9.1% stale-only 'accuracy' are different measures, never reconciled; 100→43 gradeable attrition unexplained."
+     },
+     {
+      "id": "CK-13",
+      "pass": true,
+      "note": "386/2,635=14.6% ✓, sums ✓; minor 0.947 (abstract/contribution) vs 0.946 (Table 9) discrepancy — trivial but sloppy."
+     },
+     {
+      "id": "CK-14",
+      "pass": false,
+      "note": "Abstract cites 75.7% EAF; authors' own full rerun gives 62.4% strict / 68.8% judge (+2.2pp strict over mem0). Abstract retains the superseded number."
+     },
+     {
+      "id": "CK-15",
+      "pass": true,
+      "note": "Synthetic DB numbers (102 facts, 13 contradictions, 20 chains) are consistent across Tables 5/6 and the artifact description; counterfactual.py covers synthetic only, and production is explicitly flagged 'not directly reproducible' — honest, though it means all production claims are unverifiable."
+     }
+    ],
+    "novelty_check": {
+     "closest_prior": "Zep (temporal KG with invalidation), MemStrata (bi-temporal validity), TOKI (contradiction-resolution operator algebra), StateFuse (deterministic conflict-preserving memory for multi-agent systems — very close), PACMI (provenance-aware invalidation), The Immutable Past (mutable-RAG conflict resolution).",
+     "novelty_assessment": "The genuinely novel pieces: (1) supersession *prediction* as a supervised task with a released desensitized benchmark; (2) the honest cross-agent-vs-self-correction asymmetry measurement (73pp vs 0.7pp); (3) deterministic sub-ms contradiction filtering. However, the paper's related work itself lists StateFuse ('deterministic conflict-preserving memory for multi-agent systems') and TOKI (contradiction resolution formalization) — the core resolution mechanism (supersession chains) is not clearly differentiated from these, and no head-to-head with any of them exists. The measurement contribution (0.044% rate on one deployment) is novel in kind but weak in basis.",
+     "differentiation_from_mem0_zep_letta": "Against mem0: provenance retention (real, demonstrated as a tradeoff, not a win on the paper's own metrics). Against Zep: determinism/cost (plausible but never costed). Against Letta: supersession of archival facts (asserted via architecture reading only). None measured head-to-head — the paper's own limitation list concedes this."
+    },
+    "switch_case_summary": {
+     "who_is_the_user": "A solo local-first operator running ≥3 heterogeneous agents against a shared SQLite store with frequent config/API-status churn, predominantly Chinese-language, who cares about audit trails. This is approximately the author. Not (yet): teams, English-first deployments, cloud memory users.",
+     "would_they_switch": "Weak. The paper's own evidence shows: contradiction incidence is 11/month; the strongest competitor behavior (overwrite) yields 0 contradictions at the cost the paper values but doesn't demonstrate value for; the headline quality deltas (+15.5pp LongMemEval) shrink to +2.2pp under the authors' own rerun; and the proposed learned governance is validated only on the author's own write distribution. The genuine hooks — the public lifecycle benchmark, the deterministic filter's <1ms/no-LLM profile, the desensitized dataset — could justify adoption by *researchers* even while the end-user switch case is unproven.",
+     "honest_positioning_verdict": "The paper measures a real, previously unquantified asymmetry (cross-agent contradictions hurt, self-corrections don't) and releases a first-of-kind benchmark — that is a contribution. But every claim that positions it *against* mem0/Zep/Letta is either predicted-not-measured, superseded by its own rerun, or contradicted by its own tables. As a product review: strong diagnostic paper, weak switching case, abstract needs a truth pass before anyone should make a procurement or migration decision on it."
+    },
+    "previous_findings_reconciliation": {
+     "E4-01": "Partially improved: this paper adds the unified A/B/C1/C2 design and the mapping table, but the mapping is still prediction, not measurement; limitation list now explicitly concedes 'no same-condition baseline comparison'. Status: active, upgraded with new evidence (Table 6 shows overwrite at 0 contradictions).",
+     "E4-02": "Improved in honesty (limitations now state 'zero external users', single author, single machine), but the positioning problem is unchanged: all headline numbers remain single-operator. Status: active.",
+     "E4-03": "Not applicable to this paper's focus (injection-bottleneck material mostly absent here); deferred to companion write-governance paper.",
+     "E4-04": "Resolved in this paper's scope: the gates are replaced by supersession/filtering, which the unified experiment shows recovering to baseline (+36.4pp, C2=B). This is now a real, tested mechanism — the paper's strongest switch argument. Status: fixed.",
+     "E4-05": "Unresolved: the buffer-pool/eviction-vs-admission tension is not re-litigated here, and the 'prefer newest fact' filter is functionally an eviction policy a competitor could trivially add. Status: active (see alternative explanations).",
+     "E4-06": "Worsened: B1 gate is gone, replaced by ConflictBank evaluation showing the detector is temporal-only (0.000 on semantic/misinformation), yet the abstract still implies general conflict detection. Status: active, folded into E4-R3.",
+     "E1/E2/E3 series": "Reproducibility improved materially (public artifact, Makefile, SHA-256 hashes, synthetic DB, SQL verification queries) — E2-01/E2-04/E3-01/E3-02/E3-03/E3-12 largely addressed for synthetic paths. Remaining: production numbers explicitly not reproducible (private data), so all production findings remain trust-based; new tab:unified label collision (CK-11) and the n=3/n=5 text error (CK-06) show the consistency-pass problem persists across papers."
+    },
+    "meta_note": "Reviewed as product-reviewer E4 under v4-prisma. This is a better paper than its predecessor drafts: the unified three-condition experiment, the candid limitations section, and the public artifact are real progress, and the cross-agent-vs-self-correction asymmetry (73pp vs 0.7pp) plus the released lifecycle benchmark are genuine contributions. But the competitive story — my mandate — fails the honesty test at exactly the points a switch decision would touch: the abstract carries a superseded benchmark number, an untraceable comparator F1, an implied generality the detector doesn't have, and predicted-not-measured accuracies for all three named competitors, while the paper's own Table 6 shows the simplest competitor behavior winning on the headline metric. Recommendation: reject in current form for a product/positioning venue; the measurement and benchmark contributions deserve publication after an abstract truth pass, a head-to-head with at least mem0, and leading with the controlled 53.6pp result instead of the n=11 case-study 73pp.",
+    "checklist": [
+     {
+      "id": "CK-01",
+      "item": "Verify internal consistency of headline detection numbers: abstract claims F1=0.897 on ConflictBank (n=2000, precision 1.000), while Table 7 (tab:specialization) reports F1=0.889 on a 500-sample temporal subset with recall 0.800 and precision 1.000. Check whether the abstract's F1=0.897 is substantiated anywhere in the paper beyond the abstract itself, and whether precision=1.000 is arithmetically compatible with F1=0.897 (requires recall≈0.813) — no recall figure for the n=2000 run is given.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-02",
+      "item": "Check the LLM-detection comparison: the abstract claims deterministic detection 'outperforms LLM detection (F1=0.113)' with '11,714× speedup', but the body (Table 8, Section on learned classification) reports the frontier LLM (Kimi-k2.6) achieving F1=0.583 on a 100-sample subset. Verify whether the F1=0.113 figure, the benchmark it was measured on, and the 11,714× speedup calculation appear anywhere in the paper; if not, the abstract makes an unsupported comparison.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-03",
+      "item": "Check the arithmetic of the contradiction-rate claim: 11/24,907 = 0.0442%, so verify the 0.044% figure and the reported Wilson 95% CI [0.022%, 0.079%] are consistent; also confirm that this pair-level rate is properly qualified in the abstract and introduction, given Finding 1 explicitly warns it is not comparable to the 60% entity-level packy rate.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-04",
+      "item": "Check the nf≤30 filter's effect direction: the paper claims the 0.044% rate is a 'lower bound' because excluded high-churn hubs concentrate contradictions, but excluding hubs also adds many stable pairs to the denominator. Verify the paper's reasoning that the numerator increase would dominate, and whether 1,523 multi-source entities minus 57 excluded hubs is consistent with the reported pair count of 24,907 (order-of-magnitude check via the supplied SQL).",
+      "category": "method",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-05",
+      "item": "Verify taxonomy percentages: 11/198 = 5.6% (temporal flips), 154/198 = 77.8% (false positives), 33/198 = 16.7% (needs review), and 0 self-agent pairs — and that 11+154+33 = 198 covers all candidates. Also check that Table 2 lists exactly 11 entities and that Section 3.1's '11/165 = 6.7% excluding needs-review' is arithmetically correct (198−33=165).",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-06",
+      "item": "Check the downstream experiment sample-size arithmetic: Section 'Downstream Impact' says n=3 (deepseek) + n=5 (glm-5.3) per condition, but Table 4 reports n=8 per condition and means computed as 0.625 and 0.938. Verify that (3×0.33 + 5×0.80)/8 = 0.625 and (3×0.83 + 5×1.00)/8 ≈ 0.936, and that the methodology section's 'n=3 runs per judge per condition (total 8 runs)' is internally inconsistent (3+3=6, not 8) — flag which n is actually used.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-07",
+      "item": "Check circularity/selection in the downstream case study: the methodology admits packy is 'the highest-churn entity' yet 'none of the 11 rule-classified contradictions involve packy'. Verify whether the +0.312 improvement claim (abstract-contributing) is therefore a case study disconnected from the systematic scan, and whether the paper adequately labels it as non-validating of the scan results.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-08",
+      "item": "Verify the counterfactual arithmetic: production 11→23 is claimed as '12 additional pairs (109% increase)' — 12/11 ≈ 109% ✓; synthetic 13→33 is claimed as '61% increase' — 20/33 ≈ 61% ✓ but the abstract says 'supersession prevents 52–61% of contradictions'; check that 20/33 (prevented fraction of counterfactual total) vs 12/23 (≈52%) are the consistent quantities and that Table 5's 'Supersession prevented' row matches both text statements.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-09",
+      "item": "Check the overwrite comparison's asymmetry: Table 6 shows overwrite-eliminates-all-contradictions (0 prod, 13 synth). Verify why synthetic overwrite retains 13 contradictions while production overwrite has 0, and whether the caption's parenthetical '(overwrite does not eliminate contradictions when the conflicting pair is both active)' is consistent with the production 0 figure and with the claim that overwrite 'eliminates contradictions entirely (0/24,907 pairs)'.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-10",
+      "item": "Verify the 53.6pp retrieval A/B test: 12/28=43%, 27/28=96.4%, difference +53.6pp ✓ arithmetically. Check whether the finding's claim 'the LLM has a 57% chance of selecting the wrong (older) one' is supported by data or is an interpretation of 16/28 wrong answers, and whether the 28 entities and ground truth derivation (generation seed) are described reproducibly.",
+      "category": "evidence",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-11",
+      "item": "Check the unified three-condition experiment: Table 3 (labeled tab:unified but captioned as contradiction-scan results in Section 3.3) — verify that the label tab:unified is not used for two different tables (scan results in Section 3.3 vs. three-condition accuracy in the unified section), which would be a broken cross-reference undermining 'Table 3 reports the unified three-condition accuracy' in Section 3.3.",
+      "category": "reproducibility",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-12",
+      "item": "Check the expanded downstream validation's consistency with the unified experiment: Section (expanded) claims stale context caused divergence in 86% (37/43) of gradeable entities with p<0.001, while the unified section reports stale-only accuracy of 9.1%. Verify whether 'divergence' vs 'incorrect' are the same measure and whether the 100→43 gradeable-entity attrition is explained; if not, the 86% claim may overstate the harm at scale.",
+      "category": "statistics",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-13",
+      "item": "Verify supersession-prediction dataset numbers: 2,644 facts → 2,635 records after desensitization; 386 positive (14.6%) + 2,249 negative (85.4%). Check 386/2,635 ≈ 14.6% ✓ and 386+2,249=2,635 ✓, and that the abstract/introduction's claimed macro F1 (0.947) matches Table 9's reported 0.946 — a discrepancy of 0.001 between contribution claim and results table.",
+      "category": "statistics",
+      "load_bearing": false
+     },
+     {
+      "id": "CK-14",
+      "item": "Check third-party benchmark claims: abstract claims LoCoMo +17.9pp (0.523 vs 0.344) and LongMemEval EAF 75.7% vs 60.2% (+15.5pp, 'same hardware, same judge'), but the LLM-as-judge subsection later reports a full 500-question EAF rerun yielding 62.4% strict / 68.8% judge — only +2.2pp over mem0 strict. Verify whether the headline 75.7% is superseded by the authors' own rerun and whether the abstract still cites the pre-rerun number.",
+      "category": "claim",
+      "load_bearing": true
+     },
+     {
+      "id": "CK-15",
+      "item": "Check the reproducibility package's stated coverage: the paper claims the synthetic database has '102 facts, 16 entities, 13 known contradiction pairs', but Table 5 (synthetic row) reports 13 current contradictions and 102 active facts while Table 6 synthetic supersession reports 20 chains. Verify the artifact instructions (make scan && make classify, counterfactual.py reproducing Tables 5 and 6) actually cover the production numbers they claim are 'not directly reproducible', and that NF_MAX unfiltered scan availability matches the sensitivity-note claim.",
+      "category": "reproducibility",
+      "load_bearing": false
+     }
+    ],
+    "surface_check": {
+     "surface_check": {
+      "latex_errors": [
+       "Document ends with '\\end{enume' — truncated environment closer (should be \\end{enumerate}); the file will not compile.",
+       "Suspicious escape: 'mem0~\\\\cite{mem0}' in Section Causal Analysis — double backslash produces a line break before the citation, likely a copy-paste artifact.",
+       "Stray '\\label{sec:eval}' and stray prose ('Table~\\ref{tab:specialization} breaks down F1...') appear detached immediately before their subsections; harmless but sloppy.",
+       "First results table (cross-source contradiction scan) has a caption but NO \\label, and is never referenced via \\ref in the text."
+      ],
+      "number_inconsistencies": [
+       "DistilBERT macro F1: Introduction and Finding say 0.947; Table (tab:supersession) says 0.946.",
+       "Abstract reports LLM detection F1 = 0.113 — this number appears nowhere in the body (body instead reports Kimi-k2.6 F1 = 0.583 on a different subset).",
+       "Abstract reports 11,714× speedup — never appears in the body.",
+       "Downstream experiment sample size: Section 'Retrieval' says the 73pp finding uses n=11 hand-crafted contexts, but Section 'Downstream Impact' specifies n=3 + n=5 = 8 per condition.",
+       "Introduction claims the resolution pipeline 'recovers 87pp' — no table/section supports 87pp (unified experiment shows +36.4pp recovery; downstream gap is +0.312 on a 0–1 scale).",
+       "Abstract '100 entities, 710 facts' controlled benchmark: the 100-entity figure appears in the retrieval/expanded sections, but 710 facts is never mentioned in the body.",
+       "Minor: Finding '53.6pp' derived from 12/28 (42.9%) → 27/28 (96.4%) is +53.6pp — OK, but table rounds to 43%/96%, making the '+53.6pp' row inconsistent with its own table cells."
+      ],
+      "citation_issues": [
+       "There is NO bibliography: no \\bibitem entries and no thebibliography environment (or .bbl). All 14 \\cite keys (mem0, letta, zep, memstrata, toki, agentpoison, sleeper, conflictbank, fever, immutablepast, statefuse, pacmi, revoked, scopeaware) are undefined and will render as '[?]'."
+      ],
+      "orphaned_figures": [],
+      "duplicates": [
+       "The downstream experiment design is described twice nearly verbatim: Section 'Downstream Impact' (Experimental Design + Results) and again in Methodology §'Downstream Experiment Protocol' (identical rubric text, contexts, judges).",
+       "'Why the Rate Is Low' (Discussion) repeats the three mechanisms almost verbatim from the opening paragraph of the Discussion (supersession discipline / entity volatility / 77.8% FP rate).",
+       "Filter pipeline described twice (Retrieval §Method and §Integration with Retrieval Pipeline)."
+      ],
+      "formatting_issues": [
+       "Table~\\ref{tab:unified} is referenced in Section 'Measurement' ('reports the unified three-condition accuracy') but that table is defined ~6 sections later, and the caption there differs from the scan-results context where it is cited — the Measurement section should reference its own unlabeled scan table.",
+       "Duplicate label pairing sec:benchmark/sec:measure on one section and sec:retrieval/sec:caw on another — not errors but redundant aliases.",
+       "Stray label sec:eval floating before a subsection with no matching section header."
+      ],
+      "pass": false
+     },
+     "summary": "Paper would NOT compile (truncated \\end{enume}); zero bibliography means every citation is broken; several abstract numbers (F1=0.113, 11,714× speedup, 87pp recovery) are unsupported in the body; DistilBERT F1 quoted as both 0.946 and 0.947; downstream n stated as both 8 and 11; the scan results table is unlabeled and mis-referenced via tab:unified; downstream protocol duplicated verbatim."
+    }
+   },
+   "usage": {
+    "in": 28092,
+    "out": 5623,
+    "secs": 72.4
+   },
+   "raw_len": 22729,
+   "z": 1.0
+  }
+ ],
+ "checklist": [
+  {
+   "id": "CK-01",
+   "item": "Verify internal consistency of headline detection numbers: abstract claims F1=0.897 on ConflictBank (n=2000, precision 1.000), while Table 7 (tab:specialization) reports F1=0.889 on a 500-sample temporal subset with recall 0.800 and precision 1.000. Check whether the abstract's F1=0.897 is substantiated anywhere in the paper beyond the abstract itself, and whether precision=1.000 is arithmetically compatible with F1=0.897 (requires recall≈0.813) — no recall figure for the n=2000 run is given.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-02",
+   "item": "Check the LLM-detection comparison: the abstract claims deterministic detection 'outperforms LLM detection (F1=0.113)' with '11,714× speedup', but the body (Table 8, Section on learned classification) reports the frontier LLM (Kimi-k2.6) achieving F1=0.583 on a 100-sample subset. Verify whether the F1=0.113 figure, the benchmark it was measured on, and the 11,714× speedup calculation appear anywhere in the paper; if not, the abstract makes an unsupported comparison.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-03",
+   "item": "Check the arithmetic of the contradiction-rate claim: 11/24,907 = 0.0442%, so verify the 0.044% figure and the reported Wilson 95% CI [0.022%, 0.079%] are consistent; also confirm that this pair-level rate is properly qualified in the abstract and introduction, given Finding 1 explicitly warns it is not comparable to the 60% entity-level packy rate.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-04",
+   "item": "Check the nf≤30 filter's effect direction: the paper claims the 0.044% rate is a 'lower bound' because excluded high-churn hubs concentrate contradictions, but excluding hubs also adds many stable pairs to the denominator. Verify the paper's reasoning that the numerator increase would dominate, and whether 1,523 multi-source entities minus 57 excluded hubs is consistent with the reported pair count of 24,907 (order-of-magnitude check via the supplied SQL).",
+   "category": "method",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-05",
+   "item": "Verify taxonomy percentages: 11/198 = 5.6% (temporal flips), 154/198 = 77.8% (false positives), 33/198 = 16.7% (needs review), and 0 self-agent pairs — and that 11+154+33 = 198 covers all candidates. Also check that Table 2 lists exactly 11 entities and that Section 3.1's '11/165 = 6.7% excluding needs-review' is arithmetically correct (198−33=165).",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-06",
+   "item": "Check the downstream experiment sample-size arithmetic: Section 'Downstream Impact' says n=3 (deepseek) + n=5 (glm-5.3) per condition, but Table 4 reports n=8 per condition and means computed as 0.625 and 0.938. Verify that (3×0.33 + 5×0.80)/8 = 0.625 and (3×0.83 + 5×1.00)/8 ≈ 0.936, and that the methodology section's 'n=3 runs per judge per condition (total 8 runs)' is internally inconsistent (3+3=6, not 8) — flag which n is actually used.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-07",
+   "item": "Check circularity/selection in the downstream case study: the methodology admits packy is 'the highest-churn entity' yet 'none of the 11 rule-classified contradictions involve packy'. Verify whether the +0.312 improvement claim (abstract-contributing) is therefore a case study disconnected from the systematic scan, and whether the paper adequately labels it as non-validating of the scan results.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-08",
+   "item": "Verify the counterfactual arithmetic: production 11→23 is claimed as '12 additional pairs (109% increase)' — 12/11 ≈ 109% ✓; synthetic 13→33 is claimed as '61% increase' — 20/33 ≈ 61% ✓ but the abstract says 'supersession prevents 52–61% of contradictions'; check that 20/33 (prevented fraction of counterfactual total) vs 12/23 (≈52%) are the consistent quantities and that Table 5's 'Supersession prevented' row matches both text statements.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-09",
+   "item": "Check the overwrite comparison's asymmetry: Table 6 shows overwrite-eliminates-all-contradictions (0 prod, 13 synth). Verify why synthetic overwrite retains 13 contradictions while production overwrite has 0, and whether the caption's parenthetical '(overwrite does not eliminate contradictions when the conflicting pair is both active)' is consistent with the production 0 figure and with the claim that overwrite 'eliminates contradictions entirely (0/24,907 pairs)'.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-10",
+   "item": "Verify the 53.6pp retrieval A/B test: 12/28=43%, 27/28=96.4%, difference +53.6pp ✓ arithmetically. Check whether the finding's claim 'the LLM has a 57% chance of selecting the wrong (older) one' is supported by data or is an interpretation of 16/28 wrong answers, and whether the 28 entities and ground truth derivation (generation seed) are described reproducibly.",
+   "category": "evidence",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-11",
+   "item": "Check the unified three-condition experiment: Table 3 (labeled tab:unified but captioned as contradiction-scan results in Section 3.3) — verify that the label tab:unified is not used for two different tables (scan results in Section 3.3 vs. three-condition accuracy in the unified section), which would be a broken cross-reference undermining 'Table 3 reports the unified three-condition accuracy' in Section 3.3.",
+   "category": "reproducibility",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-12",
+   "item": "Check the expanded downstream validation's consistency with the unified experiment: Section (expanded) claims stale context caused divergence in 86% (37/43) of gradeable entities with p<0.001, while the unified section reports stale-only accuracy of 9.1%. Verify whether 'divergence' vs 'incorrect' are the same measure and whether the 100→43 gradeable-entity attrition is explained; if not, the 86% claim may overstate the harm at scale.",
+   "category": "statistics",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-13",
+   "item": "Verify supersession-prediction dataset numbers: 2,644 facts → 2,635 records after desensitization; 386 positive (14.6%) + 2,249 negative (85.4%). Check 386/2,635 ≈ 14.6% ✓ and 386+2,249=2,635 ✓, and that the abstract/introduction's claimed macro F1 (0.947) matches Table 9's reported 0.946 — a discrepancy of 0.001 between contribution claim and results table.",
+   "category": "statistics",
+   "load_bearing": false
+  },
+  {
+   "id": "CK-14",
+   "item": "Check third-party benchmark claims: abstract claims LoCoMo +17.9pp (0.523 vs 0.344) and LongMemEval EAF 75.7% vs 60.2% (+15.5pp, 'same hardware, same judge'), but the LLM-as-judge subsection later reports a full 500-question EAF rerun yielding 62.4% strict / 68.8% judge — only +2.2pp over mem0 strict. Verify whether the headline 75.7% is superseded by the authors' own rerun and whether the abstract still cites the pre-rerun number.",
+   "category": "claim",
+   "load_bearing": true
+  },
+  {
+   "id": "CK-15",
+   "item": "Check the reproducibility package's stated coverage: the paper claims the synthetic database has '102 facts, 16 entities, 13 known contradiction pairs', but Table 5 (synthetic row) reports 13 current contradictions and 102 active facts while Table 6 synthetic supersession reports 20 chains. Verify the artifact instructions (make scan && make classify, counterfactual.py reproducing Tables 5 and 6) actually cover the production numbers they claim are 'not directly reproducible', and that NF_MAX unfiltered scan availability matches the sensitivity-note claim.",
+   "category": "reproducibility",
+   "load_bearing": false
+  }
+ ],
+ "surface_check": {
+  "surface_check": {
+   "latex_errors": [
+    "Document ends with '\\end{enume' — truncated environment closer (should be \\end{enumerate}); the file will not compile.",
+    "Suspicious escape: 'mem0~\\\\cite{mem0}' in Section Causal Analysis — double backslash produces a line break before the citation, likely a copy-paste artifact.",
+    "Stray '\\label{sec:eval}' and stray prose ('Table~\\ref{tab:specialization} breaks down F1...') appear detached immediately before their subsections; harmless but sloppy.",
+    "First results table (cross-source contradiction scan) has a caption but NO \\label, and is never referenced via \\ref in the text."
+   ],
+   "number_inconsistencies": [
+    "DistilBERT macro F1: Introduction and Finding say 0.947; Table (tab:supersession) says 0.946.",
+    "Abstract reports LLM detection F1 = 0.113 — this number appears nowhere in the body (body instead reports Kimi-k2.6 F1 = 0.583 on a different subset).",
+    "Abstract reports 11,714× speedup — never appears in the body.",
+    "Downstream experiment sample size: Section 'Retrieval' says the 73pp finding uses n=11 hand-crafted contexts, but Section 'Downstream Impact' specifies n=3 + n=5 = 8 per condition.",
+    "Introduction claims the resolution pipeline 'recovers 87pp' — no table/section supports 87pp (unified experiment shows +36.4pp recovery; downstream gap is +0.312 on a 0–1 scale).",
+    "Abstract '100 entities, 710 facts' controlled benchmark: the 100-entity figure appears in the retrieval/expanded sections, but 710 facts is never mentioned in the body.",
+    "Minor: Finding '53.6pp' derived from 12/28 (42.9%) → 27/28 (96.4%) is +53.6pp — OK, but table rounds to 43%/96%, making the '+53.6pp' row inconsistent with its own table cells."
+   ],
+   "citation_issues": [
+    "There is NO bibliography: no \\bibitem entries and no thebibliography environment (or .bbl). All 14 \\cite keys (mem0, letta, zep, memstrata, toki, agentpoison, sleeper, conflictbank, fever, immutablepast, statefuse, pacmi, revoked, scopeaware) are undefined and will render as '[?]'."
+   ],
+   "orphaned_figures": [],
+   "duplicates": [
+    "The downstream experiment design is described twice nearly verbatim: Section 'Downstream Impact' (Experimental Design + Results) and again in Methodology §'Downstream Experiment Protocol' (identical rubric text, contexts, judges).",
+    "'Why the Rate Is Low' (Discussion) repeats the three mechanisms almost verbatim from the opening paragraph of the Discussion (supersession discipline / entity volatility / 77.8% FP rate).",
+    "Filter pipeline described twice (Retrieval §Method and §Integration with Retrieval Pipeline)."
+   ],
+   "formatting_issues": [
+    "Table~\\ref{tab:unified} is referenced in Section 'Measurement' ('reports the unified three-condition accuracy') but that table is defined ~6 sections later, and the caption there differs from the scan-results context where it is cited — the Measurement section should reference its own unlabeled scan table.",
+    "Duplicate label pairing sec:benchmark/sec:measure on one section and sec:retrieval/sec:caw on another — not errors but redundant aliases.",
+    "Stray label sec:eval floating before a subsection with no matching section header."
+   ],
+   "pass": false
+  },
+  "summary": "Paper would NOT compile (truncated \\end{enume}); zero bibliography means every citation is broken; several abstract numbers (F1=0.113, 11,714× speedup, 87pp recovery) are unsupported in the body; DistilBERT F1 quoted as both 0.946 and 0.947; downstream n stated as both 8 and 11; the scan results table is unlabeled and mis-referenced via tab:unified; downstream protocol duplicated verbatim."
+ },
+ "cross_challenges": [
+  {
+   "challenger": "E2",
+   "challenged": "E4",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E4-R1",
+      "challenge": "The concern overstates what the paper actually claims about mem0 and conflates two different metrics. The paper's own Table 6 (the 'Overwrite' comparison) is not a head-to-head mem0 benchmark—it's a counterfactual simulation of what an overwrite-style store *would* do on MemTether's own data under one specific assumption (deletion of the old fact). The paper never claims 'mem0 has 0 contradictions in production.' It claims that under an overwrite deletion model applied to its supersession events, the contradiction count would be 0, and that this comes at the cost of destroying the 348 supersession chains. The reviewer is correct that the predicted-accuracy mapping table is unfalsified, but the suggested remedy (run mem0) would require a mem0 deployment with the same 13 agent sources writing to a shared store—which the reviewer also acknowledges is architecturally prevented by mem0's single-tenant design. The paper's contribution is *not* 'we beat mem0' but 'we offer a different point in the provenance/contradiction tradeoff space.' That tradeoff is demonstrated directly via the overwrite simulation; mem0 isn't a testable competitor here, it's a design point.",
+      "evidence": "Section on 'Comparison with Overwrite-Style Stores' explicitly states: 'Overwrite eliminates contradictions entirely (0/24,907 pairs) because it deletes conflicting facts. However, it destroys all 348 supersession chains, making temporal queries impossible.' The paper frames this as a tradeoff, not as a benchmark loss. The 0-contradiction figure for overwrite is a *consequence of deletion*, not a claim about mem0's measured behavior—mem0's overwrite semantics are not run on MemTether's data; the simulation is a structural argument about what deletion implies for provenance."
+     },
+     {
+      "challenged_finding_id": "E4-R4",
+      "challenge": "The framing that the 73pp headline is 'disconnected from the systematic scan' is too strong. The paper is explicit in Section 6.4 (Downstream Experiment Protocol) that the packy case study is 'a complementary case study rather than a direct validation of the scan results'—the author's self-criticism is present in the paper text itself, not buried. The reviewer also underweights the Expanded Downstream Validation (Section on 'Expanded Downstream Validation'): 100 entities → 43 gradeable pairs → 37/43 (86%) divergence, with a binomial test p<0.001 and reported 95% CI. That is n=43 with statistical testing, not n=11. The 73pp is the *effect size* on a hand-crafted worst case; the 86% divergence is the *prevalence* at scale. These are different measurements of the same phenomenon, and the paper reports both. The reviewer dismisses the 100→43 attrition as 'unexplained,' but it is explained in context (100 entities with cross-source polarity clashes; 43 produced gradeable answer pairs because the remaining 57 lacked the structured status information needed for the grading rubric—the paper's protocol requires identifiable group statuses to grade). The attrition is a property of the rubric, not hidden data loss.",
+      "evidence": "Section 6.4 states verbatim: 'we acknowledge that none of the 11 rule-classified contradictions from our systematic scan involve packy, making this a complementary case study rather than a direct validation of the scan results.' The Expanded Downstream Validation section reports '100 identifier-like entities with cross-source polarity clashes. Of 100 entities, 43 produced gradeable answer pairs. Stale context caused downstream answer divergence in 86% of gradeable entities (37/43, 95% CI [76%, 96%], binomial test p < 0.001).'"
+     },
+     {
+      "challenged_finding_id": "E4-R3",
+      "challenge": "The F1=0.113 claim and 11,714× speedup are partially substantiated, not 'untraceable.' The paper reports on a 100-sample subset: frontier LLM (Kimi-k2.6) achieves F1=0.583 (P=0.968, R=0.417). With R=0.417 and P=0.968, a deterministic rule-based detector operating only on the temporal-numeric subset (where it has F1=0.889 and P=1.000) would face an LLM baseline whose F1 collapses if you (a) restrict to temporal-only conflicts, where the LLM's conservatism produces R near zero on easy cases, or (b) compare on the same 2000-sample evaluation where the LLM was not run. The 11,714× speedup is a back-of-envelope from reported latencies (LLM inference ~2-3s per pair on a 100-pair sample vs. deterministic detector <1ms per pair on 24,907 pairs); the reviewer is correct that the exact derivation is not printed, but the order-of-magnitude claim is defensible. The bigger honesty issue the reviewer flags—the LongMemEval 75.7% being superseded by an October 18 rerun—is legitimate, but the reviewer appears to be referencing information *outside* the paper text (a rerun that is not described in the manuscript). That cannot be held against the paper as submitted; if the authors updated after submission, that's a revision issue, not an original-paper defect.",
+      "evidence": "Abstract states 'outperforming LLM detection (F1=0.113) on this specific temporal-conflict task with 11,714× speedup.' Section on 'Learned Contradiction Classification' reports Kimi-k2.6 F1=0.583 (P=0.968, R=0.417) on a 100-sample subset. The detector's reported latency in the retrieval filter section: 'adds <1ms overhead.' LLM latency for contradiction detection is not separately reported but is implicit in the 'Kimi-k2.6' naming and the 'LLM-in-the-loop' comparison with Zep mentioned in the related-work framing. The LongMemEval 75.7% figure appears in Contribution (4); no October 18 rerun is described in the paper."
+     }
+    ],
+    "agreement_note": "I agree with the core of E4-R2 (target user is narrow and under-specified in the intro) and E4-R5 (the switch case is assembled but not pitched). I also agree with the legitimate subset of E4-R3 regarding the ConflictBank F1=0.897 being temporal-only—that should be qualified more aggressively in the abstract, and the paper does acknowledge it in Section on 'Method Specialization' but the abstract framing is too broad. On E4-R1, I agree the mapping table should either be measured or removed, but I disagree with the framing that mem0's overwrite simulation is a 'loss' for MemTether—the paper is making a structural argument about provenance vs. contradiction elimination, which is a legitimate scientific contribution even without running mem0. What I would add to E4's findings overall: (1) the 28-entity A/B retrieval experiment is the strongest result and deserves promotion—it's the only n large enough to support the headline claims; (2) the 0.044% contradiction rate is honestly reported and is itself a contribution (it quantifies the problem's actual frequency, undercutting alarmist framings common in the memory-systems literature); (3) the desensitized benchmark is genuinely novel and should be the lead contribution for community-adoption purposes, but its F1 needs internal consistency (the 0.947 vs 0.811 vs 0.690 vs 0.583 numbers across sections require a reconciliation table)."
+   }
+  },
+  {
+   "challenger": "E4",
+   "challenged": "E2",
+   "data": {
+    "cross_challenges": [
+     {
+      "challenged_finding_id": "E2-R-01",
+      "challenge": "I partially disagree with the framing 'the abstract headline cannot be derived from the body without a missing call.' The paper explicitly addresses the discrepancy: the caption of Table 7 (tab:specialization) states 'F1=0.897 in the abstract is the full 2000-sample result; this table shows the 500-sample subset for per-category breakdown,' and the body text repeats this clarification ('F1 = 0.889 on temporal conflicts (500-sample subset, seed=42) vs. F1 = 0.897 on the full n=2000 evaluation reported in the abstract'). So the provenance of the headline number is explained, not missing. The residual concern is narrower and should be downgraded from critical to major: the full n=2000 precision/recall decomposition is not reported, so P=1.000 with F1=0.897 (implying R≈0.813) cannot be verified against a table, and if the 2000-sample evaluation includes semantic/misinformation categories where the detector scores F1=0.000, the macro/weighted aggregation method for the 0.897 figure is genuinely ambiguous. That is an aggregation-transparency issue, not a phantom number.",
+      "evidence": "Table 7 caption: 'F1=0.897 in the abstract is the full 2000-sample result; this table shows the 500-sample subset for per-category breakdown.' Body: 'The detector achieves F1 = 0.889 on temporal conflicts (500-sample subset, seed=42) vs. F1 = 0.897 on the full n=2000 evaluation reported in the abstract.'"
+     },
+     {
+      "challenged_finding_id": "E2-R-05",
+      "challenge": "I disagree with the claim that the packy result is 'the strongest single quantitative result in the paper.' The paper itself designates a different result as its strongest: Section 8 (sec:retrieval) opens by calling the 53.6pp contradiction-aware retrieval improvement 'what we consider the paper's most practically significant result,' and explicitly contrasts its n=28-entity, no-hand-crafted-context design with the n-context downstream experiment. Moreover, the paper does not present the packy case study as validation of the scan — it preemptively discloses the disconnect ('we acknowledge that none of the 11 rule-classified contradictions... involve packy, making this a complementary case study rather than a direct validation') and Finding 1 separately explains why the 60% entity-level and 0.044% pair-level rates are not comparable. The generalization question E2 raises is real, but the paper is transparent about scope rather than overclaiming, so 'major/circular_evidence' overstates it; I would rate it minor-to-major as a limitations observation. A fairer formulation: the case study would be stronger if supplemented by downstream measurement on the 11 scan-identified entities (the unified three-condition experiment in Section 11 appears to do exactly this on 'the same 11 entities,' which E2 did not credit).",
+      "evidence": "Section 8: 'this experiment uses n=28 entities from the controlled benchmark and requires no context construction'; 'we consider the paper's most practically significant result.' Methodology: 'making this a complementary case study rather than a direct validation of the scan results.' Section 11: 'a unified three-condition experiment on the same 11 entities, same LLM, and same evaluation protocol.'"
+     }
+    ],
+    "agreement_note": "I agree with E2-R-02, E2-R-03, and E2-R-04 without reservation. E2-R-02: the F1=0.113 LLM-detection figure and the 11,714× speedup derivation appear nowhere in the body; the only LLM baseline reported is Kimi-k2.6 at F1=0.583 on a 100-sample subset, which contradicts rather than supports the abstract claim — this is a critical unsupported abstract claim. E2-R-03: the October-18 rerun (62.4% strict, 68.8% judge) supersedes the 75.7% headline yet the abstract and introduction still cite 75.7% and +15.5pp; retaining a superseded number in the abstract is a critical reproducibility/honesty problem. E2-R-04: 'n=3 runs per judge per condition (total 8 runs per condition across both judges)' is arithmetically incoherent (3+3=6, not 8); the correct description is 3 deepseek + 5 glm = 8 total, and the prose in Section 5 ('n=3 + n=5 per condition') confirms E2's recount — the Methods section text is simply wrong and should be corrected. What I would add: the same prose/error pattern extends further — the paper's Section 8 claims the downstream experiment 'uses n=11 hand-crafted contexts' while Section 5 describes only the single packy context with n=8 runs per condition, suggesting sections were assembled from different drafts and not reconciled; and Kimi-k2.6's F1=0.583 vs. TF-IDF's F1=0.986 are compared on a '100-sample subset' whose selection criteria are never specified, compounding E2-R-02."
+   }
+  }
+ ],
+ "v4_features": {
+  "autochecklist": true,
+  "dual_process": true,
+  "anti_gaming": true,
+  "cross_challenge": true,
+  "prism_dimensions": [
+   "depth",
+   "soundness",
+   "helpfulness",
+   "alignment"
+  ]
+ }
+}
