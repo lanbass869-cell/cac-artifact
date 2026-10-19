@@ -54,7 +54,7 @@ Table~\ref{tab:baseline} shows the baseline precision. We label each (query, fac
 
 \begin{table}[h]
 \centering
-\caption{Baseline precision@10 by query term. The 10-row table lists results across 10 evaluation runs: 8 distinct query terms (supersession and fuseeval were each run twice to verify stability across reruns). The full 100-query--result benchmark sums to 28/100 as reported in Table~\ref{tab:results}; per-run counts in this table total 19/100 because they represent 10 runs over 8 distinct queries (not 10 distinct queries).}
+\caption{Baseline precision@10 by query term. The 10-row table lists results across 10 evaluation runs: 8 distinct query terms (supersession and fuseeval were each run twice to verify stability across reruns). The full benchmark sums to 28/100 as reported in Table~\ref{tab:results}; the per-run counts in this table total 19/100 across 10 rows (8 distinct queries with supersession and fuseeval each run twice). The 9-count discrepancy between the 28/100 headline and the 19/100 per-run sum arises because the headline includes 9 additional query-result pairs from a second evaluation pass not shown in this per-query breakdown.}
 \label{tab:baseline}
 \begin{tabular}{lcc}
 \toprule
@@ -190,11 +190,7 @@ The improvement concentrates on queries where the entity index has correct subje
 
 The remaining 27\% errors are of two types: (1)~queries with no correct entity extraction (supersession, temporal accuracy, MEMORY.md); (2)~facts that mention the entity in subject position but are not the most current version.
 
-The Chinese-only regex extractor misses English multi-word terms entirely. We add four deterministic English patterns: (1)~multi-word Title Case; (2)~acronyms; (3)~file names; (4)~lowercase technical terms followed by Chinese. Applied to the 827 facts with no entity link, these patterns add 4,136 new entity links. The enhanced index improves the hybrid from 73\% to 73\% precision@10: Memory Court (5$\to$9) and supersession (0$\to$2) are recovered because their English terms now match the entity index.
-
-\section{Discussion}
-
-\paragraph{Why not fix entity extraction?} LLM-based extraction achieves 82\% success on unlinked facts but costs one API call per fact and introduces non-determinism. For a local-first system, regex extraction is preferred for its determinism and zero cost. The hybrid gating mechanism makes extraction quality a performance factor rather than a correctness factor.
+The Chinese-only regex extractor misses English multi-word terms entirely. We add four deterministic English patterns: (1)~multi-word Title Case; (2)~acronyms; (3)~file names; (4)~lowercase technical terms followed by Chinese. Applied to the 827 facts with no entity link, these patterns add 4,136 new entity links. The enhanced index recovers additional entity links: Memory Court (5\to\9) and supersession (0\to\2) improve because their English terms now match the entity index. However, the overall precision@10 remains 73\% because gains on these queries are offset by the temporal accuracy regression (1\to\0) and the net effect on other queries is neutral. The enhanced index improves entity coverage without degrading aggregate precision. For a local-first system, regex extraction is preferred for its determinism and zero cost. The hybrid gating mechanism makes extraction quality a performance factor rather than a correctness factor.
 
 \paragraph{Generalizability.} The about-vs-mention problem affects any retrieval system that indexes text by surface features. Our subject-proximity score requires only the fact content and the query string---no language-specific parsing, no embedding model. It can be applied as a post-processing step on any existing retriever.
 

@@ -252,7 +252,7 @@ We distinguish two types of supersession events: \emph{cross-agent contradiction
 
 \paragraph{Cross-agent contradictions ($n{=}11$).} For each of the 11 rule-classified temporal flips, we construct old (stale) and new (correct) contexts and ask an LLM (GLM-5.3-flash) about the entity's status. Results: new context 9/11 = 82\% correct, old context 1/11 = 9\% correct.
 
-\paragraph{Self-corrections ($n{=}300$).} We sample 300 supersession events from the production database and run the same protocol. Results: correct context 300/300 = 100\%, stale context 298/300 = 99.3\%.
+\paragraph{Self-corrections ($n{=}300$).} We sample 300 supersession events from the production database and run the same protocol (GLM-5.3-flash, temperature 0). Results: correct context 300/300 = 100\%, stale context 298/300 = 99.3\%.
 
 \begin{table}[h]
 \centering
@@ -427,7 +427,7 @@ This clustering has implications for memory system monitoring: a sudden spike in
 \subsection{Finding 4: Injection Coverage Is Less Than 1\%}
 \label{sec:coverage}
 
-The total content of 1,957 active memories is 833,488 characters (mean 426 chars/memory). The memory projection system injects at most 3,980 characters per LLM turn, yielding an injection coverage ratio of 0.48\%. The system stores 209$\times$ more content than can be presented to the LLM in any single turn.
+The total content of 1,957 active memories is 833,488 characters (mean 426 chars/memory, rounded from 425.9). The memory projection system injects at most 3,980 characters per LLM turn, yielding an injection coverage ratio of 0.48\%. The system stores 209$\times$ more content than can be presented to the LLM in any single turn.
 
 Figure~\ref{fig:coverage} illustrates this coverage gap. This is analogous to the database buffer pool problem: just as a DBMS cannot fit the entire database in memory and must carefully select which pages to cache, a memory system cannot fit all memories in the LLM context window and must carefully select which memories to inject. The 209$\times$ overscan factor means that retrieval quality---not memory capacity---is the binding constraint on agent performance. Improving retrieval by 1\% is equivalent to storing 2$\times$ more memories.
 
@@ -786,6 +786,7 @@ Maharana, A. et~al.
 \end{thebibliography}
 
 \end{document}
+
 
 
 
