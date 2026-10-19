@@ -71,7 +71,7 @@ Study duration & 30 days \\
 Distinct client sources & 15 \\
 Total logged operations\footnote{Includes audit\_log entries (writes) and read tracking events; does not include raw \texttt{use\_count} increments which are tracked per-row. The unified system paper reports 31K+ total operations including 28,807 read operations (sum of use\_count) over the 30-day window.} & 3,000 \\
 Active memories & 1,957 \\
-Superseded memories\footnote{387 rows have status=superseded; 350 supersession edges connect them. The 37-row gap arises from 41 rows that were directly set to status=superseded (e.g., during the nrem_consolidation batch event) without a corresponding supersession edge; these are detectable via the hash-chained audit log.} & 386 \\
+Superseded memories\footnote{387 rows have superseded status; 350 supersession edges connect them. The 37-row gap arises from 41 rows that were directly set to superseded status (e.g., during the nrem\_consolidation batch event) without a corresponding supersession edge; these are detectable via the hash-chained audit log.} & 386 \\
 Retired memories & 200 \\
 Distinct entities & 7,375 \\
 Multi-source entities & 1,580 (21.4\%) \\
