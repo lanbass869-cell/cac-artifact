@@ -1,0 +1,42 @@
+{
+  "ts": "2026-11-01T22:35:29",
+  "method": "EAF 500Q judge rerun with gpt-5.6-terra (paid API, no proxy)",
+  "model": "gpt-5.6-terra",
+  "judge_hits": 251,
+  "judge_total": 331,
+  "judge_rate": 0.7583081570996979,
+  "errors": 163,
+  "per_type": {
+    "temporal-reasoning": {
+      "hits": 56,
+      "n": 59,
+      "rate": 0.9491525423728814
+    },
+    "multi-session": {
+      "hits": 45,
+      "n": 62,
+      "rate": 0.7258064516129032
+    },
+    "knowledge-update": {
+      "hits": 62,
+      "n": 76,
+      "rate": 0.8157894736842105
+    },
+    "single-session-preference": {
+      "hits": 13,
+      "n": 30,
+      "rate": 0.43333333333333335
+    },
+    "single-session-assistant": {
+      "hits": 18,
+      "n": 42,
+      "rate": 0.42857142857142855
+    },
+    "single-session-user": {
+      "hits": 57,
+      "n": 62,
+      "rate": 0.9193548387096774
+    }
+  },
+  "elapsed_s": 234.67732405662537
+}

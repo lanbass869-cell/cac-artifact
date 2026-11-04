@@ -1,0 +1,41 @@
+{
+  "ts": "2026-11-01T23:00:20",
+  "method": "EAF 500Q judge: GPTX terra (331 items) + Loomy deepseek-v4-flash (163 items)",
+  "judge_hits": 335,
+  "judge_total": 494,
+  "judge_rate": 0.6781376518218624,
+  "errors": 0,
+  "per_type": {
+    "temporal-reasoning": {
+      "hits": 67,
+      "n": 129,
+      "rate": 0.5193798449612403
+    },
+    "multi-session": {
+      "hits": 104,
+      "n": 133,
+      "rate": 0.7819548872180451
+    },
+    "knowledge-update": {
+      "hits": 62,
+      "n": 76,
+      "rate": 0.8157894736842105
+    },
+    "single-session-preference": {
+      "hits": 13,
+      "n": 30,
+      "rate": 0.43333333333333335
+    },
+    "single-session-assistant": {
+      "hits": 25,
+      "n": 56,
+      "rate": 0.44642857142857145
+    },
+    "single-session-user": {
+      "hits": 64,
+      "n": 70,
+      "rate": 0.9142857142857143
+    }
+  },
+  "elapsed_s": 753.2594418525696
+}
