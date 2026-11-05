@@ -1,0 +1,11 @@
+{
+  "method": "MemStrata SPO rule (proxy)",
+  "precision": 1.0,
+  "recall": 0.792,
+  "f1": 0.884,
+  "accuracy": 0.896,
+  "tp": 792,
+  "fp": 0,
+  "tn": 1000,
+  "fn": 208
+}

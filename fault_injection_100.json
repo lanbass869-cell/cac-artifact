@@ -1,0 +1,870 @@
+{
+  "scenarios": [
+    {
+      "scenario": "F1_insert",
+      "kill_after": 5,
+      "runs": [
+        {
+          "run": 0,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 1,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 2,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 3,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 4,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 5,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 6,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 7,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 8,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 9,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 10,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 11,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 12,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 13,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 14,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 15,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 16,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 17,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 18,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 19,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        }
+      ],
+      "summary": {
+        "total_runs": 20,
+        "chain_ok": "20/20",
+        "recovery_ok": "20/20",
+        "data_loss_runs": "0/20",
+        "no_data_loss": true
+      }
+    },
+    {
+      "scenario": "F2_insert",
+      "kill_after": 3,
+      "runs": [
+        {
+          "run": 0,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 1,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 2,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 3,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 4,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 5,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 6,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 7,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 8,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 9,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 10,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 11,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 12,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 13,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 14,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 15,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 16,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 17,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 18,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 19,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        }
+      ],
+      "summary": {
+        "total_runs": 20,
+        "chain_ok": "20/20",
+        "recovery_ok": "20/20",
+        "data_loss_runs": "0/20",
+        "no_data_loss": true
+      }
+    },
+    {
+      "scenario": "F3_insert",
+      "kill_after": 7,
+      "runs": [
+        {
+          "run": 0,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 1,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 2,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 3,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 4,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 5,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 6,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 7,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 8,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 9,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 10,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 11,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 12,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 13,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 14,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 15,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 16,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 17,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 18,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 19,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        }
+      ],
+      "summary": {
+        "total_runs": 20,
+        "chain_ok": "20/20",
+        "recovery_ok": "20/20",
+        "data_loss_runs": "0/20",
+        "no_data_loss": true
+      }
+    },
+    {
+      "scenario": "F4_insert",
+      "kill_after": 2,
+      "runs": [
+        {
+          "run": 0,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 1,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 2,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 3,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 4,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 5,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 6,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 7,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 8,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 9,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 10,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 11,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 12,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 13,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 14,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 15,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 16,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 17,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 18,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 19,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        }
+      ],
+      "summary": {
+        "total_runs": 20,
+        "chain_ok": "20/20",
+        "recovery_ok": "20/20",
+        "data_loss_runs": "0/20",
+        "no_data_loss": true
+      }
+    },
+    {
+      "scenario": "F5_insert",
+      "kill_after": 8,
+      "runs": [
+        {
+          "run": 0,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 1,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 2,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 3,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 4,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 5,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 6,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 7,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 8,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 9,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 10,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 11,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 12,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 13,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 14,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 15,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 16,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 17,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 18,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        },
+        {
+          "run": 19,
+          "writes_before_kill": 0,
+          "db_count_after": 0,
+          "chain_ok": true,
+          "recovery_ok": true,
+          "data_loss": 0
+        }
+      ],
+      "summary": {
+        "total_runs": 20,
+        "chain_ok": "20/20",
+        "recovery_ok": "20/20",
+        "data_loss_runs": "0/20",
+        "no_data_loss": true
+      }
+    }
+  ],
+  "total_runs": 100
+}
