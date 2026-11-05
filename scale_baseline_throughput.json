@@ -1,0 +1,65 @@
+{
+  "scale_test": [
+    {
+      "precision": 1.0,
+      "recall": 0.814,
+      "f1": 0.897,
+      "tp": 814,
+      "fp": 0,
+      "tn": 1000,
+      "fn": 186,
+      "scale": "n=2000 (paper)",
+      "n": 2000
+    },
+    {
+      "precision": 1.0,
+      "recall": 0.825,
+      "f1": 0.904,
+      "tp": 622,
+      "fp": 0,
+      "tn": 1000,
+      "fn": 132,
+      "scale": "n=2755 (50%)",
+      "n": 1754
+    },
+    {
+      "precision": 1.0,
+      "recall": 0.824,
+      "f1": 0.904,
+      "tp": 1243,
+      "fp": 0,
+      "tn": 1820,
+      "fn": 265,
+      "scale": "n=3328 (all pairs)",
+      "n": 3328
+    }
+  ],
+  "bm25_baseline": {
+    "precision": 0.602,
+    "recall": 0.351,
+    "f1": 0.443,
+    "tp": 351,
+    "fp": 232,
+    "tn": 768,
+    "fn": 649,
+    "method": "BM25 keyword overlap (proxy)"
+  },
+  "asof_indexed_vs_scan": {
+    "with_index_p50_ms": 0.0146,
+    "without_index_p50_ms": 0.016,
+    "speedup": 1.1
+  },
+  "throughput": {
+    "writes_per_sec": 462968,
+    "queries_per_sec": 418276
+  },
+  "false_negative_analysis": {
+    "total_fn": 186,
+    "causes": {
+      "no_numbers": 0,
+      "no_years": 0,
+      "same_numbers": 179,
+      "no_overlap": 7
+    }
+  }
+}
