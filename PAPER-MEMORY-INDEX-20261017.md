@@ -769,7 +769,7 @@
 | 2026-10-13 | fact | codex | Phase 1 MemEval MemTether adapter完成+LoCoMo全量跑启(2026-10-13,source=codex)。①MemEval clone到E:/RUANJIAN/m | `fact-20261013225457-d12f0d028c` |
 | 2026-10-13 | decision | codex | 外部benchmark评测执行方案写完(2026-10-13,source=codex)。文档=E:/RUANJIAN/workdocs/memtether/外部benchmark评测执行方案-202 | `fact-20261013223510-9d3826ebb3` |
 | 2026-10-13 | fact | codex | 全量状态核查完成(2026-10-13深夜,source=codex,用户要求仔细检查)。核查206条记忆+实际文件状态：①mem0 on LoCoMo=已经跑完但结果是0/1986=0%——原因是硅 | `fact-20261013191602-015cba7c27` |
-| 2026-10-12 | fact | codex | 用户王子杰提供了完整的个人处境文档(2026-10-12,source=codex)。核心信息：①黑科大计算机学院无CCF论文无导师无同类，教师水平极低（专利不倒翁笔筒）②终极梦想=原生记忆AI架构， | `fact-20261012145537-100a67af08` |
+| 2026-10-12 | fact | codex | 用户（匿名）提供了完整的个人处境文档(2026-10-12,source=codex)。核心信息：①[大学名]计算机学院无CCF论文无导师无同类，教师水平极低（专利不倒翁笔筒）②终极梦想=原生记忆AI架构， | `fact-20261012145537-100a67af08` |
 | 2026-10-12 | incident | codex | mem0 on LoCoMo 1986Q failed：0 messages ingested, 0% accuracy。原因=mem0 2.0.20 的 LLM/embedding 配置连不上本地8 | `fact-20261012123725-50d0a85c03` |
 | 2026-10-12 | fact | codex | 论文新数据汇总(2026-10-12,source=codex)：①ConflictBank temporal F1=0.903(n=2000) ②LLM对比 our F1=0.980 vs glm  | `fact-20261012101248-ff991d98fd` |
 | 2026-10-12 | fact | codex | Detector evaluation on controlled benchmark完成(2026-10-12,source=codex)：100 entities/710 facts with g | `fact-20261012083746-0a1e7acc7e` |
@@ -1337,7 +1337,7 @@
 | 2026-10-06 | fact | codex | 投稿前自审工具全网深度调研(2026-10-06 22:30,source=codex)。搜索引擎全部被限流(Google/Bing/DDG/SemanticScholar)，用arXiv API完成 | `fact-20261006221702-ad6b9b5c56` |
 | 2026-10-06 | fact | codex | 投稿前自审工具调研完成(2026-10-06 22:15,source=codex)。找到3个核心工具: ①PaperJury-Codex(★223,已安装到~/.codex/skills/paper | `fact-20261006220440-f43c3b3006` |
 | 2026-10-06 | decision | codex | 终局改造升级方案v11完成(2026-10-06,source=codex)：存workdocs/memtether/CCF一等奖终局改造升级方案v11-20261006.md(取代v8/v9/v10 | `fact-20261006152948-eb6b22c9b2` |
-| 2026-10-06 | decision | codex | 用户战略目标更新(2026-10-06,source=codex)。黑龙江科技大学背景:计算机老师几十年全是学术垃圾(本校学报类),唯一两篇=交钱四区SCI,无人走过特殊学术推免。KSEM在学校=极罕 | `fact-20261006101026-e443918826` |
+| 2026-10-06 | decision | codex | 用户战略目标更新(2026-10-06,source=codex)。[大学名]背景:计算机老师几十年全是学术垃圾(本校学报类),唯一两篇=交钱四区SCI,无人走过特殊学术推免。KSEM在学校=极罕 | `fact-20261006101026-e443918826` |
 | 2026-10-05 | fact | codex | Support ticket已提交(2026-10-05晚,source=codex)。用户通过GitHub Private Information Removal Request表单提交，包含raw | `fact-20261005224731-ce40993352` |
 | 2026-10-03 | fact | codex | 四篇论文大纲潜力评估(2026-10-03,source=codex): 论文1已完成=CCF-C 80%(诊断+AEA)。论文2=Governed Memory(14107B完整英文稿已有)目标AA | `fact-20261003152207-2739bccbf4` |
 | 2026-10-03 | decision | codex | 论文终审第二轮修正完成(2026-10-03,source=codex): ①Abstract完全重写=修复run-on语法错误/去除重复短语/数字与body一致/91%限定为80题子集 ②struc | `fact-20261003132919-6d5a4498ee` |

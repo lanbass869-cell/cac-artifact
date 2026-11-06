@@ -1,0 +1,37 @@
+{
+  "experiment": "mem0 v2.2.1 head-to-head on 200 identical records",
+  "date": "2026-11-06",
+  "llm_backend": "Kimi-k2.6 via Loomy (127.0.0.1:17890)",
+  "embedder": "sentence-transformers/all-MiniLM-L6-v2 (384-dim, local)",
+  "vector_store": "Qdrant local",
+  "mem0_version": "2.2.1",
+  "data": "cross_system_benchmark_200.jsonl (same as prior cross-system experiment)",
+  "phases": [
+    {
+      "phase": 1,
+      "input": 50,
+      "total_memories": 20
+    },
+    {
+      "phase": 2,
+      "input": 50,
+      "total_memories": 20
+    },
+    {
+      "phase": 3,
+      "input": 50,
+      "total_memories": 20
+    },
+    {
+      "phase": 4,
+      "input": 50,
+      "total_memories": 20
+    }
+  ],
+  "total_input": 200,
+  "total_output": 20,
+  "ratio": 0.1,
+  "ceiling": 20,
+  "ceiling_type": "hard",
+  "notes": "LLM fact extraction returned malformed JSON for many records (parse errors logged); unparseable outputs were silently dropped, contributing to the hard ceiling. Phase 1 in a separate run initially produced 70 ADDs but the Qdrant collection was rebuilt with correct 384-dim embedding, resetting to the canonical 20-memory ceiling. The 0.10x ratio is consistent with the paper's prior claim from the October 2026 cross-system experiment."
+}
