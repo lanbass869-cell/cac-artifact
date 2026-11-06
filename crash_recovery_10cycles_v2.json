@@ -1,0 +1,90 @@
+{
+  "db": "E:\\Temp\\mt_crash_ramycyde\\crash.db",
+  "cycles": [
+    {
+      "cycle": 0,
+      "wrote_before_kill": 10,
+      "db_count_after": 10,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 1,
+      "wrote_before_kill": 10,
+      "db_count_after": 21,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 2,
+      "wrote_before_kill": 10,
+      "db_count_after": 32,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 3,
+      "wrote_before_kill": 10,
+      "db_count_after": 43,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 4,
+      "wrote_before_kill": 10,
+      "db_count_after": 54,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 5,
+      "wrote_before_kill": 10,
+      "db_count_after": 65,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 6,
+      "wrote_before_kill": 10,
+      "db_count_after": 76,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 7,
+      "wrote_before_kill": 10,
+      "db_count_after": 87,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 8,
+      "wrote_before_kill": 10,
+      "db_count_after": 98,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    },
+    {
+      "cycle": 9,
+      "wrote_before_kill": 10,
+      "db_count_after": 109,
+      "chain_ok": true,
+      "recovery_write_ok": true,
+      "detail": "ok"
+    }
+  ],
+  "summary": {
+    "cycles": 10,
+    "all_chain_ok": true,
+    "all_recovery_ok": true
+  }
+}
