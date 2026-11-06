@@ -1,0 +1,13 @@
+{
+  "experiment": "paired bootstrap CI for F1 difference",
+  "date": "2026-11-06",
+  "n_samples": 2000,
+  "n_bootstrap": 10000,
+  "our_f1_mean": 0.895,
+  "memstrata_f1_mean": 0.88,
+  "mean_difference": 0.015,
+  "ci_95_lower": -0.003,
+  "ci_95_upper": 0.034,
+  "ci_includes_zero": true,
+  "conclusion": "The 1.3pp margin is within the 95% CI"
+}

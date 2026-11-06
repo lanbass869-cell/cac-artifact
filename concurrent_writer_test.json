@@ -1,0 +1,58 @@
+{
+  "experiment": "multi-writer concurrency test",
+  "date": "2026-11-06",
+  "writers": 5,
+  "writes_per_writer": 100,
+  "total_writes": 500,
+  "busy_timeout_ms": 5000,
+  "journal_mode": "WAL",
+  "per_writer": {
+    "0": {
+      "successful": 100,
+      "failed": 0,
+      "busy_errors": 0,
+      "elapsed_seconds": 0.06,
+      "writes_per_second": 1738.0
+    },
+    "1": {
+      "successful": 100,
+      "failed": 0,
+      "busy_errors": 0,
+      "elapsed_seconds": 0.12,
+      "writes_per_second": 849.7
+    },
+    "3": {
+      "successful": 100,
+      "failed": 0,
+      "busy_errors": 0,
+      "elapsed_seconds": 0.19,
+      "writes_per_second": 524.6
+    },
+    "2": {
+      "successful": 100,
+      "failed": 0,
+      "busy_errors": 0,
+      "elapsed_seconds": 0.26,
+      "writes_per_second": 378.7
+    },
+    "4": {
+      "successful": 100,
+      "failed": 0,
+      "busy_errors": 0,
+      "elapsed_seconds": 0.33,
+      "writes_per_second": 300.0
+    }
+  },
+  "summary": {
+    "total_successful": 500,
+    "total_failed": 0,
+    "total_busy_errors": 0,
+    "total_elapsed_seconds": 0.34,
+    "overall_writes_per_second": 1477.5,
+    "db_facts_after": 500,
+    "db_audit_after": 500,
+    "distinct_sources": 5,
+    "integrity_check": "PASS",
+    "audit_integrity": "PASS"
+  }
+}

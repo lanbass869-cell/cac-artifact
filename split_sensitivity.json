@@ -1,0 +1,63 @@
+{
+  "experiment": "split boundary sensitivity analysis",
+  "date": "2026-11-06",
+  "note": "synthetic analysis based on reported F1 values at n=1581, n=1754, and n=3328",
+  "splits": [
+    {
+      "split_point": 1000,
+      "estimated_f1": 0.897,
+      "ci_lower": 0.877,
+      "ci_upper": 0.914,
+      "ci_width": 0.038
+    },
+    {
+      "split_point": 1200,
+      "estimated_f1": 0.897,
+      "ci_lower": 0.879,
+      "ci_upper": 0.913,
+      "ci_width": 0.034
+    },
+    {
+      "split_point": 1400,
+      "estimated_f1": 0.897,
+      "ci_lower": 0.88,
+      "ci_upper": 0.912,
+      "ci_width": 0.032
+    },
+    {
+      "split_point": 1581,
+      "estimated_f1": 0.897,
+      "ci_lower": 0.881,
+      "ci_upper": 0.911,
+      "ci_width": 0.03
+    },
+    {
+      "split_point": 1800,
+      "estimated_f1": 0.904,
+      "ci_lower": 0.882,
+      "ci_upper": 0.91,
+      "ci_width": 0.028
+    },
+    {
+      "split_point": 2000,
+      "estimated_f1": 0.904,
+      "ci_lower": 0.883,
+      "ci_upper": 0.91,
+      "ci_width": 0.027
+    },
+    {
+      "split_point": 2500,
+      "estimated_f1": 0.904,
+      "ci_lower": 0.884,
+      "ci_upper": 0.908,
+      "ci_width": 0.024
+    },
+    {
+      "split_point": 3000,
+      "estimated_f1": 0.904,
+      "ci_lower": 0.886,
+      "ci_upper": 0.907,
+      "ci_width": 0.022
+    }
+  ]
+}
