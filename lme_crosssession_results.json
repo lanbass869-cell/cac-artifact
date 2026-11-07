@@ -1,0 +1,452 @@
+{
+  "0a995998": {
+    "question": "How many items of clothing do I need to pick up or return from a store?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31983,
+    "bridge_entities": 1939
+  },
+  "6d550036": {
+    "question": "How many projects have I led or am currently leading?",
+    "gold": 2,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31950,
+    "bridge_entities": 1812
+  },
+  "gpt4_59c863d7": {
+    "question": "How many model kits have I worked on or bought?",
+    "gold": "I have worked on or bought five model kits. The scales of the models are: Revell F-15 Eagle (scale not mentioned), Tamiya 1/48 scale Spitfire Mk.V, 1/16 scale German Tiger I tank, 1/72 scale B-29 bomber, and 1/24 scale '69 Camaro.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31977,
+    "bridge_entities": 1799
+  },
+  "b5ef892d": {
+    "question": "How many days did I spend on camping trips in the United States this year?",
+    "gold": "8 days.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31992,
+    "bridge_entities": 1926
+  },
+  "e831120c": {
+    "question": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+    "gold": "3.5 weeks",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31977,
+    "bridge_entities": 1825
+  },
+  "3a704032": {
+    "question": "How many plants did I acquire in the last month?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31981,
+    "bridge_entities": 1883
+  },
+  "gpt4_d84a3211": {
+    "question": "How much total money have I spent on bike-related expenses since the start of the year?",
+    "gold": "$185",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31974,
+    "bridge_entities": 1964
+  },
+  "aae3761f": {
+    "question": "How many hours in total did I spend driving to my three road trip destinations combined?",
+    "gold": "15 hours for getting to the three destinations (or 30 hours for the round trip)",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 32000,
+    "bridge_entities": 1783
+  },
+  "gpt4_f2262a51": {
+    "question": "How many different doctors did I visit?",
+    "gold": "I visited three different doctors: a primary care physician, an ENT specialist, and a dermatologist.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31968,
+    "bridge_entities": 1894
+  },
+  "dd2973ad": {
+    "question": "What time did I go to bed on the day before I had a doctor's appointment?",
+    "gold": "2 AM",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31986,
+    "bridge_entities": 1850
+  },
+  "c4a1ceb8": {
+    "question": "How many different types of citrus fruits have I used in my cocktail recipes?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31992,
+    "bridge_entities": 1970
+  },
+  "gpt4_a56e767c": {
+    "question": "How many movie festivals that I attended?",
+    "gold": "I attended four movie festivals.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31951,
+    "bridge_entities": 1813
+  },
+  "6cb6f249": {
+    "question": "How many days did I take social media breaks in total?",
+    "gold": "17 days",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31961,
+    "bridge_entities": 1786
+  },
+  "46a3abf7": {
+    "question": "How many tanks do I currently have, including the one I set up for my friend's kid?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31973,
+    "bridge_entities": 1848
+  },
+  "36b9f61e": {
+    "question": "What is the total amount I spent on luxury items in the past few months?",
+    "gold": "$2,500",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31950,
+    "bridge_entities": 1908
+  },
+  "28dc39ac": {
+    "question": "How many hours have I spent playing games in total?",
+    "gold": "140 hours",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31998,
+    "bridge_entities": 1817
+  },
+  "gpt4_2f8be40d": {
+    "question": "How many weddings have I attended in this year?",
+    "gold": "I attended three weddings. The couples were Rachel and Mike, Emily and Sarah, and Jen and Tom.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31996,
+    "bridge_entities": 1874
+  },
+  "2e6d26dc": {
+    "question": "How many babies were born to friends and family members in the last few months?",
+    "gold": 5,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31997,
+    "bridge_entities": 1743
+  },
+  "gpt4_15e38248": {
+    "question": "How many pieces of furniture did I buy, assemble, sell, or fix in the past few months?",
+    "gold": "4",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31992,
+    "bridge_entities": 1793
+  },
+  "88432d0a": {
+    "question": "How many times did I bake something in the past two weeks?",
+    "gold": 4,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31999,
+    "bridge_entities": 1886
+  },
+  "80ec1f4f": {
+    "question": "How many different museums or galleries did I visit in the month of February?",
+    "gold": 2,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31986,
+    "bridge_entities": 1901
+  },
+  "d23cf73b": {
+    "question": "How many different cuisines have I learned to cook or tried out in the past few months?",
+    "gold": 4,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31958,
+    "bridge_entities": 1892
+  },
+  "gpt4_7fce9456": {
+    "question": "How many properties did I view before making an offer on the townhouse in the Brookside neighborhood?",
+    "gold": "I viewed four properties before making an offer on the townhouse in the Brookside neighborhood. The reasons I didn't make an offer on them were: the kitchen of the bungalow needed serious renovation, the property in Cedar Creek was out of my budget, the noise from the highway was a deal-breaker for the 1-bedroom condo, and my offer on the 2-bedroom condo was rejected due to a higher bid.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31994,
+    "bridge_entities": 1885
+  },
+  "d682f1a2": {
+    "question": "How many different types of food delivery services have I used recently?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31994,
+    "bridge_entities": 1895
+  },
+  "7024f17c": {
+    "question": "How many hours of jogging and yoga did I do last week?",
+    "gold": "0.5 hours",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31961,
+    "bridge_entities": 1867
+  },
+  "gpt4_5501fe77": {
+    "question": "Which social media platform did I gain the most followers on over the past month?",
+    "gold": "TikTok",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31969,
+    "bridge_entities": 1867
+  },
+  "gpt4_2ba83207": {
+    "question": "Which grocery store did I spend the most money at in the past month?",
+    "gold": "Thrive Market",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31996,
+    "bridge_entities": 2006
+  },
+  "2318644b": {
+    "question": "How much more did I spend on accommodations per night in Hawaii compared to Tokyo?",
+    "gold": "$270",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31991,
+    "bridge_entities": 1765
+  },
+  "2ce6a0f2": {
+    "question": "How many different art-related events did I attend in the past month?",
+    "gold": 4,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31986,
+    "bridge_entities": 1838
+  },
+  "gpt4_d12ceb0e": {
+    "question": "What is the average age of me, my parents, and my grandparents?",
+    "gold": "59.6",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31992,
+    "bridge_entities": 1918
+  },
+  "00ca467f": {
+    "question": "How many doctor's appointments did I go to in March?",
+    "gold": 2,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31995,
+    "bridge_entities": 1839
+  },
+  "b3c15d39": {
+    "question": "How many days did it take for me to receive the new remote shutter release after I ordered it?",
+    "gold": "5 days. 6 days (including the last day) is also acceptable.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31996,
+    "bridge_entities": 1691
+  },
+  "gpt4_31ff4165": {
+    "question": "How many health-related devices do I use in a day?",
+    "gold": "4",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31990,
+    "bridge_entities": 1876
+  },
+  "eeda8a6d": {
+    "question": "How many fish are there in total in both of my aquariums?",
+    "gold": 17,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31983,
+    "bridge_entities": 1932
+  },
+  "2788b940": {
+    "question": "How many fitness classes do I attend in a typical week?",
+    "gold": 5,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31957,
+    "bridge_entities": 1900
+  },
+  "60bf93ed": {
+    "question": "How many days did it take for my laptop backpack to arrive after I bought it?",
+    "gold": "5 days. 6 days (including the last day) is also acceptable.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31963,
+    "bridge_entities": 2031
+  },
+  "9d25d4e0": {
+    "question": "How many pieces of jewelry did I acquire in the last two months?",
+    "gold": 3,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31998,
+    "bridge_entities": 1898
+  },
+  "129d1232": {
+    "question": "How much money did I raise in total through all the charity events I participated in?",
+    "gold": "$5,850",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31985,
+    "bridge_entities": 1819
+  },
+  "60472f9c": {
+    "question": "How many projects have I been working on simultaneously, excluding my thesis?",
+    "gold": 2,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31972,
+    "bridge_entities": 1822
+  },
+  "gpt4_194be4b3": {
+    "question": "How many musical instruments do I currently own?",
+    "gold": "I currently own 4 musical instruments. I've had the Fender Stratocaster electric guitar for 5 years, the Yamaha FG800 acoustic guitar for 8 years, the 5-piece Pearl Export drum set for an unspecified amount of time, and the Korg B1 piano for 3 years.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31995,
+    "bridge_entities": 1800
+  },
+  "a9f6b44c": {
+    "question": "How many bikes did I service or plan to service in March?",
+    "gold": 2,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31973,
+    "bridge_entities": 1834
+  },
+  "d851d5ba": {
+    "question": "How much money did I raise for charity in total?",
+    "gold": "$3,750",
+    "answer": "No total amount is mentioned in the conversation, so it cannot be determined.",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31998,
+    "bridge_entities": 1882
+  },
+  "5a7937c8": {
+    "question": "How many days did I spend participating in faith-related activities in December?",
+    "gold": "3 days.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31994,
+    "bridge_entities": 1737
+  },
+  "gpt4_ab202e7f": {
+    "question": "How many kitchen items did I replace or fix?",
+    "gold": "I replaced or fixed five items: the kitchen faucet, the kitchen mat, the toaster, the coffee maker, and the kitchen shelves.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31995,
+    "bridge_entities": 1864
+  },
+  "gpt4_e05b82a6": {
+    "question": "How many times did I ride rollercoasters across all the events I attended from July to October?",
+    "gold": "10 times",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31966,
+    "bridge_entities": 1863
+  },
+  "gpt4_731e37d7": {
+    "question": "How much total money did I spend on attending workshops in the last four months?",
+    "gold": "$720",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31963,
+    "bridge_entities": 1831
+  },
+  "edced276": {
+    "question": "How many days did I spend in total traveling in Hawaii and in New York City?",
+    "gold": "15 days",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31965,
+    "bridge_entities": 1886
+  },
+  "10d9b85a": {
+    "question": "How many days did I spend attending workshops, lectures, and conferences in April?",
+    "gold": "3 days",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31989,
+    "bridge_entities": 1859
+  },
+  "e3038f8c": {
+    "question": "How many rare items do I have in total?",
+    "gold": 99,
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31955,
+    "bridge_entities": 1861
+  },
+  "2b8f3739": {
+    "question": "What is the total amount of money I earned from selling my products at the markets?",
+    "gold": "$495",
+    "answer": "You earned **$225** from selling 15 jars of homemade jam at the Homemade and Handmade Market.",
+    "hybrid_judge": 0,
+    "question_type": "multi-session",
+    "context_chars": 31998,
+    "bridge_entities": 1853
+  }
+}

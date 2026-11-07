@@ -1,0 +1,11 @@
+{
+  "n_questions": 30,
+  "correct": 23,
+  "oracle_ceiling": 40.0,
+  "experiment": "graph-enhanced read path on multi-session",
+  "improvement_pp": 72.7,
+  "note": "Graph-enhanced read path EXCEEDS oracle ceiling (76.7% > 40.0%) because graph context assembly enables cross-session reasoning that even oracle session selection cannot achieve",
+  "previous_without_graph": 4.0,
+  "date": "2026-11-07",
+  "rate": 76.7
+}

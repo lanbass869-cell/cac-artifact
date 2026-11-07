@@ -1,0 +1,272 @@
+{
+  "0a995998": {
+    "q": "How many items of clothing do I need to pick up or return from a store?",
+    "gold": 3,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31984,
+    "bridges": 50
+  },
+  "6d550036": {
+    "q": "How many projects have I led or am currently leading?",
+    "gold": 2,
+    "ans": "",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31998,
+    "bridges": 50
+  },
+  "gpt4_59c863d7": {
+    "q": "How many model kits have I worked on or bought?",
+    "gold": "I have worked on or bought five model kits. The scales of the models are: Revell F-15 Eagle (scale not mentioned), Tamiya 1/48 scale Spitfire Mk.V, 1/16 scale German Tiger I tank, 1/72 scale B-29 bomber, and 1/24 scale '69 Camaro.",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31999,
+    "bridges": 50
+  },
+  "b5ef892d": {
+    "q": "How many days did I spend on camping trips in the United States this year?",
+    "gold": "8 days.",
+    "ans": "",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31975,
+    "bridges": 50
+  },
+  "e831120c": {
+    "q": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+    "gold": "3.5 weeks",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31996,
+    "bridges": 50
+  },
+  "3a704032": {
+    "q": "How many plants did I acquire in the last month?",
+    "gold": 3,
+    "ans": "",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31970,
+    "bridges": 50
+  },
+  "gpt4_d84a3211": {
+    "q": "How much total money have I spent on bike-related expenses since the start of the year?",
+    "gold": "$185",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31990,
+    "bridges": 50
+  },
+  "aae3761f": {
+    "q": "How many hours in total did I spend driving to my three road trip destinations combined?",
+    "gold": "15 hours for getting to the three destinations (or 30 hours for the round trip)",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31982,
+    "bridges": 50
+  },
+  "gpt4_f2262a51": {
+    "q": "How many different doctors did I visit?",
+    "gold": "I visited three different doctors: a primary care physician, an ENT specialist, and a dermatologist.",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31964,
+    "bridges": 50
+  },
+  "dd2973ad": {
+    "q": "What time did I go to bed on the day before I had a doctor's appointment?",
+    "gold": "2 AM",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31996,
+    "bridges": 50
+  },
+  "c4a1ceb8": {
+    "q": "How many different types of citrus fruits have I used in my cocktail recipes?",
+    "gold": 3,
+    "ans": "",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31997,
+    "bridges": 50
+  },
+  "gpt4_a56e767c": {
+    "q": "How many movie festivals that I attended?",
+    "gold": "I attended four movie festivals.",
+    "ans": "Based on the provided context, there is no mention of any movie festivals you attended, so",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31991,
+    "bridges": 50
+  },
+  "6cb6f249": {
+    "q": "How many days did I take social media breaks in total?",
+    "gold": "17 days",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31981,
+    "bridges": 50
+  },
+  "46a3abf7": {
+    "q": "How many tanks do I currently have, including the one I set up for my friend's kid?",
+    "gold": 3,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31974,
+    "bridges": 50
+  },
+  "36b9f61e": {
+    "q": "What is the total amount I spent on luxury items in the past few months?",
+    "gold": "$2,500",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31977,
+    "bridges": 50
+  },
+  "28dc39ac": {
+    "q": "How many hours have I spent playing games in total?",
+    "gold": "140 hours",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31977,
+    "bridges": 50
+  },
+  "gpt4_2f8be40d": {
+    "q": "How many weddings have I attended in this year?",
+    "gold": "I attended three weddings. The couples were Rachel and Mike, Emily and Sarah, and Jen and Tom.",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31954,
+    "bridges": 50
+  },
+  "2e6d26dc": {
+    "q": "How many babies were born to friends and family members in the last few months?",
+    "gold": 5,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31979,
+    "bridges": 50
+  },
+  "gpt4_15e38248": {
+    "q": "How many pieces of furniture did I buy, assemble, sell, or fix in the past few months?",
+    "gold": "4",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31994,
+    "bridges": 50
+  },
+  "88432d0a": {
+    "q": "How many times did I bake something in the past two weeks?",
+    "gold": 4,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 32000,
+    "bridges": 50
+  },
+  "80ec1f4f": {
+    "q": "How many different museums or galleries did I visit in the month of February?",
+    "gold": 2,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31966,
+    "bridges": 50
+  },
+  "d23cf73b": {
+    "q": "How many different cuisines have I learned to cook or tried out in the past few months?",
+    "gold": 4,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31997,
+    "bridges": 50
+  },
+  "gpt4_7fce9456": {
+    "q": "How many properties did I view before making an offer on the townhouse in the Brookside neighborhood?",
+    "gold": "I viewed four properties before making an offer on the townhouse in the Brookside neighborhood. The reasons I didn't make an offer on them were: the kitchen of the bungalow needed serious renovation, the property in Cedar Creek was out of my budget, the noise from the highway was a deal-breaker for the 1-bedroom condo, and my offer on the 2-bedroom condo was rejected due to a higher bid.",
+    "ans": "The context does not mention how many properties you viewed before making an offer on the townhouse in Brookside, so I can\u2019t determine that from the provided information.",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31951,
+    "bridges": 50
+  },
+  "d682f1a2": {
+    "q": "How many different types of food delivery services have I used recently?",
+    "gold": 3,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31969,
+    "bridges": 50
+  },
+  "7024f17c": {
+    "q": "How many hours of jogging and yoga did I do last week?",
+    "gold": "0.5 hours",
+    "ans": "",
+    "judge": 0,
+    "type": "multi-session",
+    "chars": 31996,
+    "bridges": 50
+  },
+  "gpt4_5501fe77": {
+    "q": "Which social media platform did I gain the most followers on over the past month?",
+    "gold": "TikTok",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31994,
+    "bridges": 50
+  },
+  "gpt4_2ba83207": {
+    "q": "Which grocery store did I spend the most money at in the past month?",
+    "gold": "Thrive Market",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31998,
+    "bridges": 50
+  },
+  "2318644b": {
+    "q": "How much more did I spend on accommodations per night in Hawaii compared to Tokyo?",
+    "gold": "$270",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31996,
+    "bridges": 50
+  },
+  "2ce6a0f2": {
+    "q": "How many different art-related events did I attend in the past month?",
+    "gold": 4,
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31986,
+    "bridges": 50
+  },
+  "gpt4_d12ceb0e": {
+    "q": "What is the average age of me, my parents, and my grandparents?",
+    "gold": "59.6",
+    "ans": "",
+    "judge": 1,
+    "type": "multi-session",
+    "chars": 31969,
+    "bridges": 50
+  }
+}
