@@ -1,0 +1,452 @@
+{
+  "e47becba": {
+    "question": "What degree did I graduate with?",
+    "gold": "Business Administration",
+    "answer": "You graduated with a degree in Business Administration.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31319,
+    "build_time": 0.013
+  },
+  "118b2229": {
+    "question": "How long is my daily commute to work?",
+    "gold": "45 minutes each way",
+    "answer": "Your daily commute takes **45 minutes each way**.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30287,
+    "build_time": 0.011
+  },
+  "51a45a95": {
+    "question": "Where did I redeem a $5 coupon on coffee creamer?",
+    "gold": "Target",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 30011,
+    "build_time": 0.026
+  },
+  "58bf7951": {
+    "question": "What play did I attend at the local community theater?",
+    "gold": "The Glass Menagerie",
+    "answer": "The play was not named in the conversation; you only mentioned going to a play at the local community theater.",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 31338,
+    "build_time": 0.021
+  },
+  "1e043500": {
+    "question": "What is the name of the playlist I created on Spotify?",
+    "gold": "Summer Vibes",
+    "answer": "Summer Vibes",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30849,
+    "build_time": 0.026
+  },
+  "c5e8278d": {
+    "question": "What was my last name before I changed it?",
+    "gold": "Johnson",
+    "answer": "Johnson",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30324,
+    "build_time": 0.029
+  },
+  "6ade9755": {
+    "question": "Where do I take yoga classes?",
+    "gold": "Serenity Yoga",
+    "answer": "You take yoga classes at **Serenity Yoga**.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 32014,
+    "build_time": 0.024
+  },
+  "6f9b354f": {
+    "question": "What color did I repaint my bedroom walls?",
+    "gold": "a lighter shade of gray",
+    "answer": "A lighter shade of gray.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 29514,
+    "build_time": 0.02
+  },
+  "58ef2f1c": {
+    "question": "When did I volunteer at the local animal shelter's fundraising dinner?",
+    "gold": "February 14th",
+    "answer": "You volunteered at the \u201cLove is in the Air\u201d fundraising dinner in February, on Valentine\u2019s Day.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31464,
+    "build_time": 0.019
+  },
+  "f8c5f88b": {
+    "question": "Where did I buy my new tennis racket from?",
+    "gold": "the sports store downtown",
+    "answer": "You bought your new tennis racket from a sports store downtown.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31489,
+    "build_time": 0.017
+  },
+  "5d3d2817": {
+    "question": "What was my previous occupation?",
+    "gold": "Marketing specialist at a small startup",
+    "answer": "Marketing specialist at a small startup.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30747,
+    "build_time": 0.02
+  },
+  "7527f7e2": {
+    "question": "How much did I spend on a designer handbag?",
+    "gold": "$800",
+    "answer": "$800.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30020,
+    "build_time": 0.027
+  },
+  "c960da58": {
+    "question": "How many playlists do I have on Spotify?",
+    "gold": "20",
+    "answer": "You have 20 playlists on Spotify.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30633,
+    "build_time": 0.019
+  },
+  "3b6f954b": {
+    "question": "Where did I attend for my study abroad program?",
+    "gold": "University of Melbourne in Australia",
+    "answer": "University of Melbourne",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30454,
+    "build_time": 0.019
+  },
+  "726462e0": {
+    "question": "What was the discount I got on my first purchase from the new clothing brand?",
+    "gold": "10%",
+    "answer": "You got a **10% discount** on your first purchase from the new clothing brand.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31583,
+    "build_time": 0.019
+  },
+  "94f70d80": {
+    "question": "How long did it take me to assemble the IKEA bookshelf?",
+    "gold": "4 hours",
+    "answer": "It took you **4 hours** to assemble the IKEA bookshelf.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 29972,
+    "build_time": 0.019
+  },
+  "66f24dbb": {
+    "question": "What did I buy for my sister's birthday gift?",
+    "gold": "a yellow dress",
+    "answer": "A yellow dress and a matching pair of earrings.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31152,
+    "build_time": 0.019
+  },
+  "ad7109d1": {
+    "question": "What speed is my new internet plan?",
+    "gold": "500 Mbps",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 32018,
+    "build_time": 0.02
+  },
+  "af8d2e46": {
+    "question": "How many shirts did I pack for my 5-day trip to Costa Rica?",
+    "gold": "7",
+    "answer": "7 shirts.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31481,
+    "build_time": 0.019
+  },
+  "dccbc061": {
+    "question": "What was my previous stance on spirituality?",
+    "gold": "A staunch atheist",
+    "answer": "You were a staunch atheist.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31853,
+    "build_time": 0.02
+  },
+  "c8c3f81d": {
+    "question": "What brand are my favorite running shoes?",
+    "gold": "Nike",
+    "answer": "Nike.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31946,
+    "build_time": 0.023
+  },
+  "8ebdbe50": {
+    "question": "What certification did I complete last month?",
+    "gold": "Data Science",
+    "answer": "You completed a certification in Data Science last month.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30004,
+    "build_time": 0.021
+  },
+  "6b168ec8": {
+    "question": "How many bikes do I own?",
+    "gold": "three",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 31849,
+    "build_time": 0.029
+  },
+  "75499fd8": {
+    "question": "What breed is my dog?",
+    "gold": "Golden Retriever",
+    "answer": "Your dog is a Golden Retriever.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31910,
+    "build_time": 0.029
+  },
+  "21436231": {
+    "question": "How many largemouth bass did I catch on my fishing trip to Lake Michigan?",
+    "gold": "12",
+    "answer": "You caught 12 largemouth bass on your fishing trip to Lake Michigan.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 29930,
+    "build_time": 0.027
+  },
+  "95bcc1c8": {
+    "question": "How many amateur comedians did I watch perform at the open mic night?",
+    "gold": "10",
+    "answer": "10 amateur comedians.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31999,
+    "build_time": 0.014
+  },
+  "0862e8bf": {
+    "question": "What is the name of my cat?",
+    "gold": "Luna",
+    "answer": "Luna",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31585,
+    "build_time": 0.015
+  },
+  "853b0a1d": {
+    "question": "How old was I when my grandma gave me the silver necklace?",
+    "gold": "18",
+    "answer": "You were 18 years old when your grandma gave you the silver necklace.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30426,
+    "build_time": 0.012
+  },
+  "a06e4cfe": {
+    "question": "What is my preferred gin-to-vermouth ratio for a classic gin martini?",
+    "gold": "3:1",
+    "answer": "3:1 gin-to-vermouth, with a dash of citrus bitters.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30099,
+    "build_time": 0.015
+  },
+  "37d43f65": {
+    "question": "How much RAM did I upgrade my laptop to?",
+    "gold": "16GB",
+    "answer": "16GB",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31624,
+    "build_time": 0.012
+  },
+  "b86304ba": {
+    "question": "How much is the painting of a sunset worth in terms of the amount I paid for it?",
+    "gold": "The painting is worth triple what I paid for it.",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 31313,
+    "build_time": 0.018
+  },
+  "d52b4f67": {
+    "question": "Where did I attend my cousin's wedding?",
+    "gold": "The Grand Ballroom",
+    "answer": "At the Grand Ballroom.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31912,
+    "build_time": 0.013
+  },
+  "25e5aa4f": {
+    "question": "Where did I complete my Bachelor's degree in Computer Science?",
+    "gold": "University of California, Los Angeles (UCLA)",
+    "answer": "You completed your Bachelor\u2019s degree in Computer Science at **UCLA**.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30440,
+    "build_time": 0.012
+  },
+  "caf9ead2": {
+    "question": "How long did it take to move to the new apartment?",
+    "gold": "5 hours",
+    "answer": "It took about 5 hours.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31363,
+    "build_time": 0.012
+  },
+  "8550ddae": {
+    "question": "What type of cocktail recipe did I try last weekend?",
+    "gold": "lavender gin fizz",
+    "answer": "You tried a **lavender gin fizz** recipe last weekend.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31294,
+    "build_time": 0.014
+  },
+  "60d45044": {
+    "question": "What type of rice is my favorite?",
+    "gold": "Japanese short-grain rice",
+    "answer": "Japanese short-grain rice.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30210,
+    "build_time": 0.015
+  },
+  "3f1e9474": {
+    "question": "Who did I have a conversation with about destiny?",
+    "gold": "Sarah",
+    "answer": "You had a conversation with your friend Sarah about destiny.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30617,
+    "build_time": 0.012
+  },
+  "86b68151": {
+    "question": "Where did I buy my new bookshelf from?",
+    "gold": "IKEA",
+    "answer": "IKEA.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 29260,
+    "build_time": 0.012
+  },
+  "577d4d32": {
+    "question": "What time do I stop checking work emails and messages?",
+    "gold": "7 pm",
+    "answer": "7 pm.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30181,
+    "build_time": 0.014
+  },
+  "ec81a493": {
+    "question": "How many copies of my favorite artist's debut album were released worldwide?",
+    "gold": "500",
+    "answer": "500 copies worldwide.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30437,
+    "build_time": 0.014
+  },
+  "15745da0": {
+    "question": "How long have I been collecting vintage cameras?",
+    "gold": "three months",
+    "answer": "Three months.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30788,
+    "build_time": 0.014
+  },
+  "e01b8e2f": {
+    "question": "Where did I go on a week-long trip with my family?",
+    "gold": "Hawaii",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 29915,
+    "build_time": 0.014
+  },
+  "bc8a6e93": {
+    "question": "What did I bake for my niece's birthday party?",
+    "gold": "a lemon blueberry cake",
+    "answer": "You baked a lemon blueberry cake for your niece's birthday party.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31658,
+    "build_time": 0.014
+  },
+  "ccb36322": {
+    "question": "What is the name of the music streaming service have I been using lately?",
+    "gold": "Spotify",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 30226,
+    "build_time": 0.014
+  },
+  "001be529": {
+    "question": "How long did I wait for the decision on my asylum application?",
+    "gold": "over a year",
+    "answer": "Over a year.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 32013,
+    "build_time": 0.012
+  },
+  "b320f3f8": {
+    "question": "What type of action figure did I buy from a thrift store?",
+    "gold": "a blue Snaggletooth",
+    "answer": "A rare blue Snaggletooth action figure.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 29932,
+    "build_time": 0.012
+  },
+  "19b5f2b3": {
+    "question": "How long was I in Japan for?",
+    "gold": "two weeks",
+    "answer": "You were in Japan for **two weeks**.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30640,
+    "build_time": 0.011
+  },
+  "4fd1909e": {
+    "question": "Where did I attend the Imagine Dragons concert?",
+    "gold": "Xfinity Center",
+    "answer": "At the Xfinity Center.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 31737,
+    "build_time": 0.014
+  },
+  "545bd2b5": {
+    "question": "How much screen time have I been averaging on Instagram per day?",
+    "gold": "2 hours",
+    "answer": "You\u2019ve been averaging around **2 hours per day** on Instagram.",
+    "hybrid_judge": 1,
+    "question_type": "single-session-user",
+    "context_chars": 30332,
+    "build_time": 0.014
+  },
+  "8a137a7f": {
+    "question": "What type of bulb did I replace in my bedside lamp?",
+    "gold": "Philips LED bulb",
+    "answer": "",
+    "hybrid_judge": 0,
+    "question_type": "single-session-user",
+    "context_chars": 30117,
+    "build_time": 0.014
+  }
+}

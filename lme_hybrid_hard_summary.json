@@ -1,0 +1,13 @@
+{
+  "experiment": "LongMemEval_S hybrid read path - HARD questions",
+  "date": "2026-11-07",
+  "total": 50,
+  "correct": 2,
+  "rate": 4.0,
+  "by_type": {
+    "multi-session": {
+      "correct": 2,
+      "total": 50
+    }
+  }
+}
