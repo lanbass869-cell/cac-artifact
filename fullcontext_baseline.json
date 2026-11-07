@@ -1,0 +1,11 @@
+{
+  "experiment": "FullContext baseline comparison",
+  "date": "2026-11-07",
+  "n_questions": 30,
+  "fullcontext_correct": 9,
+  "fullcontext_rate": 30.0,
+  "our_system_correct": 3,
+  "our_system_rate": 10.0,
+  "mem0_correct": 5,
+  "mem0_rate": 16.7
+}

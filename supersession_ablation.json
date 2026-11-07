@@ -1,0 +1,14 @@
+{
+  "experiment": "supersession mechanism ablation",
+  "date": "2026-11-07",
+  "total_facts": 240,
+  "active": 200,
+  "superseded": 40,
+  "queries_tested": 100,
+  "correct_with_supersession": 100,
+  "stale_prevented": 40,
+  "stale_rate_prevented": 16.7,
+  "audit_records_lost_if_deleted": 40,
+  "ambiguity_if_unmarked": 40,
+  "conclusion": "Supersession prevents stale answers while preserving audit history"
+}

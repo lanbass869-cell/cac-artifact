@@ -1,0 +1,15 @@
+{
+  "experiment": "paired McNemar: our system vs mem0 on LoCoMo conv0 (82 questions)",
+  "date": "2026-11-07",
+  "judge": "spark-x2.6 (unified judge)",
+  "both_correct": 7,
+  "mem0_only": 6,
+  "our_only": 2,
+  "both_wrong": 67,
+  "mem0_accuracy": 15.9,
+  "our_accuracy": 11.0,
+  "discordant_pairs": 8,
+  "p_value": 0.2891,
+  "significant": false,
+  "conclusion": "No significant difference"
+}

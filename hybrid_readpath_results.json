@@ -1,0 +1,288 @@
+{
+  "experiment": "hybrid read path (GAP1)",
+  "date": "2026-11-07",
+  "n_questions": 30,
+  "hybrid_correct": 13,
+  "hybrid_rate": 43.3,
+  "avg_context_chars": 6062,
+  "full_context_chars": 17573,
+  "token_reduction_pct": 65.5,
+  "comparison": {
+    "fullcontext": 30.0,
+    "mem0": 16.7,
+    "old_system": 10.0,
+    "hybrid": 43.3
+  },
+  "per_question": [
+    {
+      "idx": 0,
+      "question": "When did Caroline go to the LGBTQ support group?",
+      "gold": "7 May 2023",
+      "hybrid_answer": "Recently (as noted in Session",
+      "hybrid_context_len": 6022,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 1,
+      "question": "When did Melanie paint a sunrise?",
+      "gold": 2022,
+      "hybrid_answer": "Last year.",
+      "hybrid_context_len": 6132,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 2,
+      "question": "What fields would Caroline be likely to pursue in her educaton?",
+      "gold": "Psychology, counseling certification",
+      "hybrid_answer": "Caroline is likely to pursue education in counseling or mental health, especially to support LGBTQ+ individuals and those with similar struggles.",
+      "hybrid_context_len": 6038,
+      "category": 3,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 3,
+      "question": "What did Caroline research?",
+      "gold": "Adoption agencies",
+      "hybrid_answer": "Caroline researched adoption agencies.",
+      "hybrid_context_len": 6072,
+      "category": 1,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 4,
+      "question": "What is Caroline's identity?",
+      "gold": "Transgender woman",
+      "hybrid_answer": "Caroline is a transgender woman.",
+      "hybrid_context_len": 5997,
+      "category": 1,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 5,
+      "question": "When did Melanie run a charity race?",
+      "gold": "The sunday before 25 May 2023",
+      "hybrid_answer": "Last Saturday.",
+      "hybrid_context_len": 6132,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 6,
+      "question": "When is Melanie planning on going camping?",
+      "gold": "June 2023",
+      "hybrid_answer": "Melanie is considering going camping next month, during summer",
+      "hybrid_context_len": 6045,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 7,
+      "question": "What is Caroline's relationship status?",
+      "gold": "Single",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6038,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 8,
+      "question": "When did Caroline give a speech at a school?",
+      "gold": "The week before 9 June 2023",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6013,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 9,
+      "question": "When did Caroline meet up with her friends, family, and mentors?",
+      "gold": "The week before 9 June 2023",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6064,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 10,
+      "question": "How long has Caroline had her current group of friends for?",
+      "gold": "4 years",
+      "hybrid_answer": "4 years.",
+      "hybrid_context_len": 6025,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 11,
+      "question": "Where did Caroline move from 4 years ago?",
+      "gold": "Sweden",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6074,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 12,
+      "question": "How long ago was Caroline's 18th birthday?",
+      "gold": "10 years ago",
+      "hybrid_answer": "",
+      "hybrid_context_len": 5993,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 13,
+      "question": "What career path has Caroline decided to persue?",
+      "gold": "counseling or mental health for Transgender people",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6038,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 14,
+      "question": "Would Caroline still want to pursue counseling as a career if she hadn't received support growing up?",
+      "gold": "Likely no",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6100,
+      "category": 3,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 15,
+      "question": "What activities does Melanie partake in?",
+      "gold": "pottery, camping, painting, swimming",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6132,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 16,
+      "question": "When did Melanie sign up for a pottery class?",
+      "gold": "2 July 2023",
+      "hybrid_answer": "In Session 8.",
+      "hybrid_context_len": 6079,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 17,
+      "question": "When is Caroline going to the transgender conference?",
+      "gold": "July 2023",
+      "hybrid_answer": "This month.",
+      "hybrid_context_len": 6013,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 18,
+      "question": "Where has Melanie camped?",
+      "gold": "beach, mountains, forest",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6132,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 19,
+      "question": "What do Melanie's kids like?",
+      "gold": "dinosaurs, nature",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6070,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 20,
+      "question": "When did Melanie go to the museum?",
+      "gold": "5 July 2023",
+      "hybrid_answer": "Melanie went to the museum recently with her kids; they especially enjoyed the dinosaur exhibit.",
+      "hybrid_context_len": 6132,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 21,
+      "question": "When did Caroline have a picnic?",
+      "gold": "The week before 6 July 2023",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6038,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 22,
+      "question": "Would Caroline likely have Dr. Seuss books on her bookshelf?",
+      "gold": "Yes, since she collects classic children's books",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6038,
+      "category": 3,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 23,
+      "question": "What books has Melanie read?",
+      "gold": "\"Nothing is Impossible\", \"Charlotte's Web\"",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6035,
+      "category": 1,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 24,
+      "question": "What does Melanie do to destress?",
+      "gold": "Running, pottery",
+      "hybrid_answer": "Melanie goes running to destress and clear her mind.",
+      "hybrid_context_len": 6132,
+      "category": 1,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 25,
+      "question": "When did Caroline go to the LGBTQ conference?",
+      "gold": "10 July 2023",
+      "hybrid_answer": "",
+      "hybrid_context_len": 6060,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 26,
+      "question": "When did Melanie read the book \"nothing is impossible\"?",
+      "gold": 2022,
+      "hybrid_answer": "The provided observations do not mention Melanie reading \u201cNothing Is Impossible.\u201d",
+      "hybrid_context_len": 6058,
+      "category": 2,
+      "hybrid_judge": 0
+    },
+    {
+      "idx": 27,
+      "question": "Would Caroline pursue writing as a career option?",
+      "gold": "LIkely no; though she likes reading, she wants to be a counselor",
+      "hybrid_answer": "No \u2014 Caroline is considering careers in counseling and mental health, not writing.",
+      "hybrid_context_len": 6038,
+      "category": 3,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 28,
+      "question": "When did Caroline go to the adoption meeting?",
+      "gold": "The friday before 15 July 2023",
+      "hybrid_answer": "Last Friday.",
+      "hybrid_context_len": 5995,
+      "category": 2,
+      "hybrid_judge": 1
+    },
+    {
+      "idx": 29,
+      "question": "When did Melanie go to the pottery workshop?",
+      "gold": "The Friday before 15 July 2023",
+      "hybrid_answer": "Last Friday.",
+      "hybrid_context_len": 6125,
+      "category": 2,
+      "hybrid_judge": 1
+    }
+  ]
+}

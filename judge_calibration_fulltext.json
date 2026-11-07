@@ -1,0 +1,129 @@
+{
+  "experiment": "judge calibration with FULL paper text",
+  "date": "2026-11-07",
+  "n_papers": 20,
+  "n_valid": 20,
+  "correlation": 0.438,
+  "per_paper": [
+    {
+      "title": "Amortised MAP Inference for Image Super-resolution",
+      "human_score": 8.0,
+      "llm_score": 10,
+      "text_length": 48560
+    },
+    {
+      "title": "Multi-Agent Cooperation and the Emergence of (Natural) Language",
+      "human_score": 7.0,
+      "llm_score": 8,
+      "text_length": 28948
+    },
+    {
+      "title": "Discrete Variational Autoencoders",
+      "human_score": 8.3,
+      "llm_score": 8,
+      "text_length": 78177
+    },
+    {
+      "title": "EPOpt: Learning Robust Neural Network Policies Using Model Ensembles",
+      "human_score": 7.3,
+      "llm_score": 10,
+      "text_length": 38310
+    },
+    {
+      "title": "Program Synthesis for Character Level Language Modeling",
+      "human_score": 7.0,
+      "llm_score": 10,
+      "text_length": 29840
+    },
+    {
+      "title": "Learning Curve Prediction with Bayesian Neural Networks",
+      "human_score": 7.0,
+      "llm_score": 7,
+      "text_length": 27857
+    },
+    {
+      "title": "Diet Networks: Thin Parameters for Fat Genomics",
+      "human_score": 7.0,
+      "llm_score": 6,
+      "text_length": 28834
+    },
+    {
+      "title": "Learning Invariant Feature Spaces to Transfer Skills with Reinforcement Learning",
+      "human_score": 6.3,
+      "llm_score": 10,
+      "text_length": 40312
+    },
+    {
+      "title": "Inference and Introspection in Deep Generative Models of Sparse Data",
+      "human_score": 5.8,
+      "llm_score": 3,
+      "text_length": 39506
+    },
+    {
+      "title": "Layer Recurrent Neural Networks",
+      "human_score": 6.2,
+      "llm_score": 1,
+      "text_length": 36562
+    },
+    {
+      "title": "An Analysis of Feature Regularization for Low-shot Learning",
+      "human_score": 5.7,
+      "llm_score": 1,
+      "text_length": 25987
+    },
+    {
+      "title": "Efficient iterative policy optimization",
+      "human_score": 5.0,
+      "llm_score": 4,
+      "text_length": 25911
+    },
+    {
+      "title": "Learning Python Code Suggestion with a Sparse Pointer Network",
+      "human_score": 5.7,
+      "llm_score": 5,
+      "text_length": 22513
+    },
+    {
+      "title": "Coarse Pruning of Convolutional Neural Networks with Random Masks",
+      "human_score": 5.0,
+      "llm_score": 10,
+      "text_length": 31044
+    },
+    {
+      "title": "Hierarchical compositional feature learning",
+      "human_score": 4.7,
+      "llm_score": 4,
+      "text_length": 53194
+    },
+    {
+      "title": "An Information Retrieval Approach for Finding Dependent Subspaces of Multiple Views",
+      "human_score": 4.0,
+      "llm_score": 6,
+      "text_length": 30924
+    },
+    {
+      "title": "The Variational Walkback Algorithm",
+      "human_score": 4.3,
+      "llm_score": 10,
+      "text_length": 34824
+    },
+    {
+      "title": "Deep Neural Networks and the Tree of Life",
+      "human_score": 3.7,
+      "llm_score": 4,
+      "text_length": 18406
+    },
+    {
+      "title": "Unsupervised Deep Learning of State Representation Using Robotic Priors ",
+      "human_score": 3.0,
+      "llm_score": 1,
+      "text_length": 20109
+    },
+    {
+      "title": "Beyond Bilingual: Multi-sense Word Embeddings using Multilingual Context",
+      "human_score": 4.3,
+      "llm_score": 7,
+      "text_length": 27592
+    }
+  ]
+}

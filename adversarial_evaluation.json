@@ -1,0 +1,129 @@
+{
+  "experiment": "adversarial tampering detection",
+  "date": "2026-11-07",
+  "scenarios": [
+    {
+      "id": "A1",
+      "name": "Direct overwrite",
+      "type": "memory_poisoning",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "A2",
+      "name": "Chain injection",
+      "type": "memory_poisoning",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "A3",
+      "name": "Source spoof",
+      "type": "memory_poisoning",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "A4",
+      "name": "Status flip",
+      "type": "memory_poisoning",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "A5",
+      "name": "Backdate",
+      "type": "memory_poisoning",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "B1",
+      "name": "Dormant insert",
+      "type": "sleeper_agent",
+      "detected": true,
+      "issues": [
+        "1 orphaned"
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "Trigger insert",
+      "type": "sleeper_agent",
+      "detected": true,
+      "issues": [
+        "1 orphaned"
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "Audit delete",
+      "type": "audit_tampering",
+      "detected": true,
+      "issues": [
+        "chain@412",
+        "anchor@1",
+        "anchor@2"
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "Chain recalc",
+      "type": "audit_tampering",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "C3",
+      "name": "Anchor+chain rewrite",
+      "type": "audit_tampering",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "C4",
+      "name": "Tail insert",
+      "type": "audit_tampering",
+      "detected": true,
+      "issues": [
+        "1 orphaned"
+      ]
+    },
+    {
+      "id": "C5",
+      "name": "Full rewrite",
+      "type": "audit_tampering",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "D1",
+      "name": "Semantic shift",
+      "type": "semantic",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "D2",
+      "name": "Negation",
+      "type": "semantic",
+      "detected": false,
+      "issues": []
+    },
+    {
+      "id": "D3",
+      "name": "Contradiction insert",
+      "type": "semantic",
+      "detected": true,
+      "issues": [
+        "1 orphaned"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "detected": 5,
+    "not_detected": 10,
+    "rate": 33.3
+  }
+}

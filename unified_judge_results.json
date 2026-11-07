@@ -1,0 +1,2966 @@
+{
+  "gpt4_2655b836": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2487a7cb": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_76048e76": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2312f94c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "0bb5a684": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "08f4fc43": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "2c63a862": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_385a5000": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "2a1811e2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "bbf86515": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_5dcc0aab": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_0b2f1d21": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "f0853d11": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_6ed717ea": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_70e84552": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "a3838d2b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_93159ced": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2d58bcd6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_65aabe59": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "982b5123": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "b9cfe692": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4edbafa2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "c8090214": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_483dd43c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "e4e14d04": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "c9f37c46": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2c50253f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "dcfa8644": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_b4a80587": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "cc6d1ec1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_8c8961ae": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_d9af6064": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7de946e7": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "d01c6aa8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "993da5e2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "a3045048": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_d31cdae3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_cd90e484": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_88806d6e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4cd9eba1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_93f6379c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "b29f3365": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2f56ae70": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "6613b389": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_78cf46a3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_0a05b494": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1a1dc16d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_2f584639": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_213fd887": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_5438fa52": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_c27434e8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_fe651585": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "8c18457d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_70e84552_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_93159ced_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "982b5123_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "c8090214_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_c27434e8_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_fe651585_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "0a995998": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "6d550036": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "gpt4_59c863d7": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "b5ef892d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "e831120c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "3a704032": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_d84a3211": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "aae3761f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "gpt4_f2262a51": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "dd2973ad": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "c4a1ceb8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_a56e767c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "6cb6f249": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "46a3abf7": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "36b9f61e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "28dc39ac": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "gpt4_2f8be40d": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "2e6d26dc": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_15e38248": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "88432d0a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "80ec1f4f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "d23cf73b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_7fce9456": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "d682f1a2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "7024f17c": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "gpt4_5501fe77": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_2ba83207": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "2318644b": {
+    "spark_judge": 0,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "2ce6a0f2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_d12ceb0e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "00ca467f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "b3c15d39": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "gpt4_31ff4165": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "eeda8a6d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "2788b940": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "60bf93ed": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "9d25d4e0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "129d1232": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "60472f9c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_194be4b3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "a9f6b44c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "d851d5ba": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "5a7937c8": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_ab202e7f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "gpt4_e05b82a6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_731e37d7": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "edced276": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "10d9b85a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "e3038f8c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "2b8f3739": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "1a8a66a6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "c2ac3c61": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "bf659f65": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "gpt4_372c3eed": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "gpt4_2f91af09": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "81507db6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "88432d0a_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "80ec1f4f_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "eeda8a6d_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "60bf93ed_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "edced276_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "gpt4_372c3eed_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "6a1eabeb": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "6aeb4375": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "830ce83f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "852ce960": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "945e3d21": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "d7c942c3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "71315a70": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "89941a93": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "ce6d2d27": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "9ea5eabc": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "07741c44": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "a1eacc2a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "184da446": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "031748ae": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "4d6b87c8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "0f05491a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "08e075c7": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "41698283": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "2698e78f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "b6019101": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "45dc21b6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "5a4f22c0": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "6071bd76": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "e493bb7c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "618f13b2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "72e3ee87": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "c4ea545c": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "01493427": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "6a27ffc2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "2133c1b5": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "18bc8abd": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "db467c8c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "7a87bd0c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "e61a7584": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "1cea1afa": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "ed4ddc30": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "8fb83627": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "b01defab": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "22d2cb42": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "0e4e4c46": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "4b24c848": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "7e974930": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "603deb26": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "59524333": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "5831f84d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "eace081b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "affe2881": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "50635ada": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "e66b632c": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "0ddfec37": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "f685340e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "cc5ded98": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "dfde3500": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "69fee5aa": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "7401057b": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "cf22b7bf": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "a2f3aa27": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "c7dc5443": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "06db6396": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "3ba21379": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "9bbe84a2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "10e09553": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "dad224aa": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "42ec0761": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "5c40ec5b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "c6853660": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "26bdc477": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "0977f2af": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "knowledge-update"
+  },
+  "6aeb4375_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "031748ae_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "2698e78f_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "2133c1b5_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "0ddfec37_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "f685340e_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "89941a94": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "knowledge-update"
+  },
+  "07741c45": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "knowledge-update"
+  },
+  "8a2466db": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "06878be2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "75832dbd": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "0edc2aef": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "35a27287": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "32260d93": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "195a1a1b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "afdc33df": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "caf03d32": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "54026fce": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "06f04340": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "6b7dfb22": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "1a1907b4": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "09d032c9": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "38146c39": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "d24813b1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "57f827a0": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "95228167": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "505af2f5": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "75f70248": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "d6233ab6": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "1da05512": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "fca70973": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "b6025781": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "a89d7624": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "b0479f84": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "1d4e3b97": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "07b6f563": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "1c0ddc50": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "0a34ad58": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-preference"
+  },
+  "7161e7e2": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "c4f10528": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "89527b6b": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "e9327a54": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "4c36ccef": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "6ae235be": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "7e00a6cb": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "1903aded": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "ceb54acb": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "f523d9fe": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "0e5e2d1a": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "fea54f57": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "cc539528": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "dc439ea3": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "18dcd5a5": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "488d3006": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "58470ed2": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "8cf51dda": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "1d4da289": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "8464fc84": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "8aef76bc": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "71a3fd6b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "2bf43736": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "70b3e69b": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "8752c811": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "3249768e": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "1b9b7252": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "1568498a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "6222b6eb": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "e8a79c70": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "d596882b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "e3fc4d6e": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "51b23612": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "3e321797": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "e982271f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "352ab8bd": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "fca762bc": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "7a8d0b71": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "a40e080f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "8b9d4367": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "5809eb10": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "41275add": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "4388e9dd": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "4baee567": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "561fabcd": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "b759caee": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "ac031881": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "28bcfaac": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "16c90bf4": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "c8f1aeed": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "eaca4986": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-assistant"
+  },
+  "c7cf7dfd": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "e48988bc": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-assistant"
+  },
+  "1de5cff2": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "65240037": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "778164c6": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-assistant"
+  },
+  "e47becba": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "118b2229": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "51a45a95": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "58bf7951": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "1e043500": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "c5e8278d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "6ade9755": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "6f9b354f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "58ef2f1c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "f8c5f88b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "5d3d2817": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "7527f7e2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "c960da58": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "3b6f954b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "726462e0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "94f70d80": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "66f24dbb": {
+    "spark_judge": 0,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "ad7109d1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "af8d2e46": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "dccbc061": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "c8c3f81d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "8ebdbe50": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "6b168ec8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "75499fd8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "21436231": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "95bcc1c8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "0862e8bf": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "853b0a1d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "a06e4cfe": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "37d43f65": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "b86304ba": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "d52b4f67": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "25e5aa4f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "caf9ead2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "8550ddae": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "60d45044": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "3f1e9474": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "86b68151": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "577d4d32": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "ec81a493": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "15745da0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "e01b8e2f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "bc8a6e93": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "ccb36322": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "001be529": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "b320f3f8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "19b5f2b3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "4fd1909e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "545bd2b5": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "8a137a7f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "76d63226": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "86f00804": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "8e9d538c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "311778f1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "c19f7a0b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "4100d0a0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "29f2956b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "1faac195": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "faba32e5": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "f4f1d8a4": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "c14c00dd": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "36580ce8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "3d86fd0a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "single-session-user"
+  },
+  "a82c026e": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "0862e8bf_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "15745da0_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "bc8a6e93_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "single-session-user"
+  },
+  "19b5f2b3_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "29f2956b_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "f4f1d8a4_abs": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "single-session-user"
+  },
+  "gpt4_59149c77": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_f49edff3": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "71017276": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "b46e15ed": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_fa19884c": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "0bc8ad92": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "af082822": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4929293a": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_b5700ca9": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "9a707b81": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1d4ab0c9": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_e072b769": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "0db4c65d": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1d80365e": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7f6b06db": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_6dc9b45b": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_8279ba02": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_18c2b244": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_a1b77f9c": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1916e0ea": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7a0daae1": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_468eb063": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7abb270c": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1e4a8aeb": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4fc4f797": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "4dfccbf7": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_61e13b3c": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "2ebe6c90": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_e061b84f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "370a8ff4": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4ef30696": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_ec93e27f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "6e984301": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "8077ef71": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_8e165409": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_74aed68e": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "bcbe585f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_21adecb5": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "5e1b23de": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_98f46fc6": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_af6db32f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "eac54adc": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7ddcf75f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_a2d1d1f6": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_85da3956": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_b0863698": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_68e94287": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_e414231e": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7ca326fa": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_7bc6cf22": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "temporal-reasoning"
+  },
+  "2ebe6c92": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_e061b84g": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "71017277": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "b46e15ee": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_d6585ce9": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_1e4a8aec": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_f420262d": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_59149c78": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_e414231f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_4929293b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_468eb064": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_fa19884d": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "9a707b82": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "eac54add": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "4dfccbf8": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "0bc8ad93": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "6e984302": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_8279ba03": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_b5700ca0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "temporal-reasoning"
+  },
+  "gpt4_68e94288": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "temporal-reasoning"
+  },
+  "d3ab962e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "2311e44b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "cc06de0d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "a11281a2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "4f54b7c9": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "85fa3a3f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "9aaed6a3": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "1f2b8d4f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "e6041065": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "51c32626": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "d905b33f": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "7405e8b1": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "f35224e0": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "6456829e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "a4996e51": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "3c1045c8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "60036106": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "681a1674": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "e25c3b8d": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "4adc0475": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "4bc144e2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "ef66a6e5": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "5025383b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "a1cc6108": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "9ee3ecd6": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "3fdac837": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "91b15a6e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "27016adc": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "720133ac": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "77eafa52": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "8979f9ec": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "0100672e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "a96c20ee": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "92a0aa75": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "3fe836c9": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "1c549ce4": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "6c49646a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "1192316e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "0ea62687": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "67e0d0f2": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "bb7c3b45": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "ba358f49": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "61f8c8f8": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "60159905": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "ef9cf60a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "73d42213": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "bc149d6b": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "099778bb": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "09ba9854": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "d6062bb9": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "157a136e": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "c18a7dc8": {
+    "spark_judge": 1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "a3332713": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "55241a1f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "a08a253f": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "f0e564bc": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "078150f1": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "8cf4d046": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "a346bb18": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "37f165cf": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "8e91e7d9": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "87f22b4a": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "e56a43b9": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "efc3f7c2": {
+    "spark_judge": -1,
+    "original_judge": true,
+    "original_strict": true,
+    "type": "multi-session"
+  },
+  "21d02d0d": {
+    "spark_judge": -1,
+    "original_judge": false,
+    "original_strict": false,
+    "type": "multi-session"
+  },
+  "2311e44b_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "6456829e_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "e5ba910e_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "a96c20ee_abs": {
+    "spark_judge": 0,
+    "original_judge": false,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "ba358f49_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  },
+  "09ba9854_abs": {
+    "spark_judge": 1,
+    "original_judge": true,
+    "original_strict": null,
+    "type": "multi-session"
+  }
+}

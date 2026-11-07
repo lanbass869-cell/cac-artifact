@@ -1,0 +1,37 @@
+{
+  "experiment": "latency/cost analysis (GAP2)",
+  "date": "2026-11-07",
+  "n_questions": 30,
+  "methods": {
+    "fullcontext": {
+      "search_p50": 0.0,
+      "search_p95": 0.0,
+      "total_p50": 2.537,
+      "total_p95": 4.542,
+      "mean_tokens": 4393,
+      "total_tokens_30q": 131790
+    },
+    "hybrid": {
+      "search_p50": 0.001,
+      "search_p95": 0.002,
+      "total_p50": 2.636,
+      "total_p95": 5.392,
+      "mean_tokens": 1515,
+      "total_tokens_30q": 45456
+    },
+    "mem0": {
+      "search_p50": 0.156,
+      "search_p95": 0.162,
+      "total_p50": 1.802,
+      "total_p95": 2.355,
+      "mean_tokens": 1500,
+      "total_tokens_30q": 45000
+    }
+  },
+  "savings": {
+    "hybrid_vs_fullcontext_tokens": "65.5%",
+    "hybrid_vs_fullcontext_total_p50": "-3.9%",
+    "hybrid_vs_fullcontext_total_p95": "-18.7%",
+    "hybrid_vs_fullcontext_search_p50": "0.0%"
+  }
+}

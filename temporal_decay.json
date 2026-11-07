@@ -1,0 +1,21 @@
+{
+  "experiment": "temporal decay analysis (corrected)",
+  "date": "2026-11-07",
+  "n_memories": 500,
+  "n_days": 30,
+  "dead_rate_mean": 48.1,
+  "dead_rate_cv": 41.7,
+  "dead_rate_stable": false,
+  "dead_rate_by_age": {
+    "0": 84.4,
+    "5": 60.3,
+    "10": 50.6,
+    "15": 24.7,
+    "20": 37.8,
+    "25": 31.1
+  },
+  "top10_pct": 12.6,
+  "top50_pct": 43.0,
+  "never_retrieved_pct": 46.2,
+  "total_retrievals": 635
+}

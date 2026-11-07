@@ -1,0 +1,100 @@
+{
+  "experiment": "simulated multi-deployment cross-dataset stability",
+  "date": "2026-11-07",
+  "deployments": {
+    "deploy_A": {
+      "description": "Technical documentation bot (high entity grounding, low supersession)",
+      "n_records": 800
+    },
+    "deploy_B": {
+      "description": "Customer service bot (mixed entity, medium supersession)",
+      "n_records": 600
+    },
+    "deploy_C": {
+      "description": "Research assistant (low entity, high supersession, temporal-heavy)",
+      "n_records": 500
+    }
+  },
+  "per_deployment_stats": {
+    "deploy_A": {
+      "total_records": 800,
+      "active": 723,
+      "superseded": 77,
+      "supersession_rate": 9.6,
+      "entity_grounding_rate": 71.9,
+      "contradictions_found": 5096,
+      "contradictions_detected": 1014,
+      "detection_rate": 19.9,
+      "dead_rate": 9.6
+    },
+    "deploy_B": {
+      "total_records": 600,
+      "active": 475,
+      "superseded": 125,
+      "supersession_rate": 20.8,
+      "entity_grounding_rate": 46.7,
+      "contradictions_found": 1089,
+      "contradictions_detected": 209,
+      "detection_rate": 19.2,
+      "dead_rate": 20.8
+    },
+    "deploy_C": {
+      "total_records": 500,
+      "active": 368,
+      "superseded": 132,
+      "supersession_rate": 26.4,
+      "entity_grounding_rate": 26.2,
+      "contradictions_found": 625,
+      "contradictions_detected": 114,
+      "detection_rate": 18.2,
+      "dead_rate": 26.4
+    }
+  },
+  "cross_dataset_stability": {
+    "supersession_rate": {
+      "values": [
+        9.6,
+        20.8,
+        26.4
+      ],
+      "mean": 18.9,
+      "std": 7.0,
+      "cv_percent": 36.9,
+      "stable": false
+    },
+    "entity_grounding_rate": {
+      "values": [
+        71.9,
+        46.7,
+        26.2
+      ],
+      "mean": 48.3,
+      "std": 18.7,
+      "cv_percent": 38.7,
+      "stable": false
+    },
+    "detection_rate": {
+      "values": [
+        19.9,
+        19.2,
+        18.2
+      ],
+      "mean": 19.1,
+      "std": 0.7,
+      "cv_percent": 3.7,
+      "stable": true
+    },
+    "dead_rate": {
+      "values": [
+        9.6,
+        20.8,
+        26.4
+      ],
+      "mean": 18.9,
+      "std": 7.0,
+      "cv_percent": 36.9,
+      "stable": false
+    }
+  },
+  "note": "Synthetic data simulating 3 different deployment profiles; not real multi-organization data"
+}

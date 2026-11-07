@@ -1,0 +1,13 @@
+{
+  "experiment": "unified judge re-scoring with spark-x2.6 (max_tokens=500)",
+  "date": "2026-11-07",
+  "total": 494,
+  "judged": 494,
+  "spark_correct": 371,
+  "spark_wrong": 121,
+  "errors": 2,
+  "spark_rate": 75.4,
+  "original_rate": 68.8,
+  "agreement": 456,
+  "agreement_rate": 92.7
+}
