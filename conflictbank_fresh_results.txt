@@ -1,0 +1,12 @@
+Temporal conflict (positive): 865
+Default (negative): 1048
+Eval set: 1000 (500 positive + 500 negative)
+
+=== ConflictBank temporal_conflict detection (1000 samples) ===
+  Chinese polarity words         P=1.000 R=0.002 F1=0.004 Acc=0.501 (TP=1 FP=0 TN=500 FN=499)
+  Temporal/numeric overlap       P=1.000 R=0.820 F1=0.901 Acc=0.910 (TP=410 FP=0 TN=500 FN=90)
+  Combined                       P=1.000 R=0.820 F1=0.901 Acc=0.910 (TP=410 FP=0 TN=500 FN=90)
+  Entity + English polarity      P=0.500 R=0.002 F1=0.004 Acc=0.500 (TP=1 FP=1 TN=499 FN=499)
+  English polarity only          P=0.500 R=0.002 F1=0.004 Acc=0.500 (TP=1 FP=1 TN=499 FN=499)
+
+Saved: E:\RUANJIAN\workdocs\memtether\cac-artifact\conflictbank_evaluation.json

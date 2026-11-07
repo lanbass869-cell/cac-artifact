@@ -1,0 +1,519 @@
+\documentclass{llncs}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{hyperref}
+
+
+\pagestyle{plain}
+
+
+
+\newtheorem{finding}{Finding}
+\newtheorem{definitionx}{Definition}
+\newtheorem{propositionx}{Proposition}
+
+\begin{document}
+
+\title{Governed Agent Memory: Bi-Temporal Architecture,\\Write-Side Analysis, and Deployment-Aligned Evaluation}
+
+\author{Anonymous Submission}
+\institute{Anonymous Institution}
+\maketitle
+
+\begin{abstract}
+Agent memory systems are evaluated on retrieval accuracy, yet three deployment needs remain unaddressed: temporal correctness guarantees, tamper-evident auditability, and deployment-aligned evaluation. We present a local-first measurement study addressing all three. Our bi-temporal supersession model preserves complete history with four correctness properties. A hash-chained audit layer detects 5/5 self-designed scenarios but only 5/15 adversarial scenarios (33.3\%) from the AgentPoison attack taxonomy; fact-content modifications (A1-A5, D1-D2) and chain-recalculation attacks (C2-C3, C5) are undetected without external anchor verification. On the write side, 9.5\% of pilot memories are never retrieved in 30 days, with injection coverage of only 0.48\%. On the evaluation side, strict--judge gap direction \emph{reverses} between benchmarks, and our ClockScore metric quantifies deployment-generalization gaps across task types. Cross-system comparison on a shared 200-record trace reveals expansion (1.19x) to hard ceiling (0.10x). On LongMemEval-500, our system achieves 62.4\% strict and 68.8\% judge (vs.\ mem0's 60.2\% and 65.2\%). Across 15 AI agent clients (operated by one researcher; agents share the same store and operator context) in a 30-day pilot deployment, we observe that entity grounding ranges from 0\% to 74\% across agents with at least 40 records, with supersession rates from 0\% to 27\%, and cross-agent contradictions are associated with 73\,pp divergence (95\% CI: 43--91\,pp) (McNemar $p{=}0.0078$). Entity-keyed numeric conflict detection achieves $F_1{=}0.897$ (precision 1.000, recall 0.813), exceeding MemStrata's SPO proxy (S-P-O) ($F_1{=}0.884$; within the 95\% bootstrap CI $[-0.003, 0.034]$ (includes zero)) and Engram's LLM-based conflict resolution ($F_1{=}0.000$). Entity matching is critical: removing it drops precision to 0.480. A 10-cycle crash-recovery test (100 writes) maintains integrity.
+\end{abstract}
+\section{Introduction}
+Agent memory systems enable AI agents to maintain context across sessions by storing, retrieving, and updating facts. As these systems mature, three needs have emerged: (1) temporal correctness---when an agent writes a new fact that supersedes an old one, the old fact must remain accessible for audit while the new fact governs retrieval; (2) tamper-evident auditability---when an agent's memory influences a decision, there must be cryptographic proof that the memory was not modified after the fact; and (3) deployment-aligned evaluation---benchmark scores from random cross-validation may not reflect real-world performance where training data precedes test data in time. Our target users are solo developers and small teams running local-first multi-agent deployments who need auditability without cloud dependence.
+
+Existing agent memory systems do not address all three needs. mem0~\cite{mem0}, Hindsight, and EverOS focus on retrieval accuracy but lack audit trails. Gated memory~\cite{gatedmem} and adaptive admission~\cite{amac} address related admission control. MemStrata provides deterministic supersession but no hash-chained audit. Prior work addresses temporal evaluation for forecasting and time-series CV; agent-memory benchmarks exist but do not isolate deployment-ordering effects.
+
+
+This paper argues that \emph{agent memory should be evaluated under the ordering and governance constraints of its deployment}, supporting this with one system and one deployment trace rather than a new retrieval algorithm:
+\begin{enumerate}
+\item \textbf{Governed storage with stated guarantees.} A bi-temporal supersession model with four correctness properties (Section~2) and a hash-chained audit layer that detects all 5 anchored-row tampering scenarios.
+\item \textbf{Deployment-aligned evaluation.} Denominator mismatch, a McNemar paired protocol and ClockScore, applied to LongMemEval-500, LoCoMo, LME-V2 and the pilot trace.
+\item \textbf{Write-side measurement.} 9.5\% of pilot memories are never retrieved in 30 days and only 0.48\% of content fits one context window---reported as measurements, not solved problems.
+\item \textbf{Hybrid read path.} Beats full-context by +13.3\,pp with 65.5\% fewer tokens.
+\item \textbf{An open artifact.} GovernedMemory Bench (8{,}005 tasks) with a chronological split and majority-class baselines ($F_1{=}0.461$ for supersession, 0.0 for entity grounding and retrieval readiness).
+\end{enumerate}
+
+We present our system, a local-first agent memory system with three integrated layers: (1) a bi-temporal supersession model with four correctness properties; (2) a hash-chained tamper-evident audit layer (the audit layer) with browser-verifiable evidence export; and (3) a deployment-aligned evaluation framework including ClockScore and cross-benchmark analysis.
+
+Our contributions:
+\begin{enumerate}
+\item \textbf{Architecture}: Bi-temporal supersession model with four correctness properties (temporal gap freedom, no overlap, cycle freedom, and concurrency safety under a single-writer assumption) and hash-chained audit chain that detects 5/5 tampering scenarios.
+\item \textbf{Write governance}: Quantification of write-side waste in a real agent-memory deployment (9.5\% dead rate, 0.48\% injection coverage), with an admission control framework.
+\item \textbf{Evaluation methodology}: Discovery that strict--judge gap direction \emph{reverses} between benchmarks, formalization of the denominator mismatch condition, and proposal of McNemar paired analysis as the default protocol.
+\item \textbf{Cross-system analysis}: Definition and evaluation of ClockScore, with a comparison of three baselines on a shared 200-record trace and our full 2{}635-record pilot trace, revealing four growth behaviours (expansion 1.19x, preservation 1.00x, soft ceiling 0.50x, hard ceiling 0.10x).
+\item \textbf{Benchmark results}: our system achieves 62.4\% strict and 68.8\% judge on LongMemEval-500, with a 2.2pp strict and 3.6pp judge margin over mem0 (unpaired subsets; Section~4 details the denominator analysis).
+\item \textbf{Pilot validation}: 30 days of multi-agent deployment (15 agents, 22 adapters, over 31{}000 operations (28{}807 use-count increments plus 2{}378 audit entries)).
+\end{enumerate}
+
+\section{System Architecture}
+
+
+\subsection{Typed Memory Schema}
+our system serves 15 agent clients in pilot operation through 22 pre-defined adapters . Memories are stored as typed rows in a local SQLite database:
+
+\begin{verbatim}
+CREATE TABLE facts (
+    uid TEXT UNIQUE, type TEXT, subject TEXT,
+    content TEXT, status TEXT, source TEXT,
+    valid_from TEXT, valid_to TEXT,
+    recorded_at TEXT, invalidated_at TEXT,
+    superseded_by TEXT, q_value REAL,
+    use_count INTEGER, ...
+);
+CREATE TABLE audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    op TEXT, target TEXT, agent TEXT,
+    detail TEXT, ts TEXT
+);
+CREATE TABLE audit_anchors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    last_log_id INTEGER, chain_hash TEXT,
+    entries_hashed INTEGER, ts TEXT
+);
+CREATE TABLE supersessions (
+    old\_uid TEXT, new\_uid TEXT, reason TEXT, by_agent TEXT, ts TEXT
+);
+\end{verbatim}
+
+The \texttt{source} column tracks writer identity for each write. A per-deployment \texttt{agents.json} registry defines valid sources; by default, unregistered sources trigger a warning rather than rejection (permissive by default), though strict enforcement can be enabled per deployment. In the single-user local-first context, this trade-off prioritises deployment simplicity over per-tenant isolation.
+
+\paragraph{Read tracking.}
+Each read event increments the \texttt{use\_count} field on the corresponding record. Over 30~days of pilot operation, the cumulative sum of \texttt{use\_count} across active facts is 28{}807. Adding the 2{}378 entries logged in \texttt{audit\_log} brings the cumulative operation count above 31K.
+
+\subsection{Bi-Temporal Model}
+Each fact carries two time axes: valid time (\texttt{valid\_from}/\texttt{valid\_to}) and system time (\texttt{recorded\_at}/\texttt{invalidated\_at}). Corrections create immutable supersession chains; the full edit history is reconstructable by walking the chain. A conventional system-versioned table (SQL:2011) with a supersession edge.
+
+\paragraph{Formal model and guarantees.} A record is $f=(\mathit{uid},\mathit{vf},\mathit{vt},\mathit{ra},\mathit{ia},\mathit{sb},\mathit{status})$, with $\mathit{vf},\mathit{vt}$ valid-time and $\mathit{ra},\mathit{ia}$ system-time bounds and $\mathit{sb}$ the superseded-by pointer. A chain $C=\langle f_1,\ldots,f_k\rangle$ obeys $\mathit{sb}(f_i)=\mathit{uid}(f_{i+1})$, $\mathit{sb}(f_k)=\bot$, $\mathit{vt}(f_i)=\mathit{vf}(f_{i+1})$, and a unique active terminal record. Let $\mathit{asOf}(C,t)=\{f_i\mid \mathit{vf}(f_i)\le t\wedge(\mathit{vt}(f_i)=\infty\vee \mathit{vt}(f_i)>t)\}$. Then (i) $|\mathit{asOf}(C,t)|=1$ for $\mathit{vf}(f_1)\le t<\mathit{vt}(f_k)$ (\emph{gap freedom}) and (ii) $|\mathit{asOf}(C,t)|\le 1$ always (\emph{no overlap}), because contiguous half-open intervals partition valid time; (iii) rejecting links whose target is transitively reachable keeps the graph \emph{acyclic}; (iv) an atomic conditional update on $\mathit{status}{=}\mathit{active}$ with an affected-row check allows one commit, so concurrent corrections cannot \emph{fork}. These are protocol-level guarantees, not empirical results. The guarantee applies to records written through \texttt{correct()}; pre-migration records lack valid-time intervals. This is a pilot; it cannot establish generality. 
+
+\subsection{Knowledge Graph Layer}
+\label{sec:graph}
+
+Supersession chains and entity co-occurrences form a directed graph over the fact table. We implement graph traversal using SQLite recursive CTEs, avoiding the operational complexity of a separate graph database. \texttt{get\_chain(uid)} traverses the supersession chain via \texttt{WITH RECURSIVE}, returning the full invalidation path for any fact. Entity co-occurrence edges (extracted via NER) enable cross-record navigation: given an entity mentioned in multiple facts, the graph exposes all related records regardless of source or temporal distance. This lightweight graph layer provides the provenance-tagged context assembly used by the hybrid read path (Section~7), where supersession provenance is surfaced alongside retrieved facts to support temporal reasoning.
+\subsection{Hash-Chained Audit}
+Every memory operation is appended to \texttt{audit\_log}. Every 10 entries, a SHA-256 anchor is computed over the batch and chained to the previous anchor. Evidence is exportable as a self-contained ZIP with an embedded HTML verifier for browser-based chain verification. The audit CLI provides \texttt{verify}, \texttt{export}, and \texttt{conflicts} commands.
+
+
+We validated crash resilience in 10 recovery cycles: after each kill (10 writes per cycle), all hash chains remained verifiable and new writes were accepted after recovery (10/10 cycles).
+
+\subsection{Threat Model}
+
+The audit log addresses a bounded adversary (read-only access, or write access without knowledge of the anchoring mechanism). Full-write adversaries who recompute anchors require external checkpointing, which conflicts with local-first design. Source attribution is permissive by default without a registry; retrieval-layer filtering neutralizes only corrected or retired facts, not newly injected ones. An adversary-aware attack would attempt to recompute the hash chain after modifying entries; our defense relies on the attacker not discovering the anchoring mechanism (security through obscurity for the anchor locations), which is a documented limitation of any locally-stored audit trail.
+
+Two boundaries remain. Source attribution is \emph{permissive by default}: without a registry (\texttt{agents.json}) an unregistered source string is stored verbatim, so it is best-effort bookkeeping, not a security control; with a registry, unknown sources are rejected. Retrieval-layer filtering excludes superseded and retired records but, unlike the poisoning attacks of~\cite{sleeper,agentpoison}, only neutralizes facts already corrected or retired---a newly injected false fact stays active. An executable negative test (test\_F) captures this; residual risk is bounded by source attribution, hash-chain verification and provenance, not write-time interception.
+
+\subsection{Multi-Client Deployment}
+our system supports 22 adapters sharing a single SQLite database via file-level pointers. Each adapter writes with its own source attribution.
+
+\section{Write-Side Governance Analysis}
+
+
+We analyze 30 days of pilot data from a multi-agent memory deployment serving 15 AI clients through 22 adapters. The store contains 2{}635 records (386 superseded rows from 347 supersession events, 14.6\%; the 386/347 gap reflects multi-supersession chains and schema-migration artifacts) 268 non-active records are retired..
+
+\subsection{Write Waste Analysis}
+
+The dead rate is 9.5\%: 250 of 2{}635 total records (189 of 1{}981 active records) are never retrieved in 30 days; 61 dead records were subsequently superseded, yielding similar (though not identical) ratios across both denominators. The injection coverage ratio is 0.48\%: 3,980 characters of LLM context vs 825K characters of stored content. Never-read facts are superseded at 52.4\%, and the cross-agent contradiction rate is 0.044\% (12 events; 11 unique entity pairs).
+
+\subsection{Dead Memories}
+
+Table~\ref{tab:dead} breaks down never-retrieved memories by type and source.
+
+\begin{table}[h]
+\centering
+\caption{Never-retrieved memories by type and source.}
+\label{tab:dead}
+\begin{tabular}{lccccc}
+\toprule
+Type & Active & Dead & Dead rate & Avg content len \\
+\midrule
+Experience & 378 & 55 & \textbf{14.6\%} & 512 \\
+Fact & 1005 & 102 & 10.1\% & 541 \\
+Correction & 11 & 1 & 9.1\% & 480 \\
+Incident & 188 & 11 & 5.9\% & 489 \\
+Decision & 388 & 20 & 5.2\% & 503 \\
+Procedure & 11 & 0 & 0.0\% & 320 \\
+\midrule
+\textbf{Overall} & \textbf{1981} & \textbf{189} & \textbf{9.5\%} & 535 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dead memories are longer on average (longer than the overall active average (416 characters, Table~3); the exact dead-subset mean depends on per-type weighting; the 416 mean in Table~\ref{tab:injection} is the average across all 1,981 active memories, while 535 is the average of the 189 dead subset only), suggesting that verbose, one-time logs are less likely to be retrieved than concise, reusable facts.
+
+\begin{finding}[Experience-Type Waste]
+Experience-type memories have the highest never-retrieved rate (14.6\%), while procedure-type memories have 0\%. This consistent with their semantics: procedures are actively looked up when needed, while experiences are written once and rarely revisited. A type-aware admission gate that requires justification for experience-type writes would reduce waste by 55 memories (29\% of all dead memories).
+\end{finding}
+
+\subsection{Recency Correction}
+
+Raw dead rate includes recently-written memories that have not yet had the opportunity to be retrieved. Restricting to memories $\geq 7$ days old: 153/1,651 = 9.3\% dead rate. The dead rate is stable across age groups.
+
+\subsection{Power-Law Usage}
+
+
+Table~\ref{tab:powerlaw} shows the concentration of retrieval across memories.
+
+\begin{table}[h]
+\centering
+\caption{Retrieval concentration (power law).}
+\label{tab:powerlaw}
+\begin{tabular}{lcc}
+\toprule
+Top $N$ memories & \% of total & \% of all retrievals \\
+\midrule
+10 & 0.5\% & 15.0\% \\
+20 & 1.0\% & 21.3\% \\
+50 & 2.5\% & 30.3\% \\
+100 & 5.1\% & 40.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Retrieval usage is highly concentrated: 10 memories (0.5\%) account for 15\% of all retrievals. The median memory is retrieved fewer than 5 times in 30 days. This concentration means that a small set of ``hot'' memories carries most of the system's utility, while the long tail is effectively dead weight.
+
+\subsection{The Injection Bottleneck}
+
+
+Table~\ref{tab:injection} summarizes the injection analysis.
+
+\begin{table}[h]
+\centering
+\caption{Injection coverage analysis.}
+\label{tab:injection}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Active memories & 1,981 \\
+Total content & 825,032 characters \\
+Mean per memory & 416 characters \\
+Injection limit per turn & 3,980 characters \\
+\textbf{Injection coverage} & \textbf{0.48\%} \\
+Overscan factor & 208$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Even with perfect retrieval, only 0.48\% of stored memory content can be presented to the LLM in any single turn. The system stores 208$\times$ more content than it can use. This analogous to a database buffer pool: the binding constraint is not storage capacity but the working-set size that fits in the context window. The 0.48\% ratio is specific to the 3,980-character injection limit; doubling the limit to 7,960 characters would raise coverage to 0.96\% but still leave 99\% of stored content unreachable per turn.
+
+\begin{finding}[Injection Bottleneck]
+The injection coverage ratio (0.48\%) is three orders of magnitude below 100\%. Improving retrieval precision from 28\% to 73\% does not change this ratio: the bottleneck is architectural (context window size), not algorithmic (retrieval quality). Memory systems should optimize for \emph{selecting the right 3,980 characters}, not for storing more.
+\end{finding}
+
+\subsection{Admission Gates: Retrospective Evaluation}
+
+Admission control is an established design principle rather than a contribution of this
+paper: Engram~\cite{engram} optimizes the retrieval read path with bi-temporal storage but does not
+measure what fraction of writes are ever retrieved---the write-side utilization rate is the
+quantity this paper adds. A-MAC decomposes memory value into five interpretable factors and learns
+domain-adaptive admission policies, and Gated Memory interposes an admission
+gate before extraction runs. Our contribution here is different in kind: rather than proposing
+another gate, we use a 30-day pilot deployment to ask whether the gate concept pays off
+\emph{on real write traffic}, and we evaluate three concrete gates retrospectively against
+measured dead-memory rates:
+
+\begin{enumerate}
+\item \textbf{Novelty gate}: Reject if a semantically equivalent fact is already active (embedding similarity $> 0.95$). This prevents duplicate writes.
+\item \textbf{Type-prior gate}: For types with empirically high dead rates (experience: 14.6\%), require the writing agent to provide a retrieval intent (``when would this be needed?''). Facts without intent are written with a lower Q-value prior.
+\item \textbf{Length gate}: Reject or truncate facts exceeding 500 characters that contain more than 3 entities. Dead memories average 535 characters vs.\ 415 for retrieved; length is a weak but statistically significant predictor ($p < 0.01$, Mann-Whitney $U$).
+\end{enumerate}
+
+\subsection{Type-Prior Gate: Retrospective Evaluation}
+
+We evaluate the type-prior gate retrospectively. A naive block-all-experience gate blocks all 378 experience writes, preventing 55 dead memories but losing 323 retrieved ones (net $-268$). An intent-requiring gate would in principle avoid this loss, but we have not simulated it; a rough 80\%-pass estimate suggests a net effect near +200, which requires empirical validation. This gap remains an open question.
+
+
+
+\begin{finding}[Estimated Admission-Gate Effect]
+Experience-type memories have a 14.6\% dead rate, 1.5$\times$ the system average. An admission gate targeting this type would affect 378 writes with a 14.6\% hit rate---better than random but far from precise. Combined with a novelty gate (57 near-duplicate writes detected in the pilot trace), a combined gate policy is \emph{estimated} to reduce total writes by 12--15\% (derived from the novelty-gate 57 duplicates plus a subset of experience-type deads; the naive block-all variant of the naive block-all-experience policy is net-negative and not recommended).
+\end{finding}
+
+\section{Evaluation Methodology}
+
+
+\subsection{Cross-Benchmark Direction Reversal}
+We evaluate our system and mem0 on three benchmarks and find that the direction of the strict--judge gap \emph{reverses} between benchmarks. We use the October~5,~2026 cross-run evaluation for this analysis (our system 43.1\% strict / 48.5\% judge on LongMemEval); the October~18 rerun (62.4\%/68.8\%) is reported separately as the headline result; the improvement reflects pipeline changes between runs. The direction of the strict--judge gap is unchanged across both runs.
+
+\subsection{Paired Per-Question Analysis}
+For each question where both strict and judge scores are available, we construct a 2$\times$2 contingency table and compute the exact McNemar test. The paired gap is $(b - c)/n$, where $b$ = strict-correct-only and $c$ = judge-correct-only. This eliminates denominator mismatch by construction.
+
+\subsection{Strict Applicability Rate}
+We define $\alpha = n_{\text{strict}}/N$ as the fraction of questions where strict scoring is applicable. When $\alpha < 1$, denominators differ.
+
+\subsection{Systems}
+\textbf{our system}: A cross-client memory sharing system with hybrid search (vector + keyword + cross-encoder rerank), bi-temporal model, and supersession chains. Writes are serialized via SQLite's WAL journal mode with a 5-second \texttt{busy\_timeout}; readers never block writers.  Uses bge-m3 (int8) for embeddings. 'Core write API: \texttt{remember(content, type, source)} for insertion, \texttt{correct(old\_uid, new\_content)} for supersession, and \texttt{retire(uid)} for tombstoning; all three are append-only in the audit log. Eight query operators: \texttt{as\_of}, \texttt{get\_chain}, \texttt{get\_contradictions}, \texttt{get\_entities}, \texttt{get\_history}, \texttt{query\_temporal}, \texttt{get\_stats}, \texttt{search}.' Full schemas and CLI usage are omitted for brevity.
+\textbf{mem0}: A hosted memory platform with LLM-based fact extraction and retrieval.
+
+\subsection{Experimental Setup}
+All experiments use a single local machine (Intel CPU, 32GB RAM, no GPU) with bge-m3 (int8 quantization) for embeddings. Strict matching uses content-word AND matching on generated answers (words $\geq$3 characters, stopwords excluded), with prose-type golds ($>$120 characters or $\geq$2 sentence-ending punctuation) excluded from strict scoring. Judge scoring uses a single LLM per benchmark: DeepSeek-V4-Flash for LongMemEval and mem0, and glm-4-flash for LoCoMo and LME-V2. Judge models differ across benchmarks (a confound). On LoCoMo conv0 (82 questions), a paired comparison with mem0 using spark-x2.6 as unified judge shows mem0 at 15.9\% vs.\\ our system at 11.0\\% (McNemar p=0.289, not significant). The judge evaluates semantic correctness of the generated answer against the gold answer on a 0/1 scale. mem0 (v2.0.20) uses its default LLM-based fact extraction pipeline with the same judge model. Bootstrap confidence intervals use 10{}000 resamples with seed 42. McNemar tests use exact binomial computation.
+
+\subsection{The Denominator Mismatch Condition}
+
+\begin{propositionx}[Strict Applicability and Denominator Gap]
+
+Let $N$ be the total number of questions and $n_S$ the number where strict scoring is applicable. The strict applicability rate is $\alpha = n_S / N$. When $\alpha < 1$, the non-paired strict score $S = s/n_S$ and judge score $J = j/N$ are computed on different question sets. The difference $S - J$ conflates two effects: (1) the metric difference (strict vs.\ judge scoring criteria) and (2) the question-set difference (the $N - n_S$ questions excluded from strict). Only paired analysis on $S \cap J$ isolates effect (1).
+\end{propositionx}
+When $\alpha < 1$, the strict score is computed on a strict subset $S \subsetneq Q$ of the question set $Q$. The non-paired comparison $S - J$ where $J = j/|Q|$ and $S = s/|S|$ conflates the per-question metric difference with the question-set difference. Paired McNemar analysis on the intersection set isolates the former.
+
+\subsection{ClockScore}
+
+\begin{definitionx}[ClockScore]
+ClockScore$(\mathcal{D}) = \frac{1}{W} \sum_{w=1}^{W} |M_{\text{random}} - M_{\text{temporal}}(w)|$
+\end{definitionx}
+
+ClockScore quantifies the deployment-generalization gap.
+
+\begin{table}[h]
+\centering
+\caption{ClockScore across three datasets.}
+\begin{tabular}{lrrl}
+\toprule
+Dataset & Records & ClockScore & Task Type \\
+\midrule
+our system & 2{}635 & 0.103 & Event-dependent \\
+LoCoMo Event & 2{}541 & 0.035 & Content-determined \\
+Controlled Synth. & 4{}000 & 0.421 & Designed unstable \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LongMemEval Official Evaluation}
+\label{sec:judge}
+
+LongMemEval's official evaluation protocol prescribes LLM-as-judge scoring (yes/no), not strict substring matching. We report both metrics for completeness. We evaluated our system's EAF (entity-aware filtering) pipeline on a 50-question multi-session subset of LongMemEval-500 using the official judge protocol: given the question, the gold answer, and the system's generated answer, a separate LLM judge determines whether the prediction contains the same key information as the gold reference.
+
+\begin{table}[h]
+\centering
+\caption{LongMemEval multi-session: strict vs.\ LLM-as-judge (50-question subset).}
+\begin{tabular}{lcc}
+\toprule
+System & Judge (\%) & Strict (\%) \\
+\midrule
+our system (EAF) & \textbf{82.0} & 75.7 \\
+mem0 & 60.2 & --- \\
+LangMem & 6.6 & 21.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Metric Bias and Judge-vs-Strict Gaps}
+\label{sec:metric_bias}
+our system's EAF (entity-aware filtering) pipeline achieves 82.0\% under LLM-as-judge scoring on a 50-question multi-session pilot (75.7\% strict), exceeding mem0's 60.2\% overall judge score by 21.8pp and LangMem's 6.6\% by 75.4pp. These are not matched-subset comparisons: mem0's 60.2\% strict / 65.2\% judge come from a separate October~5,~2026 full-benchmark run (Section~\ref{sec:judge}). The 6.3pp judge--strict gap on the pilot reflects format mismatch in semantically correct answers (Section~\ref{sec:metric_bias}). On the full 500-question evaluation our system achieves 68.8\% judge (340/494) and 62.4\% strict (206/330); multi-session judge accuracy is 79.7\% (106/133) versus mem0's 52.4\% multi-session judge from the same October~5 run, a matched-subset margin of 27.3pp.
+
+On LongMemEval-500, our system's EAF (entity-aware filtering) pipeline achieves 62.4\% strict (206/330) and 68.8\% judge (340/494), exceeding mem0's 60.2\% strict and 65.2\% judge. Per-type breakdown: knowledge-update 72.6\% strict, single-session-user 84.7\% strict, temporal-reasoning 48.8\% strict, multi-session 70.0\% strict (October~18 run).
+
+On LoCoMo (conv0 subset, 82 QA pairs): 13.4\% strict, 8.5\% judge. On LongMemEval-V2: 58.3\% strict, 61.6\% judge. Our cross-benchmark analysis shows that the strict--judge gap direction \emph{reverses} between benchmarks: judge scores exceed strict on LongMemEval and LME-V2, while on LoCoMo strict nominally exceeds judge. This reversal is consistent with the interaction between strict matching applicability and per-type performance heterogeneity.
+
+We recommend paired per-question McNemar analysis as the default protocol for any benchmark reporting dual-track scores.
+
+\begin{table}[h]
+\centering
+\caption{LongMemEval per-type performance (EAF (entity-aware filtering) pipeline, October~18 run).}
+\begin{tabular}{lrr}
+\toprule
+Type & Strict & Judge \\
+\midrule
+Knowledge-update & 72.6\% & 78.9\% \\
+Single-session-user & 84.7\% & 91.4\% \\
+Single-session-assistant & 31.9\% & 48.2\% \\
+Temporal-reasoning & 48.8\% & 51.2\% \\
+Multi-session & 70.0\% & 79.7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+mem0 achieves 60.2\% strict and 65.2\% judge on the same benchmark (measured on October~5,~2026; our system scores are from the October~18 rerun, so the two systems are compared on the same benchmark but not the same run). our system exceeds mem0 by 2.2pp strict and 3.6pp judge. However, note that strict and judge use different denominators (330 vs 494 for our system; different for mem0), which is the denominator mismatch problem analyzed in the cross-benchmark section.
+
+\section{Causal Analysis}
+
+
+\subsection{Entity Grounding and Memory Stability}
+
+
+Entity-anchored facts are superseded at near-zero rates across the measured memory types, while entity-free facts are superseded at elevated rates.
+
+\begin{table}[h]
+\centering
+\caption{Supersession rate by memory type and entity presence.}
+\begin{tabular}{lrrrr}
+\toprule
+Type & No Ent \% & With Ent \% & Chi-sq & p \\
+\midrule
+Procedure & 99.2 & 0.0 & 116.3 & <0.001 \\
+Experience & 58.2 & 0.0 & 227.7 & <0.001 \\
+Incident & 26.9 & 0.0 & 36.5 & <0.001 \\
+Fact & 17.8 & 0.2 & 108.1 & <0.001 \\
+Decision & 11.3 & 0.0 & 16.4 & <0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The within-type tests are significant, but the large chi-square values partly reflect sample sizes and near-zero cells; we interpret direction and stratified consistency, not p-values alone (odds ratio 0.002). The effect holds within every memory type but does not generalize beyond entity-keyed supersession mechanisms under cross-system validation. Structurally, entity-keyed records act like primary keys and are deterministically matched, whereas entity-free records lack this coordination point. We treat the association as an implementation property, not a causal law.
+
+\subsection{Per-Agent Analysis}
+
+
+Agent-1 writes 1.6x more volatile facts than Agent-3 (17.0\% vs. 10.9\%). The mechanism is entity grounding: Agent-1 facts average 3.6 entities per fact (24.6\% with entities), while Agent-3 facts average 14.0 entities (74.0\% with entities). Both agents produce facts with similar confidence scores and quality values. A 500-record stratified audit against deterministic pattern-based entity labels gives proxy precision 0.777 and recall 0.516 for the system entity count. These are not human-verified gold labels, but they show that the pipeline misses a substantial fraction of pattern-like entities; lower coverage is therefore an operational observation with measured, not merely assumed, incompleteness.
+
+Improving entity extraction for Agent-1-style agents would reduce the supersession rate without restricting writes. Specifically, the NER pipeline should be extended to recognize technical entities (file paths, API endpoints, configuration parameters) that are currently missed in Agent-1-generated content. This intervention is directly actionable: it requires modifying the NER pipeline, not restricting agent behavior. The expected effect is a reduction in the supersession rate from 17.0\% to approximately 11\% (matching Agent-3), based on the assumption that entity grounding is the primary driver of the difference.
+
+The per-type evidence identifies where the extraction repair should start. Procedures written by Agent-1 have a 7.8\% entity-grounding rate but a 92.2\% supersession rate, whereas the ten procedures that do acquire an entity reference have no observed supersession. By contrast, configuration-related records are grounded 71.5\% of the time and are superseded only 12.4\% of the time. Thus the instability is not a generic Agent-1 artifact. It concentrates in procedure-like records whose natural-language text names commands or file locations without emitting a machine-comparable key. Pattern-based recognition of shell commands, relative and absolute paths, service names, and registry or configuration keys would target this residue. Because this a stratified observational result, the estimate is directional rather than causal; a before--after deployment study would be required to establish causation.
+
+A propensity-score match on source, type, confidence bucket, and read-count bucket yields 542 pairs: one treated (entity-grounded) supersession versus 94 control supersessions (McNemar $p<10^{-26}$). A discontinuity check at the entity cutoff shows 26.3\% supersession for entity-free records and 0\% for exactly one entity. These analyses still rely on observational matching and the system-specific supersession rule, so they support a strong implementation association rather than a universal causal law. 
+
+\section{Pilot Deployment}
+
+
+\paragraph{Metric definitions.}
+``Superseded facts'' counts rows with \texttt{status='superseded'}; ``Retired facts'' counts \texttt{status='retired'}. 256 of 386 superseded rows (66\%) have a non-empty \texttt{valid\_to}; the remaining 127 date from an earlier schema version. ``Data loss'' = zero reported incidents in 30 days, ascertained by manual verification that the active fact count never decreased below expected levels and that no agent reported missing memories. This a self-reported measure, not an automated monitoring result. ``Operations'' = sum of \texttt{audit\_log} entries (writes) plus acknowledged \texttt{use\_count} increments (reads).
+
+\section{Deployment Observations}
+
+
+\subsection{Agent Heterogeneity Drives Memory Instability}
+
+Across 15 agents writing to the same memory store, entity grounding ranges from 0\% to 74\% among agents with at least 40 records. This correlates with supersession rates from 0\% to 27\%. Cross-agent contradictions (12 events; 11 unique entity pairs) are associated with 73\,pp divergence on the $n{=}11$ entity pairs where they occurred (82\% vs.\ 9\%; McNemar $p{=}0.0078$; 95\% CI [52\%, 100\%]), while self-corrections cause only 0.7\,pp ($n{=}300$).  Stale memory exposure reaches 86\% (37/43; Wilson 95\% CI: [72.7\%, 93.4\%]).
+
+\subsection{Cross-System Memory Growth}
+
+We deployed four memory systems on a shared 200-record benchmark of chronologically ordered English-content records drawn from a 30-day pilot deployment serving 15 AI agents (stratified to include both burst and stable periods). Our system additionally reports its full 30-day pilot deployment of 2{}635 records for reference. Each system was configured with the same LLM backend and its default embedding backend (a known confound). Records were ingested in four phases of 50, with memory counts measured after each phase (Table~\ref{tab:crosssystem}).
+
+\begin{table}[h]
+\centering
+\caption{Cross-system memory growth on 200 identical input records, showing four qualitatively different growth behaviours.}
+\label{tab:crosssystem}
+\begin{tabular}{llrrrl}
+\toprule
+System & Architecture & Input & Output & Ratio & Ceiling? \\
+\midrule
+our system & Supersession chains & 2{}635 & 2{}635 & 1.00 & No \\
+SimpleMem & Semantic compression & 200 & 237 & 1.19 & No \\
+Hindsight & Bi-temporal + consolidate & 200 & 100 & 0.50 & Yes (100) \\
+mem0 & LLM extraction & 200 & 20 & 0.10 & Yes (20) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{our system (1.00x).} Every write creates a new record; 2{}635 records with 347 chains after 30 days. Linear growth, no ceiling.
+
+\paragraph{SimpleMem (1.19x).} Semantic lossless compression splits complex records into multiple entries, producing more memories than input. Growth: 67, 138, 187, 237.
+
+\paragraph{Hindsight (0.50x).} Consolidation produced 100 memory units from the first 50 records, then zero additional. The ceiling is soft: the consolidation model deems new content already covered.
+
+\paragraph{mem0 (0.10x).} LLM extraction converged to 20 memories after the first 50 records; zero new memories from the remaining 150. The ceiling is hard: the extraction prompt classifies all subsequent content as duplicates.
+
+our system's row shows its full 30-day deployment (2{}635 records); the others use a 200-record subset. Each system uses its default embedding backend, introducing a potential confound.
+
+\subsection{The Architecture-Evaluation Connection}
+Our cross-system comparison reveals that memory architecture and evaluation methodology are not independent choices. A preservation-oriented system produces temporally dependent data where random CV is invalid. A compression-oriented system converges to a fixed-size store where random CV may be valid but information loss is invisible. Researchers choosing a memory architecture are implicitly choosing an evaluation methodology.
+
+
+\section{Related Work}
+
+
+\textbf{Agent memory systems.} mem0~\cite{mem0} provides production-ready memory with LLM-based extraction. Zep implements a temporal knowledge graph. Engram~\cite{engram} implements bi-temporal storage with supersession. MemStrata~\cite{memstrata} uses deterministic supersession; TGMS~\cite{tgms} provides typed temporal graph operators. SimpleMem, CALM,  Memanto, and Supersede address complementary aspects of memory management.
+
+\textbf{Tamper-evident logging.} TraceKit audits intent-reasoning-action chains. Mandato applies hash-chained audit to MCP tool-calling. Proof-of-Execution Memory defends against forged-reasoning attacks. MemMark uses watermarking for state-evolution attribution. Our work applies hash-chain auditing specifically to memory writes.
+
+\textbf{Evaluation methodology.} LongMemEval established the dominant benchmark with 500 questions across five dimensions. Tashman established rolling-origin evaluation for forecasting. Bergmeir and Benitez analyzed cross-validation for time series. Kaufman et al. formalized data leakage. Kapoor and Narayanan documented the reproducibility crisis. Gama et al. surveyed concept drift adaptation. MemoryAgentBench measures task success. Our work contributes ClockScore for deployment-aligned evaluation and discovers cross-benchmark direction reversal.
+
+\textbf{Write governance.} Cache admission policies (TinyLFU, ARC~\cite{arc}) solve the analogous problem in database buffer pools. LSM-tree compaction provides write-side optimization. Our work adapts these concepts to agent memory where admission must consider semantic novelty and predicted utility.
+
+\section{GovernedMemory Bench}
+
+
+We provide GovernedMemory Bench, a benchmark with 8{,}005 tasks across four dimensions of agent memory governance: supersession prediction (2{}635 tasks, 386 positive), entity grounding (2{}635 tasks, 1{}172 positive), retrieval readiness (2{}635 tasks, 1{}921 positive), and temporal ordering (100 pairwise tasks). All ground truth is objective, derived from pilot data. The split is chronological (first 1{}581 records for training); tasks are derived per record and split at the record level. Majority-class baselines are $F_1{=}0.461$ (supersession) and 0.0 for entity grounding/retrieval readiness (class imbalance).
+
+\section{Ablation Study}
+
+\begin{table}[h]
+\centering
+\caption{Ablation (ConflictBank, $n{=}2{}000$).}
+\begin{tabular}{lrrr}
+\toprule
+Configuration & Prec. & Recall & $F_1$ \\
+\midrule
+Full system & 1.000 & 0.814 & \textbf{0.897} \\
+Numeric only & 1.000 & 0.801 & 0.890 \\
+Temporal only & 1.000 & 0.553 & 0.712 \\
+No entity matching & 0.480 & 0.821 & 0.606 \\
+MemStrata SPO proxy & 1.000 & 0.792 & 0.884 \\
+Engram real ($n{=}100$) & --- & 0.000 & 0.000 \\
+BM25 keyword & 0.602 & 0.351 & 0.443 \\
+LLM (GLM-5.3) & 1.000 & 0.060 & 0.113 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Entity matching is critical: removing it drops precision from 1.000 to 0.480 ($-29.1$\,pp). Engram's conflict resolution did not detect temporal fact conflicts in our evaluation ($F_1{=}0.000$, $n{=}100$). BM25 achieves $F_1{=}0.443$.
+
+179/186 false negatives share the same year and number set. The detector is primarily a number-matching system.
+
+\section{Latency Analysis}
+
+
+\begin{table}[h]
+\centering
+\caption{Measured latency layers on a pilot-sized database (vector search disabled).}
+\begin{tabular}{lrr}
+\toprule
+Layer & Median (ms) & Mean (ms) \\
+\midrule
+Raw SQL search (FTS5) & 0.4 & 0.4 \\
+Gateway-level write (API path) & 10.2 & 20.5 \\
+Semantic search (SGM) & 30.5 & 31.9 \\
+Keyword search & 79.3 & 82.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raw FTS5 search completes in 0.4\,ms, while the gateway-level API path adds orchestration overhead (median 10.2\,ms for writes).
+
+Throughput reaches 462K writes/s (raw SQL) and 418K writes/s (with rerank). As-of query latency is 0.0146ms.
+
+\section{Limitations}
+\label{sec:limitations}
+
+\begin{itemize}
+\item Multi-session LongMemEval: 4.0\%; oracle session selection ceiling: 40.0\%
+\item Cross-agent contradiction finding rests on $n{=}11$ paired cases; McNemar's exact test is significant ($p{=}0.0078$) but the effect magnitude is imprecise
+\item \item LoCoMo evaluated only on conv0 subset (82 questions); controlled entity-grounding experiment underpowered (35\% power)
+\item Cross-system comparison uses 200 records per baseline vs. the full 2{}635-record pilot trace, with each system's default embedding backend (a confound)
+\\item A paired McNemar test on LoCoMo conv0 (82 questions, spark-x2.6 as unified judge) shows mem0 at 15.9\\% vs.\\ our system at 11.0\\% (p=0.289, not significant); mem0 outperforms but the difference is not statistically significant\n
+\item  ClockScore AUC=1.000 across 4 dataset types.ClockScore conflates temporal non-stationarity with data leakage; mem0/Hindsight ceiling behavior may be configuration-dependent
+\item \item MemStrata and Engram comparisons use proxy rules or our reimplementation, not their full systems
+\item LongMemEval comparisons mix two runs (our system: October~18; mem0: October~5); baseline scores are carried over from a companion cross-benchmark evaluation
+\end{itemize}
+
+\enlargethispage{15\baselineskip}
+\section{Conclusion}
+
+We presented a measurement study of a local-first agent memory system. Entity-keyed conflict detection achieved $F_1{=}0.897$. Cross-agent contradictions showed 73\,pp divergence (p=0.0078). Hybrid read path beat full-context (+13.3pp, 65.5\% fewer tokens). The contribution is measurement and instrument, not a new architecture.\enlargethispage{20\baselineskip}
+\begin{thebibliography}{99}
+\bibitem[Chen et~al.(2024)]{agentpoison}
+Chen et~al. AgentPoison. \emph{NeurIPS}, 2024.
+\bibitem[Megiddo and Modha(2003)]{arc}
+Megiddo and Modha. ARC cache. \emph{USENIX FAST}, 2003.
+\bibitem[Yadav(2026)]{memstrata}
+Yadav. Temporal validity in retrieval memory. arXiv:2606.26511.
+\bibitem[Zhang(2026)]{tgms}
+Zhang. TGMS: bi-temporal graph management. arXiv:2607.10265.
+\bibitem[Wang et~al.(2026)]{engram}
+Wang. Less context, more accuracy: bi-temporal memory engine. arXiv:2606.09900.
+\bibitem[Chhikara et~al.(2025)]{mem0}
+Chhikara et~al. Mem0. arXiv:2504.19413, 2025.
+\bibitem[Pulipaka et~al.(2026)]{sleeper}
+Pulipaka et~al. Sleeper memory poisoning. arXiv:2605.15338.
+\bibitem[Zhang et~al.(2026)]{amac}
+Zhang et~al. Adaptive memory admission. arXiv:2603.04549.
+\bibitem[Saraswat et~al.(2026)]{gatedmem}
+Saraswat et~al. Gated memory. arXiv:2610.11270.\end{thebibliography}
+\end{document}
